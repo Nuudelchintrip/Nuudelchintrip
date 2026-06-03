@@ -1,5 +1,15 @@
 import { supabase } from '../lib/supabase';
 
+function toError(error: unknown, fallback: string) {
+  if (error instanceof Error) return error;
+  if (error && typeof error === 'object') {
+    const record = error as { message?: string; details?: string; hint?: string; code?: string };
+    const parts = [record.message, record.details, record.hint, record.code ? `code: ${record.code}` : undefined].filter(Boolean);
+    if (parts.length) return new Error(parts.join(' | '));
+  }
+  return new Error(fallback);
+}
+
 export interface TripDriverSummary {
   fullName: string;
   phone?: string;
@@ -118,7 +128,7 @@ export async function canCurrentDriverCreateTrip() {
   if (!supabase) return false;
 
   const { data, error } = await supabase.rpc('can_create_trip');
-  if (error) throw error;
+  if (error) throw toError(error, 'Supabase request failed.');
   return Boolean(data);
 }
 
@@ -126,7 +136,7 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
+  if (userError) throw toError(userError, 'User session check failed.');
   const userId = userData.user?.id;
   if (!userId) throw new Error('Нэвтэрсэн жолооч олдсонгүй. Дахин нэвтэрнэ үү.');
 
@@ -151,7 +161,7 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     .select('id')
     .single();
 
-  if (error) throw error;
+  if (error) throw toError(error, 'Supabase request failed.');
   return data;
 }
 
@@ -181,7 +191,7 @@ export async function fetchActiveTrips() {
     .gt('seats_available', 0)
     .order('departure_at', { ascending: true });
 
-  if (tripError) throw tripError;
+  if (tripError) throw toError(tripError, 'Trip request failed.');
   if (!tripRows?.length) return [];
 
   const driverIds = Array.from(new Set(tripRows.map((trip) => trip.driver_id)));
@@ -197,8 +207,8 @@ export async function fetchActiveTrips() {
       .in('user_id', driverIds),
   ]);
 
-  if (profileError) throw profileError;
-  if (driverError) throw driverError;
+  if (profileError) throw toError(profileError, 'Profile request failed.');
+  if (driverError) throw toError(driverError, 'Driver profile request failed.');
 
   return mapTripRows(
     tripRows as TripRow[],
@@ -232,7 +242,7 @@ export async function fetchTripById(tripId: string) {
     .eq('id', tripId)
     .maybeSingle();
 
-  if (tripError) throw tripError;
+  if (tripError) throw toError(tripError, 'Trip request failed.');
   if (!trip) return null;
 
   const [{ data: profile }, { data: driverProfile }] = await Promise.all([
@@ -263,7 +273,7 @@ export async function createPassengerBooking(input: {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
+  if (userError) throw toError(userError, 'User session check failed.');
   const userId = userData.user?.id;
   if (!userId) throw new Error('Booking request илгээхийн тулд дахин нэвтэрнэ үү.');
 
@@ -273,7 +283,7 @@ export async function createPassengerBooking(input: {
     .eq('id', input.tripId)
     .single();
 
-  if (tripError) throw tripError;
+  if (tripError) throw toError(tripError, 'Trip request failed.');
   if (trip.seats_available < input.seatsRequested) {
     throw new Error('Сул суудлын тоо хүрэлцэхгүй байна.');
   }
@@ -291,6 +301,6 @@ export async function createPassengerBooking(input: {
     .select('id, status')
     .single();
 
-  if (error) throw error;
+  if (error) throw toError(error, 'Supabase request failed.');
   return data;
 }
