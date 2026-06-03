@@ -188,7 +188,31 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     .select('id')
     .single();
 
-  if (error) throw toError(error, 'Supabase request failed.');
+  if (error) {
+    const [{ data: profile }, { data: driverProfile }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('email, role, phone_verified, onboarding_completed, is_suspended')
+        .eq('id', userId)
+        .maybeSingle(),
+      supabase
+        .from('driver_profiles')
+        .select('verification_status')
+        .eq('user_id', userId)
+        .maybeSingle(),
+    ]);
+
+    throw new Error([
+      toError(error, 'Supabase request failed.').message,
+      `email=${profile?.email || userData.user.email || 'unknown'}`,
+      `auth_user_id=${userId}`,
+      `role=${profile?.role || 'missing'}`,
+      `phone_verified=${Boolean(profile?.phone_verified)}`,
+      `onboarding_completed=${Boolean(profile?.onboarding_completed)}`,
+      `is_suspended=${Boolean(profile?.is_suspended)}`,
+      `driver_verification=${driverProfile?.verification_status || 'missing'}`,
+    ].join(' | '));
+  }
   return data;
 }
 
