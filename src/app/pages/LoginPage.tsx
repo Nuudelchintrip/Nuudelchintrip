@@ -7,6 +7,23 @@ import { Input } from '../components/Input';
 import { loginWithSupabase } from '../services/supabaseAuth';
 import { getDashboardPath } from '../utils/auth';
 
+function getLoginErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : '';
+  const lower = message.toLowerCase();
+
+  if (lower.includes('invalid login credentials')) {
+    return 'И-мэйл эсвэл нууц үг буруу байна. Нууц үгээ мартсан бол сэргээх холбоос авна уу.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'И-мэйл баталгаажаагүй байна. Supabase/Auth email-ээ шалгаарай.';
+  }
+  if (lower.includes('auth session missing')) {
+    return 'Login session олдсонгүй. Дахин нэвтэрнэ үү.';
+  }
+
+  return message || 'Нэвтрэхэд алдаа гарлаа.';
+}
+
 export function LoginPage() {
   const [searchParams] = useSearchParams();
   const reason = searchParams.get('reason');
@@ -61,7 +78,7 @@ export function LoginPage() {
                   const profile = await loginWithSupabase(email.trim(), password);
                   window.location.href = next || getDashboardPath(profile.role);
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'Нэвтрэхэд алдаа гарлаа.');
+                  setError(getLoginErrorMessage(err));
                 } finally {
                   setIsSubmitting(false);
                 }

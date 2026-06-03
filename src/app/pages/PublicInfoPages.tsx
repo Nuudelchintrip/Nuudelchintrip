@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ArrowRight, CheckCircle2, FileText, HelpCircle, LockKeyhole, Mail, MapPin, MessageCircle, Phone, ShieldCheck } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
+import { sendPasswordResetEmail, updatePasswordWithRecovery } from '../services/supabaseAuth';
 
 const values = [
   'NuudelchinTrip нь тээврийн компани биш, аялагч болон жолоочийг ил тод мэдээллээр холбох платформ.',
@@ -123,6 +124,35 @@ export function SupportPage() {
 }
 
 export function ForgotPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setStatus('');
+    setError('');
+
+    if (!email.trim()) {
+      setError('И-мэйл хаягаа оруулна уу.');
+      return;
+    }
+    if (!email.includes('@')) {
+      setError('Одоогоор password reset зөвхөн и-мэйлээр илгээгдэнэ.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await sendPasswordResetEmail(email.trim());
+      setStatus('Password reset холбоос таны и-мэйл рүү илгээгдлээ. Inbox эсвэл spam хавтсаа шалгаарай.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Reset email илгээхэд алдаа гарлаа.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <InfoFrame narrow>
       <Card className="p-8">
@@ -131,12 +161,76 @@ export function ForgotPasswordPage() {
         </div>
         <h1 className="mt-5 text-center text-3xl font-bold text-foreground">Нууц үг сэргээх</h1>
         <p className="mx-auto mt-3 max-w-md text-center leading-7 text-muted-foreground">
-          Бүртгэлтэй утас эсвэл и-мэйлээ оруулна. Баталгаажуулах код ирсний дараа шинэ нууц үг тохируулна.
+          Бүртгэлтэй и-мэйлээ оруулна. Supabase recovery link ирсний дараа шинэ нууц үг тохируулна.
         </p>
         <div className="mt-7 space-y-4">
-          <Input label="Утас эсвэл и-мэйл" placeholder="+976 9999 9999" />
-          <Button fullWidth>Сэргээх код авах</Button>
+          <Input label="И-мэйл" type="email" placeholder="name@example.com" value={email} onChange={(event) => setEmail(event.target.value)} />
+          {error && <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">{error}</div>}
+          {status && <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm font-medium text-success">{status}</div>}
+          <Button fullWidth onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Илгээж байна...' : 'Reset link авах'}
+          </Button>
           <Button variant="ghost" fullWidth onClick={() => window.location.href = '/auth/login'}>Нэвтрэх рүү буцах</Button>
+        </div>
+      </Card>
+    </InfoFrame>
+  );
+}
+
+export function ResetPasswordPage() {
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setStatus('');
+    setError('');
+
+    if (!password) {
+      setError('Шинэ нууц үгээ оруулна уу.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Нууц үг 8-аас дээш тэмдэгттэй байх хэрэгтэй.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Нууц үг давталт таарахгүй байна.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await updatePasswordWithRecovery(password);
+      setStatus('Нууц үг шинэчлэгдлээ. Одоо шинэ нууц үгээрээ нэвтэрнэ үү.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Нууц үг шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <InfoFrame narrow>
+      <Card className="p-8">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <LockKeyhole className="h-7 w-7" />
+        </div>
+        <h1 className="mt-5 text-center text-3xl font-bold text-foreground">Шинэ нууц үг</h1>
+        <p className="mx-auto mt-3 max-w-md text-center leading-7 text-muted-foreground">
+          И-мэйлээр ирсэн recovery link-ээр орсны дараа шинэ нууц үгээ тохируулна.
+        </p>
+        <div className="mt-7 space-y-4">
+          <Input label="Шинэ нууц үг" type="password" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} />
+          <Input label="Шинэ нууц үг давтах" type="password" placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+          {error && <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">{error}</div>}
+          {status && <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm font-medium text-success">{status}</div>}
+          <Button fullWidth onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? 'Шинэчилж байна...' : 'Нууц үг шинэчлэх'}
+          </Button>
+          <Button variant="ghost" fullWidth onClick={() => window.location.href = '/auth/login'}>Нэвтрэх рүү очих</Button>
         </div>
       </Card>
     </InfoFrame>

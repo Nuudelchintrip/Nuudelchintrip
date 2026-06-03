@@ -16,7 +16,7 @@ import { LoginPage } from './pages/LoginPage';
 import { PaymentProofPage } from './pages/PaymentProofPage';
 import { PostCargoPage } from './pages/PostCargoPage';
 import { PricingPage } from './pages/PricingPage';
-import { AboutPage, FaqPage, ForgotPasswordPage, LegalPage, NotFoundPage, SupportPage } from './pages/PublicInfoPages';
+import { AboutPage, FaqPage, ForgotPasswordPage, LegalPage, NotFoundPage, ResetPasswordPage, SupportPage } from './pages/PublicInfoPages';
 import { ProfileSetupPage } from './pages/ProfileSetupPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { RoleSelectPage } from './pages/RoleSelectPage';
@@ -82,6 +82,7 @@ export default function App() {
         <Route path="/terms" element={<LegalPage type="terms" />} />
         <Route path="/privacy" element={<LegalPage type="privacy" />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />

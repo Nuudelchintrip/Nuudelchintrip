@@ -110,6 +110,23 @@ export async function loginWithSupabase(email: string, password: string) {
   return localProfile;
 }
 
+export async function sendPasswordResetEmail(email: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+
+  if (error) throw error;
+}
+
+export async function updatePasswordWithRecovery(newPassword: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}
+
 export async function refreshLocalProfileFromSupabase() {
   if (!supabase) return getStoredUser();
 
