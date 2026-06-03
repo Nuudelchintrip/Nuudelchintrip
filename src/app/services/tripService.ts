@@ -140,6 +140,33 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
   const userId = userData.user?.id;
   if (!userId) throw new Error('Нэвтэрсэн жолооч олдсонгүй. Дахин нэвтэрнэ үү.');
 
+  const { data: canCreate, error: permissionError } = await supabase.rpc('can_create_trip');
+  if (permissionError) throw toError(permissionError, 'Жолоочийн эрх шалгахад алдаа гарлаа.');
+  if (!canCreate) {
+    const [{ data: profile }, { data: driverProfile }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('email, role, phone_verified, onboarding_completed, is_suspended')
+        .eq('id', userId)
+        .maybeSingle(),
+      supabase
+        .from('driver_profiles')
+        .select('verification_status')
+        .eq('user_id', userId)
+        .maybeSingle(),
+    ]);
+
+    throw new Error([
+      'Supabase RLS: энэ account route үүсгэх эрхгүй байна.',
+      `email=${profile?.email || userData.user.email || 'unknown'}`,
+      `role=${profile?.role || 'missing'}`,
+      `phone_verified=${Boolean(profile?.phone_verified)}`,
+      `onboarding_completed=${Boolean(profile?.onboarding_completed)}`,
+      `is_suspended=${Boolean(profile?.is_suspended)}`,
+      `driver_verification=${driverProfile?.verification_status || 'missing'}`,
+    ].join(' | '));
+  }
+
   const { data, error } = await supabase
     .from('trips')
     .insert({
