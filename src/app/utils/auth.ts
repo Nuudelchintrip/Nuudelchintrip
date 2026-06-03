@@ -1,5 +1,5 @@
 export type MarketplaceRole = 'traveler' | 'driver' | 'cargo_sender' | 'admin';
-export type DriverVerificationStatus = 'pending' | 'approved' | 'rejected';
+export type DriverVerificationStatus = 'not_submitted' | 'pending' | 'approved' | 'rejected';
 
 export interface MockUserProfile {
   role: MarketplaceRole;

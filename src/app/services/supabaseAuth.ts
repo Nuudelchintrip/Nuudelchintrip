@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { saveStoredUser, updateStoredUser, type MarketplaceRole, type MockUserProfile } from '../utils/auth';
+import { getStoredUser, saveStoredUser, updateStoredUser, type DriverVerificationStatus, type MarketplaceRole, type MockUserProfile } from '../utils/auth';
 
 interface RegisterInput {
   role: MarketplaceRole;
@@ -16,7 +16,7 @@ type ProfileRow = {
   email: string | null;
   phone_verified: boolean;
   onboarding_completed: boolean;
-  verification_status?: 'pending' | 'approved' | 'rejected';
+  verification_status?: DriverVerificationStatus;
   cargo_policy_accepted: boolean;
 };
 
@@ -106,6 +106,42 @@ export async function loginWithSupabase(email: string, password: string) {
   }
 
   const localProfile = toLocalProfile({ ...profile, verification_status: verificationStatus }, email);
+  saveStoredUser(localProfile);
+  return localProfile;
+}
+
+export async function refreshLocalProfileFromSupabase() {
+  if (!supabase) return getStoredUser();
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  const userId = userData.user?.id;
+  if (!userId) return getStoredUser();
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role, full_name, phone, email, phone_verified, onboarding_completed, cargo_policy_accepted')
+    .eq('id', userId)
+    .single();
+
+  if (profileError) throw profileError;
+
+  let verificationStatus: ProfileRow['verification_status'];
+  if (profile.role === 'driver') {
+    const { data: driverProfile, error: driverError } = await supabase
+      .from('driver_profiles')
+      .select('verification_status')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (driverError) throw driverError;
+    verificationStatus = driverProfile?.verification_status;
+  }
+
+  const localProfile = toLocalProfile(
+    { ...profile, verification_status: verificationStatus },
+    userData.user.email || '',
+  );
   saveStoredUser(localProfile);
   return localProfile;
 }

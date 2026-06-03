@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ArrowLeft, Banknote, Box, Calendar, Car, CheckCircle2, Clock3, Eye, FileCheck2, MapPin, PackageCheck, Plus, Search, ShieldCheck, Star, UsersRound, X } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -12,8 +12,9 @@ import { bookings, reports, users } from '../data/mockData';
 import { locationMatchesText } from '../data/locations';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
+import { refreshLocalProfileFromSupabase } from '../services/supabaseAuth';
 import { canCurrentDriverCreateTrip, createDriverTrip, fetchActiveTrips, type MarketplaceTrip } from '../services/tripService';
-import { getStoredUser } from '../utils/auth';
+import { getStoredUser, type MockUserProfile } from '../utils/auth';
 
 type WorkRole = 'traveler' | 'driver';
 type SenderView = 'cargo' | 'proof' | 'status';
@@ -235,9 +236,10 @@ const adminCargoQueue = [
 
 export function TripFormPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
-  const user = getStoredUser();
-  const [canCreateTrip, setCanCreateTrip] = useState(user?.verification_status === 'approved');
+  const [permissionProfile, setPermissionProfile] = useState<MockUserProfile | null>(() => getStoredUser());
+  const [canCreateTrip, setCanCreateTrip] = useState(role !== 'driver');
   const [permissionLoading, setPermissionLoading] = useState(role === 'driver');
+  const [permissionMessage, setPermissionMessage] = useState('');
   const [fromAimag, setFromAimag] = useState('Улаанбаатар');
   const [fromSoum, setFromSoum] = useState('');
   const [toAimag, setToAimag] = useState('');
@@ -263,27 +265,52 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       ? 'Чиглэл нийтлэхийн тулд driver verification approved байх хэрэгтэй.'
       : '';
 
-  useEffect(() => {
-    let alive = true;
-
-    async function checkPermission() {
-      if (role !== 'driver') return;
-      setPermissionLoading(true);
-      try {
-        const allowed = await canCurrentDriverCreateTrip();
-        if (alive) setCanCreateTrip(allowed);
-      } catch {
-        if (alive) setCanCreateTrip(user?.verification_status === 'approved');
-      } finally {
-        if (alive) setPermissionLoading(false);
-      }
+  const describePermission = useCallback((profile: MockUserProfile | null) => {
+    if (!profile) {
+      return 'Supabase session олдсонгүй. Driver account-аараа дахин нэвтэрнэ үү.';
     }
 
-    checkPermission();
-    return () => {
-      alive = false;
-    };
-  }, [role, user?.verification_status]);
+    return [
+      `Одоогийн account: ${profile.email || 'email байхгүй'}`,
+      `role=${profile.role}`,
+      `phone_verified=${profile.phone_verified ? 'true' : 'false'}`,
+      `onboarding_completed=${profile.onboarding_completed ? 'true' : 'false'}`,
+      `driver_verification=${profile.verification_status || 'missing'}`,
+    ].join(' · ');
+  }, []);
+
+  const refreshDriverPermission = useCallback(async () => {
+    if (role !== 'driver') return;
+    setPermissionLoading(true);
+    setPermissionMessage('');
+    setError('');
+
+    try {
+      const refreshedProfile = await refreshLocalProfileFromSupabase();
+      setPermissionProfile(refreshedProfile);
+
+      const allowed = await canCurrentDriverCreateTrip();
+      setCanCreateTrip(allowed);
+
+      if (!allowed) {
+        setPermissionMessage(describePermission(refreshedProfile));
+      }
+    } catch (err) {
+      setCanCreateTrip(false);
+      const message = err instanceof Error ? err.message : '';
+      setPermissionMessage(
+        message.toLowerCase().includes('auth session missing')
+          ? 'Supabase session олдсонгүй. Driver account-аараа дахин нэвтэрнэ үү.'
+          : message || 'Жолоочийн эрх шалгахад алдаа гарлаа.',
+      );
+    } finally {
+      setPermissionLoading(false);
+    }
+  }, [describePermission, role]);
+
+  useEffect(() => {
+    refreshDriverPermission();
+  }, [refreshDriverPermission]);
 
   const formatLocation = (aimag: string, soum: string) => {
     if (!aimag) return '';
@@ -364,10 +391,20 @@ export function TripFormPage({ role }: { role: WorkRole }) {
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
                     Admin таны жолооны үнэмлэх, машины мэдээллийг шалгасны дараа чиглэл нийтлэх боломж нээгдэнэ.
                   </p>
+                  {(permissionMessage || permissionProfile) && (
+                    <p className="mt-2 rounded-md bg-background/70 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                      {permissionMessage || describePermission(permissionProfile)}
+                    </p>
+                  )}
                 </div>
-                <Button variant="outline" onClick={() => { window.location.href = '/dashboard/driver/verification'; }}>
-                  Verification
-                </Button>
+                <div className="flex flex-col gap-2 sm:min-w-36">
+                  <Button variant="outline" onClick={refreshDriverPermission} disabled={permissionLoading}>
+                    Дахин шалгах
+                  </Button>
+                  <Button variant="ghost" onClick={() => { window.location.href = '/dashboard/driver/verification'; }}>
+                    Verification
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -441,7 +478,12 @@ export function TripFormPage({ role }: { role: WorkRole }) {
           {disabledReason && (
             <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-muted-foreground">
               <p className="font-semibold text-foreground">{disabledReason}</p>
-              <p className="mt-1">Supabase дээр approved болгосон бол driver account-аасаа гараад дахин нэвтэрч үзнэ үү.</p>
+              <p className="mt-1">Supabase дээр approved болгосон бол “Дахин шалгах” дарж шинэ status татна уу.</p>
+              {(permissionMessage || permissionProfile) && (
+                <p className="mt-2 rounded-md bg-background/70 px-3 py-2 text-xs leading-5">
+                  {permissionMessage || describePermission(permissionProfile)}
+                </p>
+              )}
             </div>
           )}
         </Card>
