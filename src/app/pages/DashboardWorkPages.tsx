@@ -10,8 +10,9 @@ import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
 import { bookings, reports, users } from '../data/mockData';
 import { locationMatchesText } from '../data/locations';
+import { isSupabaseConfigured } from '../lib/supabase';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
-import { canCurrentDriverCreateTrip, createDriverTrip } from '../services/tripService';
+import { canCurrentDriverCreateTrip, createDriverTrip, fetchActiveTrips, type MarketplaceTrip } from '../services/tripService';
 import { getStoredUser } from '../utils/auth';
 
 type WorkRole = 'traveler' | 'driver';
@@ -51,7 +52,26 @@ const travelerMatchRequests = [
   { name: 'Ганбаатар Дорж', route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', type: 'Route match', detail: 'Маршрут болон цаг давхцаж байна. Баталгаажсан хэрэглэгч.', price: '₮20,000' },
 ];
 
-const driverOffers = [
+type DriverOffer = {
+  id: string | number;
+  driver: string;
+  route: string;
+  from: string;
+  to: string;
+  date: string;
+  time: string;
+  seats: number;
+  price: number;
+  vehicle: string;
+  rating: number;
+  trips: number;
+  allowsCargo: boolean;
+  cargoNote: string;
+  pickup: string;
+  source?: 'mock' | 'supabase';
+};
+
+const driverOffers: DriverOffer[] = [
   {
     id: 1,
     driver: 'Бат Болд',
@@ -104,6 +124,35 @@ const driverOffers = [
     pickup: 'Драгон төв',
   },
 ];
+
+function toDriverOffer(trip: MarketplaceTrip): DriverOffer {
+  const departure = new Date(trip.departureAt);
+  const date = Number.isNaN(departure.getTime()) ? trip.departureAt.slice(0, 10) : departure.toISOString().slice(0, 10);
+  const time = Number.isNaN(departure.getTime())
+    ? ''
+    : departure.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  return {
+    id: trip.id,
+    driver: trip.driver.fullName,
+    route: `${trip.fromLocation} → ${trip.toLocation}`,
+    from: trip.fromLocation,
+    to: trip.toLocation,
+    date,
+    time,
+    seats: trip.seatsAvailable,
+    price: trip.pricePerSeat,
+    vehicle: trip.driver.carModel || 'Машины мэдээлэл хүлээгдэж байна',
+    rating: trip.driver.rating || 0,
+    trips: trip.driver.completedTrips || 0,
+    allowsCargo: trip.allowsCargo,
+    cargoNote: trip.allowsCargo
+      ? trip.cargoPriceNote || `${trip.cargoCapacityKg || 0} кг хүртэл`
+      : 'Зөвхөн зорчигч',
+    pickup: trip.pickupNote || 'Pickup тохиролцоно',
+    source: 'supabase',
+  };
+}
 
 const driverMatchRequests = [
   { name: 'Оюун Наран', route: 'Улаанбаатар → Дархан', date: '2026-05-25', type: 'Аялагч хүсэлт', detail: '1 суудал хайж байна. 09:00 орчим хөдөлвөл тохирно, жижиг цүнхтэй.', price: '₮18,000' },
@@ -455,9 +504,42 @@ export function FindDriversPage() {
   const [date, setDate] = useState('');
   const [passengers, setPassengers] = useState('1');
   const [cargoOnly, setCargoOnly] = useState(false);
+  const [offers, setOffers] = useState<DriverOffer[]>(isSupabaseConfigured ? [] : driverOffers);
+  const [loadingTrips, setLoadingTrips] = useState(isSupabaseConfigured);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+
+    if (!isSupabaseConfigured) {
+      setOffers(driverOffers);
+      setLoadingTrips(false);
+      return;
+    }
+
+    setLoadingTrips(true);
+    fetchActiveTrips()
+      .then((trips) => {
+        if (!active) return;
+        setOffers(trips.map(toDriverOffer));
+        setLoadError('');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setOffers([]);
+        setLoadError(error instanceof Error ? error.message : 'Trip мэдээлэл уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingTrips(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredOffers = useMemo(() => {
-    return driverOffers.filter((offer) => {
+    return offers.filter((offer) => {
       const matchesFrom = locationMatchesText(`${offer.from} ${offer.pickup}`, fromAimag, fromSoum);
       const matchesTo = locationMatchesText(offer.to, toAimag, toSoum);
       const matchesDate = date === '' || offer.date === date;
@@ -465,7 +547,7 @@ export function FindDriversPage() {
       const matchesCargo = !cargoOnly || offer.allowsCargo;
       return matchesFrom && matchesTo && matchesDate && matchesSeats && matchesCargo;
     });
-  }, [cargoOnly, date, fromAimag, fromSoum, passengers, toAimag, toSoum]);
+  }, [cargoOnly, date, fromAimag, fromSoum, offers, passengers, toAimag, toSoum]);
 
   return (
     <DashboardFrame role="traveler">
@@ -535,6 +617,18 @@ export function FindDriversPage() {
         <p className="text-muted-foreground">{filteredOffers.length} боломжит жолооч олдлоо</p>
         <Badge variant="info">Баталгаажсан эхэнд</Badge>
       </div>
+
+      {loadingTrips && (
+        <Card className="mb-5 p-4">
+          <p className="text-sm text-muted-foreground">Жолоочийн чиглэлүүдийг уншиж байна...</p>
+        </Card>
+      )}
+
+      {loadError && (
+        <Card className="mb-5 border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">{loadError}</p>
+        </Card>
+      )}
 
       <div className="grid gap-5">
         {filteredOffers.map((offer) => (
@@ -776,7 +870,7 @@ export function DriverCargoRequestsPage() {
   );
 }
 
-function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer: (typeof driverOffers)[number]; featured?: boolean; mode?: 'booking' | 'cargo' }) {
+function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer: DriverOffer; featured?: boolean; mode?: 'booking' | 'cargo' }) {
   const isCargoMode = mode === 'cargo';
 
   return (
@@ -826,7 +920,7 @@ function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer:
           <p className="mt-1 text-3xl font-bold text-primary">₮{offer.price.toLocaleString()}</p>
           <p className="mt-1 text-xs text-muted-foreground">{isCargoMode ? offer.cargoNote : '+ platform fee'}</p>
           <div className="mt-5 grid gap-2">
-            <Button fullWidth onClick={() => window.location.href = isCargoMode ? '/cargo/new' : '/dashboard/bookings/BK-001'}>
+            <Button fullWidth onClick={() => window.location.href = isCargoMode ? '/cargo/new' : `/routes/${offer.id}`}>
               {isCargoMode ? 'Cargo request илгээх' : 'Хүсэлт илгээх'}
             </Button>
             <Button variant="outline" fullWidth onClick={() => window.location.href = `/routes/${offer.id}`}>

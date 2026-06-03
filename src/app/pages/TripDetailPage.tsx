@@ -1,14 +1,38 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowLeft, ArrowRight, Calendar, Car, CheckCircle2, CreditCard, MapPin, Package, ShieldCheck, Star, UsersRound, X } from 'lucide-react';
+import { useParams } from 'react-router';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
+import { createPassengerBooking, fetchTripById } from '../services/tripService';
 
-const route = {
+type RouteDetailView = {
+  id: string | number;
+  from: string;
+  to: string;
+  date: string;
+  time: string;
+  seats: number;
+  price: number;
+  vehicle: string;
+  pickup: string;
+  dropoff: string;
+  allowsCargo: boolean;
+  cargoNote: string;
+  source?: 'mock' | 'supabase';
+  driver: {
+    name: string;
+    rating: number;
+    trips: number;
+    phone: string;
+  };
+};
+
+const fallbackRoute: RouteDetailView = {
   id: 1,
   from: 'Улаанбаатар',
   to: 'Дархан',
@@ -29,9 +53,65 @@ const route = {
   },
 };
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export function TripDetailPage() {
+  const { id } = useParams();
   const [modal, setModal] = useState<'booking' | 'cargo' | null>(null);
   const [success, setSuccess] = useState('');
+  const [route, setRoute] = useState<RouteDetailView>(fallbackRoute);
+  const [loadingRoute, setLoadingRoute] = useState(false);
+  const [routeError, setRouteError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!id || !UUID_PATTERN.test(id)) return;
+
+    setLoadingRoute(true);
+    fetchTripById(id)
+      .then((trip) => {
+        if (!active || !trip) return;
+        const departure = new Date(trip.departureAt);
+        setRoute({
+          id: trip.id,
+          from: trip.fromLocation,
+          to: trip.toLocation,
+          date: Number.isNaN(departure.getTime()) ? trip.departureAt.slice(0, 10) : departure.toISOString().slice(0, 10),
+          time: Number.isNaN(departure.getTime())
+            ? ''
+            : departure.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+          seats: trip.seatsAvailable,
+          price: trip.pricePerSeat,
+          vehicle: trip.driver.carModel || 'Машины мэдээлэл хүлээгдэж байна',
+          pickup: trip.pickupNote || 'Pickup тохиролцоно',
+          dropoff: trip.dropoffNote || 'Dropoff тохиролцоно',
+          allowsCargo: trip.allowsCargo,
+          cargoNote: trip.allowsCargo
+            ? trip.cargoPriceNote || `${trip.cargoCapacityKg || 0} кг хүртэл`
+            : 'Авахгүй',
+          source: 'supabase',
+          driver: {
+            name: trip.driver.fullName,
+            rating: trip.driver.rating || 0,
+            trips: trip.driver.completedTrips || 0,
+            phone: trip.driver.phone ? `${trip.driver.phone.slice(0, 8)}••••` : '+976 •••• ••••',
+          },
+        });
+        setRouteError('');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setRouteError(error instanceof Error ? error.message : 'Route мэдээлэл уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingRoute(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,6 +126,18 @@ export function TripDetailPage() {
           <div className="mb-6 rounded-lg border border-success/30 bg-success/5 p-4 text-success">
             <CheckCircle2 className="mr-2 inline h-5 w-5" />
             {success}
+          </div>
+        )}
+
+        {loadingRoute && (
+          <div className="mb-6 rounded-lg border border-border bg-card p-4 text-muted-foreground">
+            Route мэдээлэл уншиж байна...
+          </div>
+        )}
+
+        {routeError && (
+          <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+            {routeError}
           </div>
         )}
 
@@ -142,7 +234,26 @@ export function TripDetailPage() {
         <RequestModal
           type={modal}
           onClose={() => setModal(null)}
-          onSubmit={() => {
+          submitting={submitting}
+          onSubmit={async () => {
+            if (modal === 'booking' && route.source === 'supabase') {
+              setSubmitting(true);
+              try {
+                const booking = await createPassengerBooking({
+                  tripId: String(route.id),
+                  seatsRequested: 1,
+                  note: 'Created from route detail page',
+                });
+                setSuccess(`Booking request Supabase-д илгээгдлээ. ID: ${booking.id}`);
+                setModal(null);
+              } catch (error) {
+                setSuccess('');
+                setRouteError(error instanceof Error ? error.message : 'Booking request илгээхэд алдаа гарлаа.');
+              } finally {
+                setSubmitting(false);
+              }
+              return;
+            }
             setSuccess(modal === 'booking' ? 'Booking request mock амжилттай илгээгдлээ.' : 'Cargo request mock амжилттай илгээгдлээ.');
             setModal(null);
           }}
@@ -154,7 +265,7 @@ export function TripDetailPage() {
   );
 }
 
-function RequestModal({ type, onClose, onSubmit }: { type: 'booking' | 'cargo'; onClose: () => void; onSubmit: () => void }) {
+function RequestModal({ type, onClose, onSubmit, submitting = false }: { type: 'booking' | 'cargo'; onClose: () => void; onSubmit: () => void | Promise<void>; submitting?: boolean }) {
   const isCargo = type === 'cargo';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4">
@@ -182,7 +293,7 @@ function RequestModal({ type, onClose, onSubmit }: { type: 'booking' | 'cargo'; 
         </div>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={onClose}>Болих</Button>
-          <Button onClick={onSubmit}>Mock submit</Button>
+          <Button onClick={onSubmit} disabled={submitting}>{submitting ? 'Илгээж байна...' : 'Илгээх'}</Button>
         </div>
       </Card>
     </div>
