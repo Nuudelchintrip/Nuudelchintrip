@@ -257,6 +257,11 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   const [submittedTripId, setSubmittedTripId] = useState('');
   const [error, setError] = useState('');
   const driverBlocked = role === 'driver' && !canCreateTrip;
+  const disabledReason = permissionLoading
+    ? 'Жолоочийн эрхийг шалгаж байна...'
+    : driverBlocked
+      ? 'Чиглэл нийтлэхийн тулд driver verification approved байх хэрэгтэй.'
+      : '';
 
   useEffect(() => {
     let alive = true;
@@ -433,6 +438,12 @@ export function TripFormPage({ role }: { role: WorkRole }) {
             </Button>
             <Button variant="outline" onClick={() => window.location.href = copy.base}>Dashboard руу буцах</Button>
           </div>
+          {disabledReason && (
+            <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-muted-foreground">
+              <p className="font-semibold text-foreground">{disabledReason}</p>
+              <p className="mt-1">Supabase дээр approved болгосон бол driver account-аасаа гараад дахин нэвтэрч үзнэ үү.</p>
+            </div>
+          )}
         </Card>
         <Card className="p-6 bg-primary/5 border-primary/20">
           <h2 className="text-xl font-semibold text-foreground">Нийтлэхээс өмнө</h2>
