@@ -1,0 +1,290 @@
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/AccountPages.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/AccountPages.tsx[39m:29:33
+[33m  42 |  import { Select } from "../components/Select";
+  43 |  import { Sidebar } from "../components/Sidebar";
+  44 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  45 |  const profiles = {
+  46 |    traveler: {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/AccountPages.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/AccountPages.tsx[39m:29:33
+[33m  42 |  import { Select } from "../components/Select";
+  43 |  import { Sidebar } from "../components/Sidebar";
+  44 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  45 |  const profiles = {
+  46 |    traveler: {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/DeliveryProofPage.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/DeliveryProofPage.tsx[39m:11:33
+[33m  25 |  import { Sidebar } from "../components/Sidebar";
+  26 |  import { getBooking } from "../data/mockData";
+  27 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  28 |  export function DeliveryProofPage() {
+  29 |    _s();[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/DeliveryProofPage.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/DeliveryProofPage.tsx[39m:11:33
+[33m  25 |  import { Sidebar } from "../components/Sidebar";
+  26 |  import { getBooking } from "../data/mockData";
+  27 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  28 |  export function DeliveryProofPage() {
+  29 |    _s();[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/PaymentProofPage.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/PaymentProofPage.tsx[39m:10:33
+[33m  25 |  import { Sidebar } from "../components/Sidebar";
+  26 |  import { getBooking } from "../data/mockData";
+  27 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  28 |  export function PaymentProofPage() {
+  29 |    _s();[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/PaymentProofPage.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/PaymentProofPage.tsx[39m:10:33
+[33m  25 |  import { Sidebar } from "../components/Sidebar";
+  26 |  import { getBooking } from "../data/mockData";
+  27 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  28 |  export function PaymentProofPage() {
+  29 |    _s();[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/TravelerDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/TravelerDashboard.tsx[39m:7:33
+[33m  21 |  import { AppFooter } from "../components/Footer";
+  22 |  import { Sidebar } from "../components/Sidebar";
+  23 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  24 |  const stats = [
+  25 |    { label: "Идэвхтэй аялал", value: "2", tone: "bg-primary", icon: /* @__PURE__ */ jsxDEV(Bus, { className: "w-5 h-5" }, void 0, false, {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 9)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:25 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/TravelerDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/TravelerDashboard.tsx[39m:7:33
+[33m  21 |  import { AppFooter } from "../components/Footer";
+  22 |  import { Sidebar } from "../components/Sidebar";
+  23 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  24 |  const stats = [
+  25 |    { label: "Идэвхтэй аялал", value: "2", tone: "bg-primary", icon: /* @__PURE__ */ jsxDEV(Bus, { className: "w-5 h-5" }, void 0, false, {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 9)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/DriverDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/DriverDashboard.tsx[39m:7:33
+[33m  21 |  import { AppFooter } from "../components/Footer";
+  22 |  import { Sidebar } from "../components/Sidebar";
+  23 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  24 |  const stats = [
+  25 |    { label: "Идэвхтэй маршрут", value: "3", tone: "bg-primary", icon: /* @__PURE__ */ jsxDEV(Car, { className: "w-5 h-5" }, void 0, false, {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 9)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/DriverDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/DriverDashboard.tsx[39m:7:33
+[33m  21 |  import { AppFooter } from "../components/Footer";
+  22 |  import { Sidebar } from "../components/Sidebar";
+  23 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  24 |  const stats = [
+  25 |    { label: "Идэвхтэй маршрут", value: "3", tone: "bg-primary", icon: /* @__PURE__ */ jsxDEV(Car, { className: "w-5 h-5" }, void 0, false, {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 9)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/SenderDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/SenderDashboard.tsx[39m:7:33
+[33m  21 |  import { Button } from "../components/Button";
+  22 |  import { AppFooter } from "../components/Footer";
+  23 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  24 |  export function SenderDashboard() {
+  25 |    const stats = [[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 9)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/SenderDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/SenderDashboard.tsx[39m:7:33
+[33m  21 |  import { Button } from "../components/Button";
+  22 |  import { AppFooter } from "../components/Footer";
+  23 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  24 |  export function SenderDashboard() {
+  25 |    const stats = [[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 9)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/AdminDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/AdminDashboard.tsx[39m:21:33
+[33m  33 |  import { Sidebar } from "../components/Sidebar";
+  34 |  import { bookings, reports, users } from "../data/mockData";
+  35 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  36 |  const verificationQueue = [
+  37 |    {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 10)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/AdminDashboard.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/AdminDashboard.tsx[39m:21:33
+[33m  33 |  import { Sidebar } from "../components/Sidebar";
+  34 |  import { bookings, reports, users } from "../data/mockData";
+  35 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  36 |  const verificationQueue = [
+  37 |    {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 10)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/DashboardWorkPages.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/DashboardWorkPages.tsx[39m:11:33
+[33m  26 |  import { Sidebar } from "../components/Sidebar";
+  27 |  import { bookings, reports, users } from "../data/mockData";
+  28 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  29 |  const roleCopy = {
+  30 |    traveler: {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 13)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+      at async viteTransformMiddleware (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:37250:24)
+[2m6:44:26 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "../navigation/dashboardMenus" from "src/app/pages/DashboardWorkPages.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/User/OneDrive/Desktop/NuudelchinTrip/src/app/pages/DashboardWorkPages.tsx[39m:11:33
+[33m  26 |  import { Sidebar } from "../components/Sidebar";
+  27 |  import { bookings, reports, users } from "../data/mockData";
+  28 |  import { getDashboardMenu } from "../navigation/dashboardMenus";
+     |                                    ^
+  29 |  const roleCopy = {
+  30 |    traveler: {[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42499:41)
+      at TransformPluginContext.error (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42496:16)
+      at normalizeUrl (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40475:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40594:37
+      at async Promise.all (index 13)
+      at async TransformPluginContext.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:40521:7)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:42294:18)
+      at async loadAndTransform (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:35735:27)
+      at async viteTransformMiddleware (file:///C:/Users/User/OneDrive/Desktop/NuudelchinTrip/node_modules/.pnpm/vite@6.3.5_jiti@2.7.0_lightningcss@1.30.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:37250:24)

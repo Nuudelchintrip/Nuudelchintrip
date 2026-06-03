@@ -1,0 +1,71 @@
+
+  [32m[1mVITE[22m v6.3.5[39m  [2mready in [0m[1m627[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[2m9:58:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/ProfileSetupPage.tsx, /src/styles/index.css[22m
+[2m9:58:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/ProfileSetupPage.tsx, /src/styles/index.css[22m
+[2m10:05:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:06:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:06:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/app/pages/DashboardWorkPages.tsx[22m Could not Fast Refresh (new export)
+[2m10:06:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+[2m10:06:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:06:48 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+[2m10:13:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /src/app/pages/AccountPages.tsx, /src/app/pages/AdminDashboard.tsx, /src/app/pages/DriverDashboard.tsx, /src/app/pages/DeliveryProofPage.tsx, /src/app/pages/TravelerDashboard.tsx, /src/app/pages/SenderDashboard.tsx, /src/app/pages/PaymentProofPage.tsx, /src/app/pages/DashboardWorkPages.tsx[22m
+[2m10:13:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+[2m10:16:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\User\OneDrive\Desktop\NuudelchinTrip\src\app\components\Sidebar.tsx, /src/styles/index.css[22m
+[2m10:19:43 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\User\OneDrive\Desktop\NuudelchinTrip\src\app\components\Sidebar.tsx, /src/styles/index.css[22m
+[2m10:25:52 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /src/app/pages/AccountPages.tsx, /src/app/pages/AdminDashboard.tsx, /src/app/pages/DriverDashboard.tsx, /src/app/pages/DeliveryProofPage.tsx, /src/app/pages/TravelerDashboard.tsx, /src/app/pages/SenderDashboard.tsx, /src/app/pages/PaymentProofPage.tsx, /src/app/pages/DashboardWorkPages.tsx[22m
+[2m10:26:06 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+[2m10:26:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:26:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/src/app/pages/DashboardWorkPages.tsx[22m Could not Fast Refresh (new export)
+[2m10:26:57 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+[2m10:27:22 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/App.tsx, /src/styles/index.css[22m
+[2m10:27:47 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:29:11 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/ProfileSetupPage.tsx, /src/styles/index.css[22m
+[2m10:29:27 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/HomePage.tsx, /src/styles/index.css[22m
+[2m10:29:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/RoleSelectPage.tsx, /src/styles/index.css[22m
+[2m10:30:38 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:30:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TravelerDashboard.tsx, /src/styles/index.css[22m
+[2m10:31:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DriverDashboard.tsx, /src/styles/index.css[22m
+[2m10:31:10 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/ProfileSetupPage.tsx, /src/styles/index.css[22m
+[2m10:31:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/HomePage.tsx, /src/styles/index.css[22m
+[2m10:31:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/PublicInfoPages.tsx, /src/styles/index.css[22m
+[2m10:31:40 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TripDetailPage.tsx, /src/styles/index.css[22m
+[2m10:32:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TripsPage.tsx, /src/styles/index.css[22m
+[2m10:32:20 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/PricingPage.tsx, /src/styles/index.css[22m
+[2m10:32:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/PaymentProofPage.tsx, /src/styles/index.css[22m
+[2m10:47:07 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/HomePage.tsx, /src/styles/index.css[22m
+[2m10:47:21 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:47:45 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TripsPage.tsx, /src/styles/index.css[22m
+[2m10:47:59 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TripsPage.tsx, /src/styles/index.css[22m
+[2m10:48:14 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TripsPage.tsx, /src/styles/index.css[22m
+[2m10:48:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TripsPage.tsx, /src/styles/index.css[22m
+[2m10:49:00 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/RoleSelectPage.tsx, /src/styles/index.css[22m
+[2m10:50:32 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\User\OneDrive\Desktop\NuudelchinTrip\src\app\components\Sidebar.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AdminDashboard.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AccountPages.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DeliveryProofPage.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DriverDashboard.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/PaymentProofPage.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/SenderDashboard.tsx, /src/styles/index.css[22m
+[2m10:55:56 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TravelerDashboard.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AccountPages.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DriverDashboard.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DeliveryProofPage.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/PaymentProofPage.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TravelerDashboard.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AdminDashboard.tsx, /src/styles/index.css[22m
+[2m10:57:01 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/SenderDashboard.tsx, /src/styles/index.css[22m
+[2m11:12:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/@fs/C:\Users\User\OneDrive\Desktop\NuudelchinTrip\src\app\components\Footer.tsx, /src/styles/index.css[22m
+[2m11:12:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [33mhmr invalidate [39m[2m/@fs/C:\Users\User\OneDrive\Desktop\NuudelchinTrip\src\app\components\Footer.tsx[22m Could not Fast Refresh (new export)
+[2m11:12:55 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/styles/index.css, /src/app/pages/ProfileSetupPage.tsx, /src/app/pages/SafetyPage.tsx, /src/app/pages/PricingPage.tsx, /src/app/pages/HowItWorksPage.tsx, /src/app/pages/TripsPage.tsx, /src/app/pages/TripDetailPage.tsx, /src/app/pages/PostCargoPage.tsx, /src/app/pages/BookingDetailPage.tsx, /src/app/pages/HomePage.tsx, /src/app/pages/PublicInfoPages.tsx[22m
+[2m11:13:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AdminDashboard.tsx, /src/styles/index.css[22m
+[2m11:13:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/TravelerDashboard.tsx, /src/styles/index.css[22m
+[2m11:13:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DriverDashboard.tsx, /src/styles/index.css[22m
+[2m11:13:35 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/SenderDashboard.tsx, /src/styles/index.css[22m
+[2m11:14:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/PaymentProofPage.tsx, /src/styles/index.css[22m
+[2m11:14:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DeliveryProofPage.tsx, /src/styles/index.css[22m
+[2m11:14:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/DashboardWorkPages.tsx, /src/styles/index.css[22m
+[2m11:14:16 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/app/pages/AccountPages.tsx, /src/styles/index.css[22m
