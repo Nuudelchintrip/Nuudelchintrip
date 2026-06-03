@@ -33,3 +33,4 @@ Set these Vercel Environment Variables for Production, Preview, and Development:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
+"# Nuudelchintrip" 
