@@ -234,6 +234,23 @@ const adminCargoQueue = [
   },
 ];
 
+function readableError(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === 'object') {
+    const record = error as { message?: string; details?: string; hint?: string; code?: string; name?: string };
+    const parts = [
+      record.message,
+      record.details,
+      record.hint,
+      record.code ? `code: ${record.code}` : undefined,
+      record.name,
+    ].filter(Boolean);
+    if (parts.length) return parts.join(' | ');
+  }
+  if (typeof error === 'string') return error;
+  return fallback;
+}
+
 export function TripFormPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
   const [permissionProfile, setPermissionProfile] = useState<MockUserProfile | null>(() => getStoredUser());
@@ -297,7 +314,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       }
     } catch (err) {
       setCanCreateTrip(false);
-      const message = err instanceof Error ? err.message : '';
+      const message = readableError(err, '');
       setPermissionMessage(
         message.toLowerCase().includes('auth session missing')
           ? 'Supabase session олдсонгүй. Driver account-аараа дахин нэвтэрнэ үү.'
