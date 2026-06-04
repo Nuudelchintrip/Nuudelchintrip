@@ -76,12 +76,12 @@ export function BookingDetailPage() {
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="w-4 h-4" />
-          Dashboard руу буцах
+          Самбар руу буцах
         </button>
 
         {loadingBooking && (
           <div className="mb-6 rounded-lg border border-border bg-card p-4 text-muted-foreground">
-            Booking detail Supabase-аас уншиж байна...
+            Захиалгын мэдээллийг уншиж байна...
           </div>
         )}
 
@@ -138,7 +138,7 @@ export function BookingDetailPage() {
 
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-foreground">Booking status timeline</h2>
+                <h2 className="text-xl font-semibold text-foreground">Захиалгын явц</h2>
               </CardHeader>
               <CardBody>
                 <div className="space-y-4">
@@ -167,7 +167,6 @@ export function BookingDetailPage() {
                         <div className={`rounded-xl border p-4 ${current ? 'border-warning/30 bg-warning/5' : 'border-border bg-card'}`}>
                           <div className="flex flex-wrap items-center gap-2">
                             <p className={`font-semibold ${completed || current ? 'text-foreground' : 'text-muted-foreground'}`}>{step.label}</p>
-                            <span className="text-xs font-mono text-muted-foreground">{step.code}</span>
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
                         </div>
@@ -222,13 +221,13 @@ export function BookingDetailPage() {
 
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-foreground">Evidence checklist</h2>
+                <h2 className="text-xl font-semibold text-foreground">Баталгаажуулах зүйлс</h2>
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <EvidenceItem icon={<CreditCard className="w-5 h-5" />} title="Төлбөрийн proof" status={booking.payment.status === 'approved' ? 'Баталгаажсан' : 'Хүлээгдэж байна'} active={booking.payment.status === 'approved'} />
-                  <EvidenceItem icon={<Camera className="w-5 h-5" />} title="Аяллын баталгаа" status={currentIndex >= getStatusIndex('on_trip') ? 'Proof орсон' : 'Жолооч оруулах боломжтой'} active={currentIndex >= getStatusIndex('on_trip')} />
-                  <EvidenceItem icon={<FileCheck2 className="w-5 h-5" />} title="6 оронтой trip code" status="Хадгалагдсан" active />
+                  <EvidenceItem icon={<CreditCard className="w-5 h-5" />} title="Төлбөрийн баримт" status={booking.payment.status === 'approved' ? 'Баталгаажсан' : 'Хүлээгдэж байна'} active={booking.payment.status === 'approved'} />
+                  <EvidenceItem icon={<Camera className="w-5 h-5" />} title="Аяллын баталгаа" status={currentIndex >= getStatusIndex('on_trip') ? 'Баталгаа орсон' : 'Жолооч оруулах боломжтой'} active={currentIndex >= getStatusIndex('on_trip')} />
+                  <EvidenceItem icon={<FileCheck2 className="w-5 h-5" />} title="6 оронтой аяллын код" status="Бэлэн" active />
                 </div>
               </CardBody>
             </Card>
@@ -250,7 +249,7 @@ export function BookingDetailPage() {
                     </div>
                   ))}
                   {booking.messages.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Энэ booking дээр мессеж хараахан алга.</p>
+                    <p className="text-sm text-muted-foreground">Энэ захиалга дээр мессеж хараахан алга.</p>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -270,7 +269,7 @@ export function BookingDetailPage() {
                 <PersonCard title="Аялагч" name={booking.passenger.name} phone={booking.passenger.phone} verified={booking.passenger.verified} tone="primary" />
                 <PersonCard title="Жолооч" name={booking.driver.name} phone={booking.driver.phone} verified={booking.driver.verified} tone="accent" meta={`Үнэлгээ: ${booking.driver.rating}/5.0`} />
                 <div className="rounded-xl border border-border bg-muted/30 p-4">
-                  <p className="text-sm text-muted-foreground">Pickup / dropoff</p>
+                  <p className="text-sm text-muted-foreground">Авах / буулгах цэг</p>
                   <p className="mt-1 font-semibold text-foreground">{booking.ride.pickupNote}</p>
                   <p className="text-sm text-muted-foreground">{booking.ride.dropoffNote}</p>
                 </div>
@@ -279,7 +278,7 @@ export function BookingDetailPage() {
 
             <Card className="bg-primary/5 border-primary/20">
               <CardHeader>
-                <h3 className="font-semibold text-foreground">Trip code</h3>
+                <h3 className="font-semibold text-foreground">Аяллын код</h3>
               </CardHeader>
               <CardBody>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -298,7 +297,7 @@ export function BookingDetailPage() {
               <CardBody>
                 <div className="space-y-3 mb-5">
                   <PriceRow label="Тохиролцсон үнэ" value={booking.price.agreed} />
-                  <PriceRow label="Service fee (10%)" value={booking.price.serviceFee} />
+                  <PriceRow label="Үйлчилгээний шимтгэл (10%)" value={booking.price.serviceFee} />
                   <div className="border-t border-border pt-3">
                     <PriceRow label="Нийт" value={booking.price.total} strong />
                   </div>
@@ -318,7 +317,7 @@ export function BookingDetailPage() {
               <CardBody>
                 <div className="flex gap-3 mb-4">
                   <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">Маргаан гарвал төлбөрийн баримт, trip proof, мессеж admin-д evidence болно.</p>
+                  <p className="text-sm text-muted-foreground">Маргаан гарвал төлбөрийн баримт, аяллын баталгаа, мессеж админд нотолгоо болно.</p>
                 </div>
                 <Button variant="ghost" fullWidth className="text-destructive hover:bg-destructive/10">
                   <Flag className="w-4 h-4" />
@@ -339,8 +338,8 @@ function getNextAction(status: string, bookingId: string) {
   if (status === 'accepted' || status === 'waiting_payment') {
     return {
       icon: <CreditCard className="w-6 h-6" />,
-      title: 'Дараагийн алхам: төлбөрийн proof илгээх',
-      description: 'Төлбөрөө шилжүүлээд screenshot эсвэл transaction code оруулна. Admin баталгаажуулсны дараа аялал confirmed болно.',
+      title: 'Дараагийн алхам: төлбөрийн баримт илгээх',
+      description: 'Төлбөрөө шилжүүлээд screenshot эсвэл гүйлгээний код оруулна. Админ баталгаажуулсны дараа аялал баталгаажна.',
       button: 'Төлбөрийн баримт',
       href: `/dashboard/bookings/${bookingId}/payment-proof`,
     };
@@ -350,7 +349,7 @@ function getNextAction(status: string, bookingId: string) {
     return {
       icon: <CreditCard className="w-6 h-6" />,
       title: 'Төлбөрийн баримт шалгагдаж байна',
-      description: 'Таны proof admin queue руу орсон. Баталгаажсаны дараа booking confirmed төлөв рүү шилжинэ.',
+      description: 'Таны баримт админы шалгалтад орсон. Баталгаажсаны дараа захиалга баталгаажсан төлөв рүү шилжинэ.',
       button: 'Баримтаа харах',
       href: `/dashboard/bookings/${bookingId}/payment-proof`,
     };
@@ -360,7 +359,7 @@ function getNextAction(status: string, bookingId: string) {
     return {
       icon: <Camera className="w-6 h-6" />,
       title: 'Дараагийн алхам: аяллын баталгаа бүрдүүлэх',
-      description: 'Pickup/эхэлсэн болон completed proof, аялагчийн 6 оронтой кодыг оруулж аяллыг баталгаажуулна.',
+      description: 'Аялал эхэлсэн болон дууссан баталгаа, аялагчийн 6 оронтой кодоор аяллыг баталгаажуулна.',
       button: 'Аяллын баталгаа',
       href: `/dashboard/bookings/${bookingId}/delivery-proof`,
     };
@@ -368,8 +367,8 @@ function getNextAction(status: string, bookingId: string) {
 
   return {
     icon: <CheckCircle className="w-6 h-6" />,
-    title: 'Booking явц хянагдаж байна',
-    description: 'Одоогийн төлөв дээр шаардлагатай proof, message, status мэдээллээ шалгаарай.',
+    title: 'Захиалгын явц хянагдаж байна',
+    description: 'Одоогийн төлөв дээр шаардлагатай баримт, мессеж, дараагийн алхмаа шалгаарай.',
     button: 'Дэлгэрэнгүй',
     href: `/dashboard/bookings/${bookingId}`,
   };
@@ -433,15 +432,15 @@ function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBo
     status: detail.status as BookingStatus,
     ride: {
       title: `${detail.seatsRequested} суудал`,
-      description: detail.note || 'Аялагч жолоочид суудлын booking request илгээсэн.',
+      description: detail.note || 'Аялагч жолоочид суудлын захиалгын хүсэлт илгээсэн.',
       seats: detail.seatsRequested,
       luggage: 'Хувийн жижиг цүнх',
-      pickupNote: detail.trip.pickupNote || 'Pickup тохиролцоно',
-      dropoffNote: detail.trip.dropoffNote || 'Dropoff тохиролцоно',
+      pickupNote: detail.trip.pickupNote || 'Авах цэг тохиролцоно',
+      dropoffNote: detail.trip.dropoffNote || 'Буулгах цэг тохиролцоно',
     },
     cargo: {
       name: `${detail.seatsRequested} суудал`,
-      description: 'Passenger booking. Дайвар ачаанаас тусдаа зорчигчийн хүсэлт.',
+      description: 'Зорчигчийн захиалга. Дайвар ачаанаас тусдаа зорчигчийн хүсэлт.',
       weight: 'Хувийн ачаа',
       size: `${detail.seatsRequested} суудал`,
       type: 'Аялагч',
@@ -450,9 +449,9 @@ function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBo
     },
     route: {
       from: detail.trip.fromLocation,
-      fromDetail: detail.trip.pickupNote || 'Pickup тохиролцоно',
+      fromDetail: detail.trip.pickupNote || 'Авах цэг тохиролцоно',
       to: detail.trip.toLocation,
-      toDetail: detail.trip.dropoffNote || 'Dropoff тохиролцоно',
+      toDetail: detail.trip.dropoffNote || 'Буулгах цэг тохиролцоно',
       date,
       time,
     },
@@ -502,7 +501,7 @@ function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBo
     tripCode: detail.id.slice(0, 6).toUpperCase(),
     deliveryCode: detail.id.slice(0, 6).toUpperCase(),
     messages: detail.note
-      ? [{ author: detail.traveler.fullName, body: detail.note, time: 'Booking үүсэх үед', own: false }]
+      ? [{ author: detail.traveler.fullName, body: detail.note, time: 'Захиалга үүсэх үед', own: false }]
       : [],
   };
 }

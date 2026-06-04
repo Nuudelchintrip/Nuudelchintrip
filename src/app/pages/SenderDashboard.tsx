@@ -52,7 +52,7 @@ export function SenderDashboard() {
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <h1 className="mb-2 text-3xl font-bold leading-tight text-foreground sm:text-4xl">Дайвар ачааны самбар</h1>
-          <p className="max-w-3xl leading-7 text-muted-foreground">Жолоочийн route дээр суурилсан жижиг ачааны хүсэлт, proof, delivery code-оо хянаарай.</p>
+          <p className="max-w-3xl leading-7 text-muted-foreground">Жолоочийн нийтэлсэн чиглэл дээр суурилсан жижиг дайвар ачааны хүсэлт, төлбөрийн баримт, хүргэлтийн кодоо хянаарай.</p>
         </div>
 
         {/* Stats */}
@@ -83,7 +83,7 @@ export function SenderDashboard() {
               <h2 className="text-xl font-semibold text-foreground">Миний дайвар ачаа</h2>
               <Button className="w-full sm:w-auto" variant="primary" size="sm" onClick={() => window.location.href = '/cargo/find-routes'}>
                 <Package className="w-4 h-4" />
-                Ачаа авах route хайх
+                Ачаа авах чиглэл хайх
               </Button>
             </div>
           </CardHeader>
@@ -112,7 +112,7 @@ export function SenderDashboard() {
                       <p className="mt-1 font-medium text-foreground">{cargo.date}</p>
                     </div>
                     <div>
-                      <p className="text-muted-foreground">Жолооч / route</p>
+                      <p className="text-muted-foreground">Жолооч / чиглэл</p>
                       <p className="mt-1 font-medium text-foreground">{cargo.traveler}</p>
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export function SenderDashboard() {
                       Огноо
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Жолооч / route
+                      Жолооч / чиглэл
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Төлөв

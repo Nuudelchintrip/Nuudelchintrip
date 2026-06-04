@@ -52,7 +52,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
       }
       window.location.href = getDashboardPath(normalizedRole);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Profile setup хадгалахад алдаа гарлаа.');
+        setError(err instanceof Error ? err.message : 'Мэдээлэл хадгалахад алдаа гарлаа.');
     } finally {
       setIsSubmitting(false);
     }
@@ -69,15 +69,15 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <Badge variant={isDriver ? 'success' : isCargo ? 'warning' : 'info'} className="mb-4">
-            Role-specific setup
+            Анхны тохиргоо
           </Badge>
           <h1 className="text-3xl font-bold text-foreground">
-            {isTraveler ? 'Аялагчийн profile' : isDriver ? 'Жолоочийн баталгаажуулалт' : 'Дайвар ачааны дүрэм'}
+            {isTraveler ? 'Аялагчийн мэдээлэл' : isDriver ? 'Жолоочийн баталгаажуулалт' : 'Дайвар ачааны дүрэм'}
           </h1>
           <p className="mt-3 max-w-3xl text-muted-foreground">
-            {isTraveler && 'Үндсэн бүртгэл дууссан. Яаралтай холбоо барих мэдээллээ нэмээд dashboard руу орно.'}
-            {isDriver && 'Машин болон жолоочийн verification мэдээллээ илгээсний дараа admin шалгана.'}
-            {isCargo && 'Дайвар ачаа нь жолоочийн route дээр суурилсан add-on тул ачааны дүрмийг зөвшөөрөх шаардлагатай.'}
+            {isTraveler && 'Үндсэн бүртгэл дууссан. Яаралтай холбоо барих мэдээллээ нэмээд самбар руу орно.'}
+            {isDriver && 'Машин болон жолоочийн баталгаажуулалтын мэдээллээ илгээсний дараа админ шалгана.'}
+            {isCargo && 'Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж тул ачааны дүрмийг зөвшөөрөх шаардлагатай.'}
           </p>
         </div>
 
@@ -92,12 +92,12 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
             <CardBody>
               <div className="mb-5 rounded-lg border-2 border-dashed border-border bg-muted/20 p-6 text-center">
                 <Camera className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-                <p className="font-medium text-foreground">Profile зураг placeholder</p>
-                <p className="text-sm text-muted-foreground">Дараа нь settings дээр сольж болно.</p>
+                <p className="font-medium text-foreground">Профайл зураг</p>
+                <p className="text-sm text-muted-foreground">Дараа нь тохиргоо хэсгээс сольж болно.</p>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <Input label="Emergency contact name" placeholder="Холбоо барих хүний нэр" value={emergencyContactName} onChange={(event) => setEmergencyContactName(event.target.value)} />
-                <Input label="Emergency contact phone" placeholder="+976 99999999" value={emergencyContactPhone} onChange={(event) => setEmergencyContactPhone(event.target.value)} />
+                <Input label="Яаралтай холбоо барих хүний нэр" placeholder="Холбоо барих хүний нэр" value={emergencyContactName} onChange={(event) => setEmergencyContactName(event.target.value)} />
+                <Input label="Яаралтай холбоо барих утас" placeholder="+976 99999999" value={emergencyContactPhone} onChange={(event) => setEmergencyContactPhone(event.target.value)} />
               </div>
             </CardBody>
           </Card>
@@ -114,14 +114,14 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
               </CardHeader>
               <CardBody>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Input label="Машины model" placeholder="Toyota Prius 30" value={carModel} onChange={(event) => setCarModel(event.target.value)} />
+                  <Input label="Машины загвар" placeholder="Toyota Prius 30" value={carModel} onChange={(event) => setCarModel(event.target.value)} />
                   <Input label="Улсын дугаар" placeholder="УБА 1234" value={plateNumber} onChange={(event) => setPlateNumber(event.target.value)} />
                   <Input label="Суудлын тоо" placeholder="4" value={seats} onChange={(event) => setSeats(event.target.value)} />
                 </div>
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  <UploadPlaceholder title="Жолооны үнэмлэх upload" />
-                  <UploadPlaceholder title="Машины гэрчилгээ upload" />
-                  <UploadPlaceholder title="Машины зураг upload" />
+                  <UploadPlaceholder title="Жолооны үнэмлэх" />
+                  <UploadPlaceholder title="Машины гэрчилгээ" />
+                  <UploadPlaceholder title="Машины зураг" />
                 </div>
               </CardBody>
             </Card>
@@ -129,11 +129,11 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
             <Card className="border-warning/20 bg-warning/5">
               <CardBody className="p-6">
                 <AlertTriangle className="h-8 w-8 text-warning" />
-                <h2 className="mt-4 text-xl font-semibold text-foreground">Admin review</h2>
+                <h2 className="mt-4 text-xl font-semibold text-foreground">Админ шалгалт</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Таны мэдээллийг admin шалгасны дараа чиглэл нэмэх боломж нээгдэнэ.
+                  Таны мэдээллийг админ шалгасны дараа чиглэл нэмэх боломж нээгдэнэ.
                 </p>
-                <Badge variant="warning" className="mt-4">verification_status: pending</Badge>
+                <Badge variant="warning" className="mt-4">Шалгалт хүлээгдэж байна</Badge>
               </CardBody>
             </Card>
           </div>
@@ -144,7 +144,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-warning" />
-                <h2 className="text-xl font-semibold text-foreground">Хориглосон ачааны policy</h2>
+                <h2 className="text-xl font-semibold text-foreground">Хориглосон ачааны дүрэм</h2>
               </div>
             </CardHeader>
             <CardBody>
@@ -197,7 +197,7 @@ function UploadPlaceholder({ title }: { title: string }) {
     <div className="rounded-lg border-2 border-dashed border-border bg-muted/20 p-5 text-center">
       <FileCheck2 className="mx-auto mb-3 h-9 w-9 text-muted-foreground" />
       <p className="font-medium text-foreground">{title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">MVP placeholder</p>
+      <p className="mt-1 text-xs text-muted-foreground">Файл оруулах хэсэг дараагийн шатанд холбогдоно</p>
     </div>
   );
 }

@@ -48,7 +48,7 @@ export function PostCargoPage() {
     setSubmittedCargoId('');
 
     if (!tripId) {
-      setError('Эхлээд “Ачаа авах жолооч хайх” хэсгээс route сонгоно уу.');
+      setError('Эхлээд “Ачаа авах жолооч хайх” хэсгээс чиглэл сонгоно уу.');
       return;
     }
     if (!cargoName.trim()) {
@@ -84,7 +84,7 @@ export function PostCargoPage() {
       });
       setSubmittedCargoId(result.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Cargo request хадгалахад алдаа гарлаа.');
+      setError(err instanceof Error ? err.message : 'Ачааны хүсэлт хадгалахад алдаа гарлаа.');
     } finally {
       setSubmitting(false);
     }
@@ -96,10 +96,10 @@ export function PostCargoPage() {
 
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <Badge variant="info" className="mb-4">Дайвар ачаа add-on</Badge>
+          <Badge variant="info" className="mb-4">Дайвар ачааны нэмэлт боломж</Badge>
           <h1 className="mb-2 text-3xl font-bold text-foreground">Дайвар ачаа илгээх хүсэлт</h1>
           <p className="text-muted-foreground">
-            Дайвар ачаа нь зөвхөн жолоочийн route дээр суурилна. Эхлээд ачаа авч болох route сонгоод, дараа нь жижиг ачааны хүсэлт илгээнэ.
+            Дайвар ачаа нь зөвхөн жолоочийн нийтэлсэн чиглэл дээр суурилна. Эхлээд ачаа авч болох чиглэл сонгоод, дараа нь жижиг ачааны хүсэлт илгээнэ.
           </p>
         </div>
 
@@ -108,10 +108,10 @@ export function PostCargoPage() {
             {!tripId && (
               <Card className="border-warning/30 bg-warning/5">
                 <CardBody className="p-5">
-                  <h2 className="text-xl font-semibold text-foreground">Route сонгоогүй байна</h2>
-                  <p className="mt-2 text-muted-foreground">Cargo request илгээхийн тулд allows-cargo route сонгох хэрэгтэй.</p>
+                  <h2 className="text-xl font-semibold text-foreground">Чиглэл сонгоогүй байна</h2>
+                  <p className="mt-2 text-muted-foreground">Ачааны хүсэлт илгээхийн тулд дайвар ачаа авах боломжтой чиглэл сонгох хэрэгтэй.</p>
                   <Button className="mt-4" onClick={() => { window.location.href = '/cargo/find-routes'; }}>
-                    Ачаа авах route хайх
+                    Ачаа авах чиглэл хайх
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </CardBody>
@@ -129,10 +129,10 @@ export function PostCargoPage() {
             {submittedCargoId && (
               <Card className="border-success/30 bg-success/5">
                 <CardBody className="p-5">
-                  <h2 className="text-xl font-semibold text-foreground">Cargo request Supabase-д хадгалагдлаа</h2>
-                  <p className="mt-2 text-muted-foreground">Жолоочийн “Дайвар ачааны хүсэлтүүд” дээр энэ request харагдана.</p>
+                  <h2 className="text-xl font-semibold text-foreground">Ачааны хүсэлт амжилттай илгээгдлээ</h2>
+                  <p className="mt-2 text-muted-foreground">Жолоочийн “Дайвар ачааны хүсэлтүүд” дээр энэ хүсэлт харагдана.</p>
                   <Button className="mt-4" onClick={() => { window.location.href = `/cargo/${submittedCargoId}`; }}>
-                    Cargo detail харах
+                    Ачааны явцыг харах
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </CardBody>
@@ -177,15 +177,15 @@ export function PostCargoPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold text-foreground">Route match ба байршил</h2>
+                  <h2 className="text-xl font-semibold text-foreground">Чиглэлийн тохирол ба байршил</h2>
                 </div>
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <LocationSelectGroup label="Хаанаас" aimag={fromAimag} soum={fromSoum} onAimagChange={setFromAimag} onSoumChange={setFromSoum} className="md:col-span-2" />
                   <LocationSelectGroup label="Хаашаа" aimag={toAimag} soum={toSoum} onAimagChange={setToAimag} onSoumChange={setToSoum} className="md:col-span-2" />
-                  <Input label="Pickup байршил" placeholder="Баянзүрх, 13-р хороолол" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
-                  <Input label="Dropoff байршил" placeholder="Дархан, төв зам дагуу" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
+                  <Input label="Ачаа авах байршил" placeholder="Баянзүрх, 13-р хороолол" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
+                  <Input label="Хүргэх байршил" placeholder="Дархан, төв зам дагуу" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
                   <Input label="Явуулах огноо" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
                   <Input label="Хүссэн цаг" type="time" value={time} onChange={(event) => setTime(event.target.value)} />
                 </div>
@@ -216,10 +216,10 @@ export function PostCargoPage() {
                 </div>
                 <h2 className="mb-2 text-xl font-semibold text-foreground">Дараагийн алхам</h2>
                 <p className="mb-5 text-sm text-muted-foreground">
-                  Илгээсний дараа жолооч accept/reject хийнэ. Зөвшөөрөгдвөл payment proof, pickup proof, delivery code flow нээгдэнэ.
+                  Илгээсний дараа жолооч зөвшөөрөх эсвэл татгалзах шийдвэр гаргана. Зөвшөөрөгдвөл төлбөрийн баримт, ачаа авсан баталгаа, хүргэлтийн кодын явц нээгдэнэ.
                 </p>
                 <Button variant="primary" fullWidth onClick={() => { window.location.href = '/dashboard/cargo'; }}>
-                  Dashboard руу буцах
+                  Самбар руу буцах
                   <ArrowRight className="h-4 w-4" />
                 </Button>
                 <Button className="mt-3" variant="accent" fullWidth onClick={handleSubmit} disabled={submitting || !tripId}>
@@ -231,7 +231,7 @@ export function PostCargoPage() {
 
             <Card className="border-warning/30 bg-warning/5">
               <CardBody className="p-6">
-                <h3 className="mb-3 font-semibold text-foreground">Policy confirmation</h3>
+                <h3 className="mb-3 font-semibold text-foreground">Дүрэм зөвшөөрөх</h3>
                 <label className="flex items-start gap-3 text-sm text-foreground">
                   <input
                     type="checkbox"

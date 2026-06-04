@@ -24,10 +24,10 @@ export function CargoDetailPage() {
 
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mb-8">
-          <Badge variant="warning">Mock cargo detail</Badge>
+          <Badge variant="warning">Дайвар ачаа</Badge>
           <h1 className="mt-4 text-3xl font-bold text-foreground">Дайвар ачааны дэлгэрэнгүй</h1>
           <p className="mt-3 max-w-3xl text-muted-foreground">
-            Route дээр суурилсан жижиг дайвар ачааны status, proof, delivery code-оо нэг дор харна.
+            Жолоочийн чиглэл дээр суурилсан жижиг дайвар ачааны явц, баримт, хүргэлтийн кодоо нэг дор харна.
           </p>
         </div>
 
@@ -37,14 +37,14 @@ export function CargoDetailPage() {
               <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="mb-3 flex flex-wrap gap-2">
-                    <Badge variant="warning">in_transit</Badge>
-                    <Badge variant="success">Payment approved</Badge>
+                    <Badge variant="warning">Замдаа явж байна</Badge>
+                    <Badge variant="success">Төлбөр баталгаажсан</Badge>
                   </div>
                   <h2 className="text-2xl font-semibold text-foreground">Баримт бичиг</h2>
                   <p className="mt-2 text-muted-foreground">Улаанбаатар → Дархан · 2026-05-27 · 1.2 кг</p>
                 </div>
                 <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Delivery code</p>
+                  <p className="text-sm text-muted-foreground">Хүргэлтийн код</p>
                   <p className="mt-1 text-3xl font-bold tracking-widest text-foreground">482913</p>
                 </div>
               </div>
@@ -52,7 +52,7 @@ export function CargoDetailPage() {
 
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-foreground">Cargo status timeline</h2>
+                <h2 className="text-xl font-semibold text-foreground">Ачааны явц</h2>
               </CardHeader>
               <CardBody>
                 <div className="space-y-4">
@@ -65,7 +65,6 @@ export function CargoDetailPage() {
                         </div>
                         <div className="min-w-0 flex-1 rounded-lg border border-border p-4">
                           <p className="font-semibold text-foreground">{label}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">{code}</p>
                         </div>
                       </div>
                     );
@@ -76,7 +75,7 @@ export function CargoDetailPage() {
 
             <div className="grid gap-5 md:grid-cols-2">
               <UploadBox title="Төлбөрийн баримт" icon={<CreditCard className="h-5 w-5" />} status="uploaded" />
-              <UploadBox title="Pickup proof" icon={<Package className="h-5 w-5" />} status="driver uploaded" />
+              <UploadBox title="Ачаа авсан баталгаа" icon={<Package className="h-5 w-5" />} status="Жолооч баталгаа оруулсан" />
             </div>
 
             <Card className="border-destructive/20 bg-destructive/5 p-5">
@@ -85,12 +84,12 @@ export function CargoDetailPage() {
                   <AlertTriangle className="mt-1 h-5 w-5 shrink-0 text-destructive" />
                   <div>
                     <p className="font-semibold text-foreground">Асуудал гарсан уу?</p>
-                    <p className="text-sm text-muted-foreground">Report үүсгээд admin moderation queue-д mock case нэмнэ.</p>
+                    <p className="text-sm text-muted-foreground">Асуудал мэдэгдсэнээр админ шалгах жагсаалтад орно.</p>
                   </div>
                 </div>
                 <Button variant="outline">
                   <Flag className="h-4 w-4" />
-                  Report
+                  Асуудал мэдэгдэх
                 </Button>
               </div>
             </Card>
@@ -98,7 +97,7 @@ export function CargoDetailPage() {
 
           <aside className="space-y-5">
             <Card className="p-5">
-              <h2 className="text-xl font-semibold text-foreground">Driver</h2>
+              <h2 className="text-xl font-semibold text-foreground">Жолооч</h2>
               <div className="mt-5 flex gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Truck className="h-6 w-6" />
@@ -109,14 +108,14 @@ export function CargoDetailPage() {
                 </div>
               </div>
               <div className="mt-5 space-y-3 text-sm">
-                <Info icon={<ShieldCheck className="h-4 w-4" />} label="Verified driver" />
+                <Info icon={<ShieldCheck className="h-4 w-4" />} label="Баталгаажсан жолооч" />
                 <Info icon={<Phone className="h-4 w-4" />} label="+976 88•• ••••" />
                 <Info icon={<Box className="h-4 w-4" />} label="5 кг хүртэл жижиг ачаа" />
               </div>
             </Card>
 
             <Card className="border-primary/20 bg-primary/5 p-5">
-              <h2 className="text-xl font-semibold text-foreground">Receiver</h2>
+              <h2 className="text-xl font-semibold text-foreground">Хүлээн авагч</h2>
               <p className="mt-3 font-semibold text-foreground">Дорж Цэцэг</p>
               <p className="mt-1 text-muted-foreground">+976 99•• ••••</p>
             </Card>
@@ -138,7 +137,7 @@ function UploadBox({ title, icon, status }: { title: string; icon: ReactNode; st
       </div>
       <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 p-6 text-center">
         <p className="font-medium text-foreground">{status}</p>
-        <p className="mt-1 text-sm text-muted-foreground">Real file upload дараагийн шатанд холбогдоно.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Файл оруулах хэсэг дараагийн шатанд бүрэн холбогдоно.</p>
       </div>
     </Card>
   );

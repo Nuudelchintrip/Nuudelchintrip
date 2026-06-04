@@ -195,7 +195,7 @@ export function TripsPage() {
             <div>
               <div className="flex items-center gap-2 text-primary font-medium mb-3">
                 <MapPin className="w-5 h-5" />
-                <span>Route search</span>
+                <span>Чиглэл хайх</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">Жолоочийн чиглэлүүд</h1>
               <p className="text-muted-foreground max-w-2xl">
@@ -338,7 +338,7 @@ export function TripsPage() {
                           <InfoTile icon={<Calendar className="w-4 h-4" />} label="Огноо" value={`${trip.date} · ${trip.time}`} />
                           <InfoTile icon={<Clock3 className="w-4 h-4" />} label="Сул суудал" value={`${trip.seats} суудал`} />
                           <InfoTile icon={<Weight className="w-4 h-4" />} label="Багтаамж" value={`${trip.space} · ${trip.capacity}`} />
-                          <InfoTile icon={<Package className="w-4 h-4" />} label="Pickup" value={trip.pickupWindow} />
+                          <InfoTile icon={<Package className="w-4 h-4" />} label="Авах цаг" value={trip.pickupWindow} />
                         </div>
 
                         <div className="mt-5 flex flex-wrap gap-2">
@@ -377,7 +377,7 @@ export function TripsPage() {
                           <div>
                             <p className="text-sm text-muted-foreground">Тохиромжтой</p>
                             <p className="mt-1 font-semibold text-foreground">
-                              {isDriver ? (trip.allowsCargo ? 'Суудал + жижиг дайвар ачаа' : 'Зөвхөн суудал') : 'Аялагчийн route request'}
+                              {isDriver ? (trip.allowsCargo ? 'Суудал + жижиг дайвар ачаа' : 'Зөвхөн суудал') : 'Аялагчийн чиглэлийн хүсэлт'}
                             </p>
                           </div>
                           <div>
@@ -425,7 +425,7 @@ export function TripsPage() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button variant="outline" onClick={resetFilters}>Шүүлтүүр цэвэрлэх</Button>
-                  <Button variant="primary" onClick={() => window.location.href = '/auth/role-select'}>Role сонгох</Button>
+                  <Button variant="primary" onClick={() => window.location.href = '/auth/register'}>Бүртгүүлэх</Button>
                 </div>
               </Card>
             )}
@@ -437,7 +437,7 @@ export function TripsPage() {
               <div className="space-y-4 text-sm text-muted-foreground">
                 <div className="flex gap-3">
                   <ShieldCheck className="w-5 h-5 text-primary shrink-0" />
-                  <p>Баталгаажсан profile, үнэлгээ, completed trips-ийг хамтад нь хараарай.</p>
+                  <p>Баталгаажсан профайл, үнэлгээ, дууссан аяллыг хамтад нь хараарай.</p>
                 </div>
                 <div className="flex gap-3">
                   <Package className="w-5 h-5 text-primary shrink-0" />
@@ -445,7 +445,7 @@ export function TripsPage() {
                 </div>
                 <div className="flex gap-3">
                   <Clock3 className="w-5 h-5 text-primary shrink-0" />
-                  <p>Pickup window болон очих цаг таны төлөвлөгөөнд тохирч байвал request илгээнэ.</p>
+                  <p>Авах цагийн цонх болон очих цаг таны төлөвлөгөөнд тохирч байвал хүсэлт илгээнэ.</p>
                 </div>
               </div>
             </Card>

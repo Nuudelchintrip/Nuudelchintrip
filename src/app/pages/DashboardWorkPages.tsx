@@ -35,19 +35,19 @@ type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 
 
 const roleCopy = {
   traveler: {
-    badge: 'Аялагч dashboard',
+    badge: 'Аялагчийн самбар',
     title: 'Унаа хайх',
     requests: 'Жолоочийн саналууд',
     routes: 'Миний аяллууд',
     earnings: 'Аяллын орлого',
     reviews: 'Аялагчийн үнэлгээ',
-    createText: 'Хаашаа, хэзээ, хэдэн хүн явах гэж байгаагаа хайгаад баталгаажсан жолоочийн саналуудыг харна.',
+    createText: 'Хаашаа, хэзээ, хэдэн хүн явах гэж байгаагаа хайгаад баталгаажсан жолоочийн санал, сул суудал, үнийг харна.',
     routeName: 'Унаа хайх хүсэлт',
     primaryMatch: 'Таарсан жолооч',
     base: '/dashboard/traveler',
   },
   driver: {
-    badge: 'Жолооч dashboard',
+    badge: 'Жолоочийн самбар',
     title: 'Аяллын чиглэл нэмэх',
     requests: 'Аялагчийн хүсэлтүүд',
     routes: 'Миний маршрутууд',
@@ -61,9 +61,9 @@ const roleCopy = {
 };
 
 const travelerMatchRequests = [
-  { name: 'Бат Болд', route: 'Улаанбаатар → Дархан', date: '2026-05-25', type: 'Жолооч санал', detail: '09:00 хөдөлнө, 2 сул суудалтай, verified driver.', price: '₮35,000' },
-  { name: 'Ганбаатар Дорж', route: 'Улаанбаатар → Эрдэнэт', date: '2026-05-26', type: 'Жолооч санал', detail: '14:00 хөдөлнө, pickup цэг уян хатан.', price: '₮42,000' },
-  { name: 'Ганбаатар Дорж', route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', type: 'Route match', detail: 'Маршрут болон цаг давхцаж байна. Баталгаажсан хэрэглэгч.', price: '₮20,000' },
+  { name: 'Бат Болд', route: 'Улаанбаатар → Дархан', date: '2026-05-25', type: 'Жолоочийн санал', detail: '09:00 хөдөлнө, 2 сул суудалтай, баталгаажсан жолооч.', price: '₮35,000' },
+  { name: 'Ганбаатар Дорж', route: 'Улаанбаатар → Эрдэнэт', date: '2026-05-26', type: 'Жолоочийн санал', detail: '14:00 хөдөлнө, авах цэг уян хатан.', price: '₮42,000' },
+  { name: 'Ганбаатар Дорж', route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', type: 'Чиглэл тохирсон', detail: 'Маршрут болон цаг давхцаж байна. Баталгаажсан хэрэглэгч.', price: '₮20,000' },
 ];
 
 type DriverOffer = {
@@ -163,21 +163,21 @@ function toDriverOffer(trip: MarketplaceTrip): DriverOffer {
     cargoNote: trip.allowsCargo
       ? trip.cargoPriceNote || `${trip.cargoCapacityKg || 0} кг хүртэл`
       : 'Зөвхөн зорчигч',
-    pickup: trip.pickupNote || 'Pickup тохиролцоно',
+    pickup: trip.pickupNote || 'Авах цэг тохиролцоно',
     source: 'supabase',
   };
 }
 
 const driverMatchRequests = [
   { name: 'Оюун Наран', route: 'Улаанбаатар → Дархан', date: '2026-05-25', type: 'Аялагч хүсэлт', detail: '1 суудал хайж байна. 09:00 орчим хөдөлвөл тохирно, жижиг цүнхтэй.', price: '₮18,000' },
-  { name: 'Мөнх-Эрдэнэ', route: 'Улаанбаатар → Эрдэнэт', date: '2026-05-26', type: 'Route match', detail: 'Эрдэнэт хүртэл хамт явах жолооч хайж байна. Pickup цэг уян хатан.', price: '₮22,000' },
-  { name: 'Сарангэрэл Цэцэг', route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', type: 'Аялагч санал', detail: 'Route давхцаж байна. Суудал, pickup цагийн тохирол хамгийн чухал.', price: '₮20,000' },
+  { name: 'Мөнх-Эрдэнэ', route: 'Улаанбаатар → Эрдэнэт', date: '2026-05-26', type: 'Чиглэл тохирсон', detail: 'Эрдэнэт хүртэл хамт явах жолооч хайж байна. Авах цэг уян хатан.', price: '₮22,000' },
+  { name: 'Сарангэрэл Цэцэг', route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', type: 'Аялагчийн санал', detail: 'Чиглэл давхцаж байна. Суудал, авах цагийн тохирол хамгийн чухал.', price: '₮20,000' },
 ];
 
 const routeRows = [
-  { route: 'Улаанбаатар → Дархан', date: '2026-05-25', status: 'Идэвхтэй', matches: 8, proof: 'Profile verified' },
-  { route: 'Улаанбаатар → Эрдэнэт', date: '2026-05-28', status: 'Хүлээгдэж буй', matches: 4, proof: 'Admin review' },
-  { route: 'Улаанбаатар → Мөрөн', date: '2026-06-02', status: 'Дууссан', matches: 11, proof: 'Completed' },
+  { route: 'Улаанбаатар → Дархан', date: '2026-05-25', status: 'Идэвхтэй', matches: 8, proof: 'Профайл баталгаажсан' },
+  { route: 'Улаанбаатар → Эрдэнэт', date: '2026-05-28', status: 'Хүлээгдэж буй', matches: 4, proof: 'Админ шалгаж байна' },
+  { route: 'Улаанбаатар → Мөрөн', date: '2026-06-02', status: 'Дууссан', matches: 11, proof: 'Дууссан' },
 ];
 
 const driverCargoRequests = [
@@ -190,7 +190,7 @@ const driverCargoRequests = [
     pickup: 'Баянзүрх, 13-р хороолол',
     dropoff: 'Дархан төв',
     offer: '₮15,000',
-    status: 'Route дээр тохирно',
+    status: 'Чиглэл дээр тохирно',
   },
   {
     id: 'CR-021',
@@ -201,7 +201,7 @@ const driverCargoRequests = [
     pickup: 'Драгон төв',
     dropoff: 'Эрдэнэт вокзал',
     offer: '₮22,000',
-    status: 'Pickup цаг хүлээж байна',
+    status: 'Авах цаг хүлээж байна',
   },
 ];
 
@@ -212,7 +212,7 @@ const adminVerificationQueue = [
     role: 'Жолооч',
     phone: '+976 9090 9090',
     submitted: '2026-05-25 09:48',
-    evidence: 'ID card, license B, Toyota Prius зураг',
+    evidence: 'Иргэний үнэмлэх, B ангиллын үнэмлэх, Toyota Prius зураг',
     next: 'Жолооны үнэмлэх болон улсын дугаар давхар шалгах',
   },
   {
@@ -221,8 +221,8 @@ const adminVerificationQueue = [
     role: 'Жолооч',
     phone: '+976 9191 2020',
     submitted: '2026-05-24 18:20',
-    evidence: 'Vehicle registration, profile photo',
-    next: 'Profile photo тод биш тул reject reason бичих',
+    evidence: 'Машины гэрчилгээ, профайл зураг',
+    next: 'Профайл зураг тод биш тул буцаах тайлбар бичих',
   },
 ];
 
@@ -232,8 +232,8 @@ const adminCargoQueue = [
     sender: 'Дорж Цэцэг',
     driver: 'Бат Болд',
     route: 'Улаанбаатар → Дархан',
-    status: 'Жолооч accept хүлээгдэж байна',
-    proof: 'Pickup proof ороогүй',
+    status: 'Жолооч зөвшөөрөх хүлээгдэж байна',
+    proof: 'Ачаа авсан баталгаа ороогүй',
     code: '482913',
   },
   {
@@ -242,7 +242,7 @@ const adminCargoQueue = [
     driver: 'Ганбат Дорж',
     route: 'Улаанбаатар → Эрдэнэт',
     status: 'Замд явж байна',
-    proof: 'Delivery proof хүлээгдэж байна',
+    proof: 'Хүргэлтийн баталгаа хүлээгдэж байна',
     code: '391204',
   },
 ];
@@ -292,20 +292,20 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   const disabledReason = permissionLoading
     ? 'Жолоочийн эрхийг шалгаж байна...'
     : driverBlocked
-      ? 'Чиглэл нийтлэхийн тулд driver verification approved байх хэрэгтэй.'
+      ? 'Чиглэл нийтлэхийн тулд жолоочийн баталгаажуулалт зөвшөөрөгдсөн байх хэрэгтэй.'
       : '';
 
   const describePermission = useCallback((profile: MockUserProfile | null) => {
     if (!profile) {
-      return 'Supabase session олдсонгүй. Driver account-аараа дахин нэвтэрнэ үү.';
+      return 'Нэвтрэлтийн мэдээлэл олдсонгүй. Жолоочийн бүртгэлээрээ дахин нэвтэрнэ үү.';
     }
 
     return [
-      `Одоогийн account: ${profile.email || 'email байхгүй'}`,
-      `role=${profile.role}`,
-      `phone_verified=${profile.phone_verified ? 'true' : 'false'}`,
-      `onboarding_completed=${profile.onboarding_completed ? 'true' : 'false'}`,
-      `driver_verification=${profile.verification_status || 'missing'}`,
+      `Бүртгэл: ${profile.email || 'и-мэйл байхгүй'}`,
+      `Төрөл: ${profile.role === 'driver' ? 'жолооч' : profile.role}`,
+      `Утас: ${profile.phone_verified ? 'баталгаажсан' : 'баталгаажаагүй'}`,
+      `Профайл: ${profile.onboarding_completed ? 'дууссан' : 'дутуу'}`,
+      `Жолоочийн баталгаажуулалт: ${profile.verification_status || 'олдоогүй'}`,
     ].join(' · ');
   }, []);
 
@@ -330,7 +330,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       const message = readableError(err, '');
       setPermissionMessage(
         message.toLowerCase().includes('auth session missing')
-          ? 'Supabase session олдсонгүй. Driver account-аараа дахин нэвтэрнэ үү.'
+          ? 'Нэвтрэлтийн мэдээлэл олдсонгүй. Жолоочийн бүртгэлээрээ дахин нэвтэрнэ үү.'
           : message || 'Жолоочийн эрх шалгахад алдаа гарлаа.',
       );
     } finally {
@@ -448,9 +448,9 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
                 <div>
-                  <p className="font-semibold text-foreground">Чиглэл Supabase trips table-д хадгалагдлаа</p>
+                  <p className="font-semibold text-foreground">Чиглэл амжилттай нийтлэгдлээ</p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Trip ID: <span className="font-mono text-foreground">{submittedTripId}</span>. Одоо энэ route traveler search дээр active route байдлаар уншигдах боломжтой.
+                    Дугаар: <span className="font-mono text-foreground">{submittedTripId}</span>. Одоо энэ чиглэл аялагчийн хайлт дээр харагдах боломжтой.
                   </p>
                 </div>
               </div>
@@ -482,8 +482,8 @@ export function TripFormPage({ role }: { role: WorkRole }) {
             ]} />
             <Input label={role === 'driver' ? 'Сул суудал' : 'Зорчих хүний тоо'} type="number" min="1" placeholder={role === 'driver' ? '3' : '1'} value={seatsTotal} onChange={(event) => setSeatsTotal(event.target.value)} />
             <Input label="Нэг хүний үнэ" type="number" min="0" placeholder="35000" value={pricePerSeat} onChange={(event) => setPricePerSeat(event.target.value)} />
-            <Input label="Pickup note" placeholder="Жишээ: Драмын театрын урд" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
-            <Input label="Dropoff note" placeholder="Жишээ: Дархан захын ойролцоо" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
+            <Input label="Авах цэгийн тайлбар" placeholder="Жишээ: Драмын театрын урд" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
+            <Input label="Буух цэгийн тайлбар" placeholder="Жишээ: Дархан захын ойролцоо" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
             {role === 'driver' && (
               <>
                 <Select label="Дайвар ачаа авах эсэх" value={allowsCargo} onChange={(event) => setAllowsCargo(event.target.value)} options={[
@@ -503,12 +503,12 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               <Plus className="h-4 w-4" />
               {submitting ? 'Хадгалж байна...' : 'Чиглэл нийтлэх'}
             </Button>
-            <Button variant="outline" onClick={() => window.location.href = copy.base}>Dashboard руу буцах</Button>
+            <Button variant="outline" onClick={() => window.location.href = copy.base}>Самбар руу буцах</Button>
           </div>
           {disabledReason && (
             <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-4 text-sm leading-6 text-muted-foreground">
               <p className="font-semibold text-foreground">{disabledReason}</p>
-              <p className="mt-1">Supabase дээр approved болгосон бол “Дахин шалгах” дарж шинэ status татна уу.</p>
+              <p className="mt-1">Админ зөвшөөрсний дараа “Дахин шалгах” дарж шинэ төлөвөө татна уу.</p>
               {(permissionMessage || permissionProfile) && (
                 <p className="mt-2 rounded-md bg-background/70 px-3 py-2 text-xs leading-5">
                   {permissionMessage || describePermission(permissionProfile)}
@@ -520,7 +520,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
         <Card className="p-6 bg-primary/5 border-primary/20">
           <h2 className="text-xl font-semibold text-foreground">Нийтлэхээс өмнө</h2>
           <div className="mt-5 space-y-4">
-            {['Role тань тодорхой харагдана', 'Аялагч/жолоочийн match эхэнд гарна', 'Үнэ, суудал, цагийн мэдээлэл тодорхой байна', role === 'driver' ? 'Allows-cargo route дээр дайвар ачааны request авах боломжтой' : 'Дайвар ачаа нь route дээрх secondary module хэвээр байна'].map((item) => (
+            {['Хэрэглэгчийн төрөл тодорхой харагдана', 'Аялагч/жолоочийн тохирол эхэнд гарна', 'Үнэ, суудал, цагийн мэдээлэл тодорхой байна', role === 'driver' ? 'Дайвар ачаа авч болох чиглэл дээр ачааны хүсэлт авах боломжтой' : 'Дайвар ачаа нь чиглэл дээр суурилсан нэмэлт боломж хэвээр байна'].map((item) => (
               <div key={item} className="flex gap-3">
                 <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
                 <p className="text-sm leading-6 text-muted-foreground">{item}</p>
@@ -582,13 +582,13 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
 
   return (
     <DashboardFrame role={role} active="requests">
-      <PageTop badge={copy.badge} title={action ? (action === 'accept' ? 'Хүсэлт зөвшөөрөх' : 'Хүсэлт татгалзах') : copy.requests} description={`${copy.primaryMatch}, route match, үнэ, суудал, цагийн тохирлыг тусад нь харуулна.`} backHref={copy.base} />
+      <PageTop badge={copy.badge} title={action ? (action === 'accept' ? 'Хүсэлт зөвшөөрөх' : 'Хүсэлт татгалзах') : copy.requests} description={`${copy.primaryMatch}, чиглэл, үнэ, суудал, цагийн тохирлыг тусад нь харуулна.`} backHref={copy.base} />
       {action && (
         <Card className={`mb-6 p-5 ${action === 'accept' ? 'bg-success/5 border-success/20' : 'bg-destructive/5 border-destructive/20'}`}>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <Badge variant={action === 'accept' ? 'success' : 'danger'}>{action === 'accept' ? 'Зөвшөөрөх үйлдэл' : 'Татгалзах үйлдэл'}</Badge>
-              <p className="mt-3 text-lg font-semibold text-foreground">{action === 'accept' ? 'Хүсэлт зөвшөөрөхөд booking үүсэж дараагийн proof алхам нээгдэнэ.' : 'Татгалзвал хэрэглэгчид богино тайлбар очно.'}</p>
+              <p className="mt-3 text-lg font-semibold text-foreground">{action === 'accept' ? 'Хүсэлт зөвшөөрөхөд захиалга үүсэж төлбөрийн баримтын алхам нээгдэнэ.' : 'Татгалзвал хэрэглэгчид богино тайлбар очно.'}</p>
             </div>
             <Button variant={action === 'accept' ? 'primary' : 'outline'}>{action === 'accept' ? 'Баталгаажуулах' : 'Татгалзах'}</Button>
           </div>
@@ -729,9 +729,9 @@ export function FindDriversPage() {
   return (
     <DashboardFrame role="traveler">
       <PageTop
-        badge="Аялагч dashboard"
+        badge="Аялагчийн самбар"
         title="Унаа хайх"
-        description="Хаанаас, хаашаа, огноо, хүний тоогоо оруулаад боломжтой жолоочийн route-уудыг шүүнэ."
+        description="Хаанаас, хаашаа, огноо, хүний тоогоо оруулаад боломжтой жолоочийн чиглэлүүдийг шүүнэ."
         backHref="/dashboard/traveler"
       />
 
@@ -776,7 +776,7 @@ export function FindDriversPage() {
               onChange={(event) => setCargoOnly(event.target.checked)}
               className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
             />
-            Дайвар ачаа авч болох route
+            Дайвар ачаа авч болох чиглэл
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button className="w-full sm:w-auto" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
@@ -828,9 +828,9 @@ export function DriverOffersPage() {
   return (
     <DashboardFrame role="traveler">
       <PageTop
-        badge="Аялагч dashboard"
+        badge="Аялагчийн самбар"
         title="Жолоочийн саналууд"
-        description="Баталгаажсан жолоочийн route, сул суудал, үнэ, rating, дайвар ачааны боломжийг харьцуулна."
+        description="Баталгаажсан жолоочийн чиглэл, сул суудал, үнэ, үнэлгээ, дайвар ачааны боломжийг харьцуулна."
         backHref="/dashboard/traveler"
       />
 
@@ -848,7 +848,7 @@ export function DriverOffersPage() {
         <Card className="p-5">
           <Badge variant="warning">Дайвар ачаа</Badge>
           <p className="mt-3 text-3xl font-bold text-foreground">{driverOffers.filter((offer) => offer.allowsCargo).length}</p>
-          <p className="text-sm text-muted-foreground">route боломжтой</p>
+          <p className="text-sm text-muted-foreground">чиглэл боломжтой</p>
         </Card>
       </div>
 
@@ -883,7 +883,7 @@ export function CargoFindRoutesPage() {
       })
       .catch((error) => {
         if (!active) return;
-        setCargoRouteError(error instanceof Error ? error.message : 'Cargo route уншихад алдаа гарлаа.');
+        setCargoRouteError(error instanceof Error ? error.message : 'Дайвар ачаа авч болох чиглэл уншихад алдаа гарлаа.');
       })
       .finally(() => {
         if (active) setLoadingCargoRoutes(false);
@@ -903,16 +903,16 @@ export function CargoFindRoutesPage() {
   return (
     <DashboardFrame sender active="find-routes">
       <PageTop
-        badge="Дайвар ачаа add-on"
+        badge="Дайвар ачааны нэмэлт боломж"
         title="Ачаа авах жолооч хайх"
-        description="Зөвхөн дайвар ачаа авч болох route-уудыг харуулна. Route сонгоод cargo request илгээнэ."
+        description="Зөвхөн дайвар ачаа авч болох чиглэлүүдийг харуулна. Чиглэл сонгоод ачааны хүсэлт илгээнэ."
         backHref="/dashboard/cargo"
       />
 
       <Card className="mb-6 p-6">
         <div className="mb-5 flex items-center gap-2">
           <Search className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Route шүүх</h2>
+          <h2 className="text-xl font-semibold text-foreground">Чиглэл шүүх</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
@@ -941,7 +941,7 @@ export function CargoFindRoutesPage() {
 
       {loadingCargoRoutes && (
         <Card className="mb-5 p-4">
-          <p className="text-sm text-muted-foreground">Cargo авч болох route-уудыг уншиж байна...</p>
+          <p className="text-sm text-muted-foreground">Дайвар ачаа авч болох чиглэлүүдийг уншиж байна...</p>
         </Card>
       )}
 
@@ -953,17 +953,17 @@ export function CargoFindRoutesPage() {
 
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <Card className="p-5">
-          <Badge variant="warning">Allows cargo</Badge>
+          <Badge variant="warning">Дайвар ачаа авч болно</Badge>
           <p className="mt-3 text-3xl font-bold text-foreground">{cargoRoutes.length}</p>
-          <p className="text-sm text-muted-foreground">route боломжтой</p>
+          <p className="text-sm text-muted-foreground">чиглэл боломжтой</p>
         </Card>
         <Card className="p-5">
-          <Badge variant="info">Pickup window</Badge>
+          <Badge variant="info">Ачаа авах боломжит цаг</Badge>
           <p className="mt-3 text-3xl font-bold text-foreground">08:00+</p>
           <p className="text-sm text-muted-foreground">хамгийн ойрын боломж</p>
         </Card>
         <Card className="p-5">
-          <Badge variant="success">Verified</Badge>
+          <Badge variant="success">Баталгаажсан</Badge>
           <p className="mt-3 text-3xl font-bold text-foreground">100%</p>
           <p className="text-sm text-muted-foreground">баталгаажсан жолооч</p>
         </Card>
@@ -978,7 +978,7 @@ export function CargoFindRoutesPage() {
       {cargoRoutes.length === 0 && (
         <Card className="mt-6 p-10 text-center">
           <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="text-xl font-semibold text-foreground">Дайвар ачаа авах route олдсонгүй</h2>
+          <h2 className="text-xl font-semibold text-foreground">Дайвар ачаа авах чиглэл олдсонгүй</h2>
           <p className="mt-2 text-muted-foreground">Аймаг, сумын шүүлтүүрээ өөрчлөөд дахин шалгаарай.</p>
         </Card>
       )}
@@ -1018,10 +1018,10 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
 
   return (
     <DashboardFrame role={role} active="routes">
-      <PageTop badge={copy.badge} title={copy.routes} description="Өөрийн нийтэлсэн чиглэлүүд, таарсан хүмүүс, booking болсон урсгалыг нэг дор харна." backHref={copy.base} />
+      <PageTop badge={copy.badge} title={copy.routes} description="Өөрийн нийтэлсэн чиглэлүүд, таарсан хүмүүс, захиалгын урсгалыг нэг дор харна." backHref={copy.base} />
       {loadingRoutes && (
         <Card className="mb-5 p-4">
-          <p className="text-sm text-muted-foreground">Таны route-уудыг Supabase-аас уншиж байна...</p>
+          <p className="text-sm text-muted-foreground">Таны чиглэлүүдийг уншиж байна...</p>
         </Card>
       )}
       {routesError && (
@@ -1051,7 +1051,7 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
                     </p>
                   </div>
                   <Badge variant={trip.status === 'active' ? 'success' : trip.status === 'cancelled' ? 'danger' : 'default'}>{trip.status}</Badge>
-                  <p className="text-sm text-muted-foreground">{trip.allowsCargo ? 'Cargo авна' : 'Зөвхөн зорчигч'}</p>
+                  <p className="text-sm text-muted-foreground">{trip.allowsCargo ? 'Дайвар ачаа авна' : 'Зөвхөн зорчигч'}</p>
                   <Button variant="outline" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
                 </div>
               ))}
@@ -1117,19 +1117,19 @@ export function DriverCargoRequestsPage() {
         item.id === requestId ? { ...item, status: nextStatus } : item
       )));
       setCargoActionMessage(nextStatus === 'cargo_accepted'
-        ? 'Дайвар ачааны хүсэлт зөвшөөрөгдлөө. Илгээгч payment proof шат руу орно.'
+        ? 'Дайвар ачааны хүсэлт зөвшөөрөгдлөө. Илгээгч төлбөрийн баримтын шат руу орно.'
         : 'Дайвар ачааны хүсэлт татгалзагдлаа.');
     } catch (error) {
-      setCargoRequestError(error instanceof Error ? error.message : 'Cargo status шинэчлэхэд алдаа гарлаа.');
+      setCargoRequestError(error instanceof Error ? error.message : 'Ачааны төлөв шинэчлэхэд алдаа гарлаа.');
     }
   };
 
   return (
     <DashboardFrame role="driver">
       <PageTop
-        badge="Жолооч dashboard"
+        badge="Жолоочийн самбар"
         title="Дайвар ачааны хүсэлт"
-        description="Таны 'дайвар ачаа авч болно' гэж тэмдэглэсэн route дээр ирсэн жижиг ачааны хүсэлтүүд. Энэ нь зорчигчийн booking-оос тусдаа, secondary урсгал хэвээр байна."
+        description="Таны 'дайвар ачаа авч болно' гэж тэмдэглэсэн чиглэл дээр ирсэн жижиг ачааны хүсэлтүүд. Энэ нь зорчигчийн захиалгаас тусдаа нэмэлт урсгал хэвээр байна."
         backHref="/dashboard/driver"
       />
 
@@ -1138,14 +1138,14 @@ export function DriverCargoRequestsPage() {
           <div className="flex items-start gap-3">
             <PackageCheck className="mt-1 h-5 w-5 shrink-0 text-warning" />
             <div>
-              <h2 className="font-semibold text-foreground">Зөвхөн таны route-д таарсан хүсэлт</h2>
+              <h2 className="font-semibold text-foreground">Зөвхөн таны чиглэлд таарсан хүсэлт</h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Аялагчийн суудлын хүсэлт эхний priority. Дайвар ачааг зөвшөөрсөн route дээр л жолооч шийдвэрлэнэ.
+                Аялагчийн суудлын хүсэлт хамгийн эхэнд байна. Дайвар ачааг зөвшөөрсөн чиглэл дээр л жолооч шийдвэрлэнэ.
               </p>
             </div>
           </div>
           <Button variant="outline" onClick={() => window.location.href = '/dashboard/driver/routes/new'}>
-            Route тохиргоо
+            Чиглэлийн тохиргоо
           </Button>
         </div>
       </Card>
@@ -1190,13 +1190,13 @@ export function DriverCargoRequestsPage() {
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
                   <InfoPill icon={<Box className="h-4 w-4" />} label="Ачаа" value={live?.cargoName || request.cargo} />
                   <InfoPill icon={<PackageCheck className="h-4 w-4" />} label="Хэмжээ" value={live ? `${live.weightKg || '-'} кг · ${live.sizeNote || live.cargoType || 'төрөл ороогүй'}` : request.size} />
-                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Pickup" value={live?.pickupNote || request.pickup} />
+                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Авах цэг" value={live?.pickupNote || request.pickup} />
                   <InfoPill icon={<MapPin className="h-4 w-4" />} label="Хүлээн авагч" value={live ? `${live.receiverName} · ${live.receiverPhone}` : request.dropoff} />
                 </div>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-sm text-muted-foreground">{live ? 'Delivery code' : 'Санал болгосон үнэ'}</p>
+                <p className="text-sm text-muted-foreground">{live ? 'Хүргэлтийн код' : 'Санал болгосон үнэ'}</p>
                 <p className="mt-1 text-3xl font-bold text-primary">{live ? live.deliveryCode : request.offer}</p>
                 <div className="mt-5 grid gap-2">
                   <Button
@@ -1254,7 +1254,7 @@ function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer:
             <InfoPill icon={<Calendar className="h-4 w-4" />} label="Огноо" value={offer.date} />
             <InfoPill icon={<Clock3 className="h-4 w-4" />} label="Цаг" value={offer.time} />
             <InfoPill icon={<UsersRound className="h-4 w-4" />} label="Сул суудал" value={`${offer.seats} суудал`} />
-            <InfoPill icon={<MapPin className="h-4 w-4" />} label="Pickup" value={offer.pickup} />
+            <InfoPill icon={<MapPin className="h-4 w-4" />} label="Авах цэг" value={offer.pickup} />
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -1271,12 +1271,12 @@ function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer:
         </div>
 
         <div className="rounded-xl border border-border bg-card p-4">
-          <p className="text-sm text-muted-foreground">{isCargoMode ? 'Cargo route' : 'Нэг суудлын үнэ'}</p>
+          <p className="text-sm text-muted-foreground">{isCargoMode ? 'Дайвар ачааны чиглэл' : 'Нэг суудлын үнэ'}</p>
           <p className="mt-1 text-3xl font-bold text-primary">₮{offer.price.toLocaleString()}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{isCargoMode ? offer.cargoNote : '+ platform fee'}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{isCargoMode ? offer.cargoNote : '+ үйлчилгээний шимтгэл'}</p>
           <div className="mt-5 grid gap-2">
             <Button fullWidth onClick={() => window.location.href = isCargoMode ? `/cargo/new?tripId=${offer.id}` : `/routes/${offer.id}`}>
-              {isCargoMode ? 'Cargo request илгээх' : 'Хүсэлт илгээх'}
+              {isCargoMode ? 'Ачааны хүсэлт илгээх' : 'Хүсэлт илгээх'}
             </Button>
             <Button variant="outline" fullWidth onClick={() => window.location.href = `/routes/${offer.id}`}>
               Дэлгэрэнгүй харах
@@ -1340,7 +1340,7 @@ export function ReviewsPage({ role }: { role: WorkRole | 'sender' }) {
   const base = role === 'sender' ? '/dashboard/sender' : roleCopy[role].base;
   return (
     <DashboardFrame role={role === 'sender' ? undefined : role} sender={role === 'sender'} active="reviews">
-      <PageTop badge={role === 'sender' ? 'Аялагч dashboard' : roleCopy[role].badge} title={title} description="Итгэлцэл үүсгэдэг үнэлгээ, сэтгэгдэл, дууссан booking-ийн тойм." backHref={base} />
+      <PageTop badge={role === 'sender' ? 'Дайвар ачааны самбар' : roleCopy[role].badge} title={title} description="Итгэлцэл үүсгэдэг үнэлгээ, сэтгэгдэл, дууссан захиалгын тойм." backHref={base} />
       <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
         <Card className="p-6 text-center">
           <Star className="mx-auto h-10 w-10 fill-warning text-warning" />
@@ -1348,7 +1348,7 @@ export function ReviewsPage({ role }: { role: WorkRole | 'sender' }) {
           <p className="mt-2 text-muted-foreground">32 үнэлгээнээс</p>
         </Card>
         <div className="space-y-4">
-          {['Маш тодорхой мэдээлэлтэй, цагтаа хариу өгсөн.', 'Route болон pickup нөхцөл ойлгомжтой байсан.', 'Төлбөрийн баримт, аяллын timeline ойлгомжтой байсан.'].map((text, index) => (
+          {['Маш тодорхой мэдээлэлтэй, цагтаа хариу өгсөн.', 'Чиглэл болон авах цэгийн нөхцөл ойлгомжтой байсан.', 'Төлбөрийн баримт, аяллын явц ойлгомжтой байсан.'].map((text, index) => (
             <Card key={text} className="p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="font-semibold text-foreground">Хэрэглэгч #{index + 1}</p>
@@ -1366,15 +1366,15 @@ export function ReviewsPage({ role }: { role: WorkRole | 'sender' }) {
 export function SenderCargoPage({ view }: { view: SenderView }) {
   const isProof = view === 'proof';
   const isStatus = view === 'status';
-  const title = isProof ? 'Төлбөрийн баримт ба ачааны нотолгоо' : isStatus ? 'Delivery code/status' : 'Дайвар ачаа';
+  const title = isProof ? 'Төлбөрийн баримт ба ачааны нотолгоо' : isStatus ? 'Хүргэлтийн код ба төлөв' : 'Дайвар ачаа';
   const description = isProof
-    ? 'Төлбөрийн баримт, pickup зураг, delivery зураг тусдаа хадгалагдаж маргаан гарвал admin-д нотолгоо болно.'
+    ? 'Төлбөрийн баримт, ачаа авсан зураг, хүргэсэн зураг тусдаа хадгалагдаж маргаан гарвал админд нотолгоо болно.'
     : isStatus
-      ? 'Хүлээн авагчийн 6 оронтой код болон delivery status-аа нэг дор хянана.'
-      : 'Дайвар ачаа нь жолоочийн route дээр суурилсан secondary module.';
+      ? 'Хүлээн авагчийн 6 оронтой код болон хүргэлтийн төлөвөө нэг дор хянана.'
+      : 'Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж.';
   return (
     <DashboardFrame sender active={view}>
-      <PageTop badge="Дайвар ачаа add-on" title={title} description={description} backHref="/dashboard/cargo" />
+      <PageTop badge="Дайвар ачааны нэмэлт боломж" title={title} description={description} backHref="/dashboard/cargo" />
       <div className="grid gap-5">
         {['BK-001', 'BK-002', 'BK-003'].map((id, index) => (
           <Card key={id} className="p-6">
@@ -1383,16 +1383,16 @@ export function SenderCargoPage({ view }: { view: SenderView }) {
                 <Badge variant={index === 0 ? 'warning' : index === 1 ? 'info' : 'success'}>
                   {isStatus
                     ? index === 0 ? 'Код хүлээгдэж байна' : index === 1 ? 'Замд явж байна' : 'Хүлээлгэн өгсөн'
-                    : index === 0 ? 'Proof хүлээгдэж байна' : index === 1 ? 'Admin шалгаж байна' : 'Баталгаажсан'}
+                    : index === 0 ? 'Баримт хүлээгдэж байна' : index === 1 ? 'Админ шалгаж байна' : 'Баталгаажсан'}
                 </Badge>
                 <h2 className="mt-3 text-xl font-semibold text-foreground">{id} - УБ → Дархан</h2>
                 <p className="mt-1 text-muted-foreground">
-                  {isStatus ? 'Хүлээн авагчийн код: 482913. Хүргэлтийн баталгаажуулалт хүлээгдэж байна.' : 'Pickup болон delivery proof-ийг тусдаа оруулна.'}
+                  {isStatus ? 'Хүлээн авагчийн код: 482913. Хүргэлтийн баталгаажуулалт хүлээгдэж байна.' : 'Ачаа авсан болон хүргэсэн баталгааг тусдаа оруулна.'}
                 </p>
               </div>
               <p className="text-2xl font-bold text-primary">₮{(18000 + index * 4000).toLocaleString()}</p>
               <Button variant="outline" onClick={() => window.location.href = isStatus ? '/dashboard/cargo' : '/dashboard/bookings/BK-001/delivery-proof'}>
-                {isStatus ? 'Dashboard' : 'Proof оруулах'}
+                {isStatus ? 'Самбар' : 'Баталгаа оруулах'}
               </Button>
             </div>
           </Card>
@@ -1407,25 +1407,25 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
     payments: 'Төлбөр батлах',
     users: 'Хэрэглэгчид',
     reports: 'Reports & disputes',
-    verifications: 'Driver verification',
-    cargo: 'Дайвар ачааны moderation',
-    routes: 'Route moderation',
-    bookings: 'Booking moderation',
+    verifications: 'Жолоочийн баталгаажуулалт',
+    cargo: 'Дайвар ачааны хяналт',
+    routes: 'Чиглэлийн хяналт',
+    bookings: 'Захиалгын хяналт',
   };
 
   const descriptions = {
-    payments: 'Аялагчийн payment proof-ийг шалгаж approve/reject хийвэл booking status дараагийн шат руу шилжинэ.',
-    users: 'Role, verification, account status, completed trip мэдээллийг нэг дор хянана.',
-    reports: 'Маргаан, report, no-show, payment issue-г booking evidence-тэй холбож шалгана.',
-    verifications: 'Жолоочийн бичиг баримт, машины мэдээлэл, profile verification-г approve/reject хийнэ.',
-    cargo: 'Дайвар ачааны request, pickup proof, delivery proof, 6 оронтой code status-г хянана.',
-    routes: 'Fake route, duplicate route, cargo policy зөрчсөн route-уудыг шалгаж suspend/delete хийнэ.',
-    bookings: 'Passenger-driver booking status, next action, payment review, dispute эрсдэлийг хянана.',
+    payments: 'Аялагчийн төлбөрийн баримтыг шалгаж зөвшөөрөх эсвэл буцаавал захиалгын төлөв дараагийн шат руу шилжинэ.',
+    users: 'Хэрэглэгчийн төрөл, баталгаажуулалт, бүртгэлийн төлөв, дууссан аяллын мэдээллийг нэг дор хянана.',
+    reports: 'Маргаан, мэдэгдэл, ирээгүй тохиолдол, төлбөрийн асуудлыг захиалгын нотолгоотой холбож шалгана.',
+    verifications: 'Жолоочийн бичиг баримт, машины мэдээлэл, профайлын баталгаажуулалтыг зөвшөөрөх эсвэл буцаана.',
+    cargo: 'Дайвар ачааны хүсэлт, авсан/хүргэсэн баталгаа, 6 оронтой кодын төлөвийг хянана.',
+    routes: 'Хуурамч, давхардсан, дүрэм зөрчсөн чиглэлүүдийг шалгаж хаах боломжтой.',
+    bookings: 'Аялагч-жолоочийн захиалгын төлөв, дараагийн алхам, төлбөрийн шалгалт, маргааны эрсдэлийг хянана.',
   };
 
   return (
     <DashboardFrame admin active={view}>
-      <PageTop badge="Admin dashboard" title={titles[view]} description={descriptions[view]} backHref="/admin" />
+      <PageTop badge="Админ самбар" title={titles[view]} description={descriptions[view]} backHref="/admin" />
 
       {view === 'payments' && <AdminPaymentsTable />}
       {view === 'users' && <AdminUsersTable />}
@@ -1443,8 +1443,8 @@ function AdminPaymentsTable() {
     <Card>
       <CardHeader>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold text-foreground">Payment proof queue</h2>
-          <Badge variant="warning">{bookings.filter((booking) => booking.payment.status === 'pending').length} pending</Badge>
+          <h2 className="text-xl font-semibold text-foreground">Төлбөрийн баримтын жагсаалт</h2>
+          <Badge variant="warning">{bookings.filter((booking) => booking.payment.status === 'pending').length} хүлээгдэж байна</Badge>
         </div>
       </CardHeader>
       <CardBody className="p-0">
@@ -1452,11 +1452,11 @@ function AdminPaymentsTable() {
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                <AdminTh>Booking</AdminTh>
+                <AdminTh>Захиалга</AdminTh>
                 <AdminTh>Талууд</AdminTh>
                 <AdminTh>Дүн</AdminTh>
-                <AdminTh>Proof</AdminTh>
-                <AdminTh>Status</AdminTh>
+                <AdminTh>Баримт</AdminTh>
+                <AdminTh>Төлөв</AdminTh>
                 <AdminTh>Үйлдэл</AdminTh>
               </tr>
             </thead>
@@ -1478,7 +1478,7 @@ function AdminPaymentsTable() {
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant={booking.payment.status === 'approved' ? 'success' : 'warning'}>
-                      {booking.payment.status === 'approved' ? 'Approved' : 'Pending'}
+                      {booking.payment.status === 'approved' ? 'Баталгаажсан' : 'Хүлээгдэж байна'}
                     </Badge>
                   </td>
                   <td className="px-6 py-4">
@@ -1488,11 +1488,11 @@ function AdminPaymentsTable() {
                       </Button>
                       <Button size="sm">
                         <CheckCircle2 className="h-4 w-4" />
-                        Approve
+                        Зөвшөөрөх
                       </Button>
                       <Button size="sm" variant="outline">
                         <X className="h-4 w-4" />
-                        Reject
+                        Буцаах
                       </Button>
                     </div>
                   </td>
@@ -1510,7 +1510,7 @@ function AdminUsersTable() {
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold text-foreground">User management</h2>
+        <h2 className="text-xl font-semibold text-foreground">Хэрэглэгчийн удирдлага</h2>
       </CardHeader>
       <CardBody className="p-0">
         <div className="overflow-x-auto">
@@ -1518,10 +1518,10 @@ function AdminUsersTable() {
             <thead className="bg-muted/50">
               <tr>
                 <AdminTh>Хэрэглэгч</AdminTh>
-                <AdminTh>Role</AdminTh>
-                <AdminTh>Verification</AdminTh>
-                <AdminTh>Status</AdminTh>
-                <AdminTh>Action</AdminTh>
+                <AdminTh>Төрөл</AdminTh>
+                <AdminTh>Баталгаажуулалт</AdminTh>
+                <AdminTh>Төлөв</AdminTh>
+                <AdminTh>Үйлдэл</AdminTh>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -1532,12 +1532,12 @@ function AdminUsersTable() {
                     <p className="text-xs text-muted-foreground">{user.phone} · {user.email}</p>
                   </td>
                   <td className="px-6 py-4"><Badge variant="default">{user.role}</Badge></td>
-                  <td className="px-6 py-4">{user.verified ? <Badge variant="success">Verified</Badge> : <Badge variant="warning">Pending</Badge>}</td>
+                  <td className="px-6 py-4">{user.verified ? <Badge variant="success">Баталгаажсан</Badge> : <Badge variant="warning">Хүлээгдэж байна</Badge>}</td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">{user.status}</td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline">Profile</Button>
-                      <Button size="sm">{user.verified ? 'Review' : 'Verify'}</Button>
+                      <Button size="sm" variant="outline">Профайл</Button>
+                      <Button size="sm">{user.verified ? 'Шалгах' : 'Баталгаажуулах'}</Button>
                     </div>
                   </td>
                 </tr>
@@ -1563,14 +1563,14 @@ function AdminReportsList() {
               </div>
               <h2 className="mt-3 text-xl font-semibold text-foreground">{report.reason}</h2>
               <p className="mt-2 text-muted-foreground">
-                {report.reportedBy} хэрэглэгч {report.reportedUser}-г {report.bookingId} booking дээр мэдэгдсэн.
+                {report.reportedBy} хэрэглэгч {report.reportedUser}-г {report.bookingId} захиалга дээр мэдэгдсэн.
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{report.date}</p>
             </div>
             <div className="grid gap-2">
               <Button onClick={() => window.location.href = `/dashboard/bookings/${report.bookingId}`}>
                 <FileCheck2 className="h-4 w-4" />
-                Evidence харах
+                Нотолгоо харах
               </Button>
               <Button variant="outline">Decision log</Button>
             </div>
@@ -1600,11 +1600,11 @@ function AdminVerificationList() {
             <div className="grid gap-2">
               <Button>
                 <ShieldCheck className="h-4 w-4" />
-                Approve driver
+                Жолооч зөвшөөрөх
               </Button>
               <Button variant="outline">
                 <X className="h-4 w-4" />
-                Reject reason
+                Буцаах шалтгаан
               </Button>
             </div>
           </div>
@@ -1629,12 +1629,12 @@ function AdminCargoList() {
               <p className="mt-2 text-muted-foreground">
                 Илгээгч: {item.sender} · Жолооч: {item.driver}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">{item.proof} · Delivery code: {item.code}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{item.proof} · Хүргэлтийн код: {item.code}</p>
             </div>
             <div className="grid gap-2">
               <Button>
                 <PackageCheck className="h-4 w-4" />
-                Proof шалгах
+                Баримт шалгах
               </Button>
               <Button variant="outline">Dispute нээх</Button>
             </div>
@@ -1647,9 +1647,9 @@ function AdminCargoList() {
 
 function AdminRoutesList() {
   const routes = [
-    { id: 'RT-001', route: 'Улаанбаатар -> Дархан', driver: 'Бат-Эрдэнэ', seats: 3, cargo: 'Allowed', status: 'active' },
-    { id: 'RT-002', route: 'Улаанбаатар -> Эрдэнэт', driver: 'Ганбат', seats: 2, cargo: 'Allowed', status: 'needs_review' },
-    { id: 'RT-003', route: 'Дархан -> Улаанбаатар', driver: 'Мөнх-Оргил', seats: 1, cargo: 'No cargo', status: 'active' },
+    { id: 'RT-001', route: 'Улаанбаатар → Дархан', driver: 'Бат-Эрдэнэ', seats: 3, cargo: 'Дайвар ачаа авна', status: 'Идэвхтэй' },
+    { id: 'RT-002', route: 'Улаанбаатар → Эрдэнэт', driver: 'Ганбат', seats: 2, cargo: 'Дайвар ачаа авна', status: 'Шалгах шаардлагатай' },
+    { id: 'RT-003', route: 'Дархан → Улаанбаатар', driver: 'Мөнх-Оргил', seats: 1, cargo: 'Зөвхөн зорчигч', status: 'Идэвхтэй' },
   ];
 
   return (
@@ -1660,14 +1660,14 @@ function AdminRoutesList() {
             <div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="info">{route.id}</Badge>
-                <Badge variant={route.status === 'active' ? 'success' : 'warning'}>{route.status}</Badge>
+                <Badge variant={route.status === 'Идэвхтэй' ? 'success' : 'warning'}>{route.status}</Badge>
               </div>
               <h2 className="mt-3 text-xl font-semibold text-foreground">{route.route}</h2>
               <p className="mt-2 text-muted-foreground">Жолооч: {route.driver} · {route.seats} сул суудал · {route.cargo}</p>
             </div>
             <div className="grid gap-2">
-              <Button onClick={() => window.location.href = '/routes/1'}>Route харах</Button>
-              <Button variant="outline">Fake route устгах</Button>
+              <Button onClick={() => window.location.href = '/routes/1'}>Чиглэл харах</Button>
+              <Button variant="outline">Чиглэл хаах</Button>
             </div>
           </div>
         </Card>
@@ -1680,18 +1680,18 @@ function AdminBookingsList() {
   return (
     <Card>
       <CardHeader>
-        <h2 className="text-xl font-semibold text-foreground">Booking status queue</h2>
+        <h2 className="text-xl font-semibold text-foreground">Захиалгын төлөвийн жагсаалт</h2>
       </CardHeader>
       <CardBody className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                <AdminTh>Booking</AdminTh>
-                <AdminTh>Route</AdminTh>
-                <AdminTh>Status</AdminTh>
-                <AdminTh>Next action</AdminTh>
-                <AdminTh>Action</AdminTh>
+                <AdminTh>Захиалга</AdminTh>
+                <AdminTh>Чиглэл</AdminTh>
+                <AdminTh>Төлөв</AdminTh>
+                <AdminTh>Дараагийн алхам</AdminTh>
+                <AdminTh>Үйлдэл</AdminTh>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -1699,13 +1699,13 @@ function AdminBookingsList() {
                 <tr key={booking.id} className="hover:bg-muted/30">
                   <td className="px-6 py-4 font-semibold text-foreground">{booking.id}</td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">{booking.route.from} → {booking.route.to}</td>
-                  <td className="px-6 py-4"><Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'}>{booking.status}</Badge></td>
+                  <td className="px-6 py-4"><Badge variant={booking.status === 'confirmed' ? 'success' : 'warning'}>{booking.status === 'confirmed' ? 'Баталгаажсан' : booking.status === 'waiting_payment' ? 'Төлбөр хүлээгдэж байна' : 'Хянагдаж байна'}</Badge></td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
-                    {booking.status === 'waiting_payment' ? 'Аялагч төлбөрийн баримт илгээх ёстой' : 'Trip reminder / completed action'}
+                    {booking.status === 'waiting_payment' ? 'Аялагч төлбөрийн баримт илгээх ёстой' : 'Аяллын сануулга эсвэл дуусгах үйлдэл'}
                   </td>
                   <td className="px-6 py-4">
                     <Button size="sm" onClick={() => window.location.href = `/dashboard/bookings/${booking.id}`}>
-                      Evidence харах
+                      Нотолгоо харах
                     </Button>
                   </td>
                 </tr>
@@ -1727,7 +1727,7 @@ function PageTop({ badge, title, description, backHref }: { badge: string; title
     <div className="mb-6 md:mb-8">
       <button className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => window.location.href = backHref}>
         <ArrowLeft className="h-4 w-4" />
-        Dashboard руу буцах
+        Самбар руу буцах
       </button>
       <Badge variant="info">{badge}</Badge>
       <h1 className="mt-4 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{title}</h1>

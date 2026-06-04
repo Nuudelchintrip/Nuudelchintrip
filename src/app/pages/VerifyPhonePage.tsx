@@ -86,15 +86,14 @@ export function VerifyPhonePage() {
                 <div className="flex gap-3">
                   <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
                   <p>
-                    Production үед backend webhook SMS event авмагц таны profile дээр <span className="font-medium text-foreground">phone_verified=true</span> болно.
-                    Одоогоор MVP demo тул доорх товч webhook ирсэн мэт mock баталгаажуулна.
+                    Бодит хувилбар дээр SMS ирмэгц систем таны утсыг автоматаар баталгаажуулна. Одоогийн prototype дээр SMS илгээсний дараа доорх товчоор баталгаажуулалтын төлөвийг шалгана.
                   </p>
                 </div>
               </div>
 
               {status === 'waiting' && (
                 <div className="rounded-lg border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-accent-foreground">
-                  SMS event хүлээж байна. Demo дээр дахин дарвал баталгаажсан төлөвт шилжинэ.
+                  SMS илгээгдсэн төлөвтэй байна. Дахин дарж баталгаажуулалтыг дуусгана уу.
                 </div>
               )}
 
@@ -114,7 +113,7 @@ export function VerifyPhonePage() {
 
               <Button type="button" size="lg" fullWidth onClick={handleCheckStatus}>
                 <CheckCircle2 className="h-5 w-5" />
-                {status === 'idle' ? 'Би SMS илгээсэн, төлөв шалгах' : 'Demo webhook баталгаажуулах'}
+                {status === 'idle' ? 'Би SMS илгээсэн, төлөв шалгах' : 'Баталгаажуулалтыг дуусгах'}
               </Button>
             </div>
           </CardBody>

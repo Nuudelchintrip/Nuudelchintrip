@@ -17,10 +17,10 @@ export function PricingPage() {
       <main>
         <section className="bg-primary/5 py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Badge variant="info" className="mb-5">10% commission</Badge>
+            <Badge variant="info" className="mb-5">10% үйлчилгээний шимтгэл</Badge>
             <h1 className="text-4xl font-bold text-foreground mb-4">Ил тод, ойлгомжтой үнэ</h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              MVP дээр NuudelchinTrip нь жолоочийн суудлын үнээс 10% service fee авна. Automatic QPay integration дараагийн хувилбарт орно.
+              Эхний хувилбарт NuudelchinTrip нь жолоочийн суудлын үнээс 10% үйлчилгээний шимтгэл авна. Автомат QPay холболт дараагийн шатанд орно.
             </p>
           </div>
         </section>
@@ -47,14 +47,14 @@ export function PricingPage() {
                     <div className="flex items-center justify-between border-b border-border pb-4">
                       <div>
                         <p className="font-medium text-foreground">Үйлчилгээний шимтгэл</p>
-                        <p className="text-sm text-muted-foreground">NuudelchinTrip service fee 10%</p>
+                        <p className="text-sm text-muted-foreground">NuudelchinTrip үйлчилгээний шимтгэл 10%</p>
                       </div>
                       <p className="text-xl font-bold text-primary">₮{platformFee.toLocaleString()}</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold text-foreground">Аялагчийн нийт төлөх</p>
-                        <p className="text-sm text-muted-foreground">Жолоочийн үнэ + platform fee</p>
+                        <p className="text-sm text-muted-foreground">Жолоочийн үнэ + үйлчилгээний шимтгэл</p>
                       </div>
                       <p className="text-3xl font-bold text-primary">₮{total.toLocaleString()}</p>
                     </div>
@@ -66,18 +66,18 @@ export function PricingPage() {
                 <CardHeader>
                   <div className="flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-accent" />
-                    <h2 className="text-xl font-semibold text-foreground">Payment v1</h2>
+                    <h2 className="text-xl font-semibold text-foreground">Төлбөрийн эхний хувилбар</h2>
                   </div>
                 </CardHeader>
                 <CardBody>
                   <div className="space-y-4 text-sm text-muted-foreground">
                     <p>Аялагч банк эсвэл QPay QR-р төлбөр төлнө.</p>
-                    <p>Payment screenshot эсвэл transaction code upload хийнэ.</p>
-                    <p>Admin payment queue дээр approve/reject хийсний дараа booking confirmed болно.</p>
+                    <p>Төлбөрийн зураг эсвэл гүйлгээний код оруулна.</p>
+                    <p>Админ төлбөрийн баримтыг зөвшөөрөх эсвэл буцаасны дараа захиалга баталгаажна.</p>
                   </div>
                   <Button variant="primary" fullWidth className="mt-6" onClick={() => window.location.href = '/dashboard/bookings/BK-001/payment-proof'}>
                     <ReceiptText className="w-4 h-4" />
-                    Төлбөрийн баримт demo
+                    Төлбөрийн баримт оруулах
                   </Button>
                 </CardBody>
               </Card>

@@ -26,15 +26,15 @@ const travelerRequests = [
     id: 2,
     traveler: 'Сарангэрэл Цэцэг',
     route: 'Улаанбаатар → Эрдэнэт',
-    need: 'Route match, pickup уян хатан',
-    note: 'Эрдэнэт хүртэл хамт явах жолооч хайж байна. Pickup цэг уян хатан.',
+    need: 'Чиглэл тохирсон, авах цэг уян хатан',
+    note: 'Эрдэнэт хүртэл хамт явах жолооч хайж байна. Авах цэг уян хатан.',
     price: 25000,
   },
 ];
 
 const activeRoutes = [
   { route: 'Улаанбаатар → Дархан', date: '2026-05-25', capacity: '2 суудал, 10 кг', status: 'Нээлттэй' },
-  { route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', capacity: '1 суудал, 15 кг', status: 'Match pending' },
+  { route: 'Улаанбаатар → Сэлэнгэ', date: '2026-05-27', capacity: '1 суудал, 15 кг', status: 'Хүсэлт хүлээгдэж байна' },
 ];
 
 export function DriverDashboard() {
@@ -44,7 +44,7 @@ export function DriverDashboard() {
 
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mb-6 md:mb-8">
-          <Badge variant="success" className="mb-3">Driver dashboard</Badge>
+          <Badge variant="success" className="mb-3">Жолоочийн самбар</Badge>
           <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">Жолоочийн хянах самбар</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
             Машинаар явах маршрутаа нийтэлж, хамгийн түрүүнд аялагчийн хүсэлт болон суудлын тохирлыг харна.
@@ -75,7 +75,7 @@ export function DriverDashboard() {
               <div className="min-w-0">
                 <Badge variant="success">Гол урсгал</Badge>
                 <h2 className="mt-3 text-2xl font-semibold text-foreground">Аялагчийн хүсэлтүүд эхэнд</h2>
-                <p className="mt-2 text-muted-foreground">Жолоочийн хувьд зорчигч, route match, суудлын тохирол хамгийн түрүүнд харагдана.</p>
+                <p className="mt-2 text-muted-foreground">Жолоочийн хувьд зорчигчийн хүсэлт, чиглэлийн тохирол, суудлын мэдээлэл хамгийн түрүүнд харагдана.</p>
               </div>
               <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/driver/requests'}>
                 Ирсэн хүсэлтүүд

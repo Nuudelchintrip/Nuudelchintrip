@@ -11,7 +11,7 @@ const roles = [
     icon: <UserRound className="w-10 h-10" />,
     color: 'info',
     role: 'traveler',
-    benefits: ['Унаа хайх', 'Жолоочийн санал харах', 'Booking request илгээх', 'Төлбөрийн баримт upload'],
+    benefits: ['Унаа хайх', 'Жолоочийн санал харах', 'Захиалгын хүсэлт илгээх', 'Төлбөрийн баримт оруулах'],
   },
   {
     title: 'Би жолооч',
@@ -23,11 +23,11 @@ const roles = [
   },
   {
     title: 'Би дайвар ачаа илгээнэ',
-    description: 'Жолоочийн route дээр жижиг дайвар ачаа илгээх хүсэлт үүсгэнэ.',
+    description: 'Жолоочийн нийтэлсэн чиглэл дээр жижиг дайвар ачаа илгээх хүсэлт үүсгэнэ.',
     icon: <Package className="w-10 h-10" />,
     color: 'cargo',
     role: 'cargo_sender',
-    benefits: ['Дайвар ачаа авах route хайх', 'Жижиг ачааны хүсэлт илгээх', 'Баримт ба pickup зураг оруулах', 'Хүлээн авах кодоор баталгаажуулах'],
+    benefits: ['Дайвар ачаа авах чиглэл хайх', 'Жижиг ачааны хүсэлт илгээх', 'Баримт ба ачаа авсан зураг оруулах', 'Хүлээн авах кодоор баталгаажуулах'],
   },
 ] as const;
 
@@ -62,10 +62,10 @@ export function RoleSelectPage() {
         </a>
 
         <div className="text-center mb-10">
-          <Badge variant="info" className="mb-4">Role setup</Badge>
+          <Badge variant="info" className="mb-4">Ашиглах төрөл</Badge>
           <h1 className="text-3xl font-bold text-foreground mb-3">Та NuudelchinTrip-ийг ямар зорилгоор ашиглах вэ?</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            V1 core нь аялагч, жолооч. Дайвар ачаа нь жолоочийн route дээр суурилсан secondary module байна.
+            Үндсэн үйлчилгээ нь аялагч, жолоочийг холбох. Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж.
           </p>
         </div>
 
@@ -104,7 +104,7 @@ export function RoleSelectPage() {
                     fullWidth
                     onClick={() => chooseRole(role.role)}
                   >
-                    {isTraveler ? 'Аялагч dashboard руу' : isDriver ? 'Жолооч dashboard руу' : 'Дайвар ачааны flow руу'}
+                    {isTraveler ? 'Аялагчийн самбар руу' : isDriver ? 'Жолоочийн самбар руу' : 'Дайвар ачааны самбар руу'}
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </CardBody>
@@ -114,7 +114,7 @@ export function RoleSelectPage() {
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Role солих хүсэлт дараа нь admin approval-оор шийдэгдэнэ.
+          Ашиглах төрлөө дараа нь солих бол админы зөвшөөрөл шаардлагатай.
         </p>
       </div>
     </div>

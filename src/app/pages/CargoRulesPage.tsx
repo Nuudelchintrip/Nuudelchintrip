@@ -13,10 +13,10 @@ export function CargoRulesPage() {
       <Sidebar menuItems={getDashboardMenu('sender')} />
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mb-8">
-          <Badge variant="warning">Cargo policy</Badge>
+          <Badge variant="warning">Ачааны дүрэм</Badge>
           <h1 className="mt-4 text-3xl font-bold text-foreground">Ачааны дүрэм</h1>
           <p className="mt-3 max-w-3xl text-muted-foreground">
-            Дайвар ачаа нь жолоочийн route дээр суурилсан жижиг add-on тул зөвшөөрөгдөх хэмжээ, төрөл, proof timeline ойлгомжтой байх ёстой.
+            Дайвар ачаа нь жолоочийн нийтэлсэн чиглэл дээр суурилсан нэмэлт боломж. Зөвшөөрөгдөх хэмжээ, төрөл, төлбөрийн баримт болон хүргэлтийн явц тодорхой байх ёстой.
           </p>
         </div>
 
@@ -35,9 +35,9 @@ export function CargoRulesPage() {
 
           <Card className="border-primary/20 bg-primary/5 p-6">
             <ShieldCheck className="h-9 w-9 text-primary" />
-            <h2 className="mt-4 text-xl font-semibold text-foreground">Proof шаардлага</h2>
+            <h2 className="mt-4 text-xl font-semibold text-foreground">Баталгаажуулах шаардлага</h2>
             <div className="mt-5 space-y-3">
-              {['Payment proof', 'Pickup proof', 'Delivery proof', '6 оронтой delivery code'].map((item) => (
+              {['Төлбөрийн баримт', 'Ачаа авсан баталгаа', 'Хүргэсэн баталгаа', '6 оронтой хүргэлтийн код'].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 className="h-4 w-4 text-success" />
                   <span>{item}</span>

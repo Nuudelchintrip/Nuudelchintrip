@@ -87,8 +87,8 @@ export function TripDetailPage() {
           seats: trip.seatsAvailable,
           price: trip.pricePerSeat,
           vehicle: trip.driver.carModel || 'Машины мэдээлэл хүлээгдэж байна',
-          pickup: trip.pickupNote || 'Pickup тохиролцоно',
-          dropoff: trip.dropoffNote || 'Dropoff тохиролцоно',
+          pickup: trip.pickupNote || 'Авах цэг тохиролцоно',
+          dropoff: trip.dropoffNote || 'Буулгах цэг тохиролцоно',
           allowsCargo: trip.allowsCargo,
           cargoNote: trip.allowsCargo
             ? trip.cargoPriceNote || `${trip.cargoCapacityKg || 0} кг хүртэл`
@@ -105,7 +105,7 @@ export function TripDetailPage() {
       })
       .catch((error) => {
         if (!active) return;
-        setRouteError(error instanceof Error ? error.message : 'Route мэдээлэл уншихад алдаа гарлаа.');
+        setRouteError(error instanceof Error ? error.message : 'Чиглэлийн мэдээлэл уншихад алдаа гарлаа.');
       })
       .finally(() => {
         if (active) setLoadingRoute(false);
@@ -134,7 +134,7 @@ export function TripDetailPage() {
               </p>
               {createdBookingId && (
                 <Button size="sm" onClick={() => { window.location.href = `/dashboard/bookings/${createdBookingId}`; }}>
-                  Booking detail харах
+                  Захиалгаа харах
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               )}
@@ -144,7 +144,7 @@ export function TripDetailPage() {
 
         {loadingRoute && (
           <div className="mb-6 rounded-lg border border-border bg-card p-4 text-muted-foreground">
-            Route мэдээлэл уншиж байна...
+            Чиглэлийн мэдээлэл уншиж байна...
           </div>
         )}
 
@@ -169,7 +169,7 @@ export function TripDetailPage() {
                   <span>{route.to}</span>
                 </h1>
                 <p className="mt-4 max-w-3xl text-muted-foreground">
-                  Сул суудалтай жолоочийн mock route. Аялагч суудал захиалах, cargo sender route дээр жижиг дайвар ачааны хүсэлт илгээх боломжтой.
+                  Баталгаажсан жолоочийн сул суудал, үнэ, цаг болон дайвар ачаа авах боломжийг нэг дор харуулж байна.
                 </p>
               </div>
               <CardBody className="p-6 md:p-8">
@@ -177,18 +177,18 @@ export function TripDetailPage() {
                   <Info icon={<Calendar className="h-5 w-5" />} label="Огноо / цаг" value={`${route.date}, ${route.time}`} />
                   <Info icon={<UsersRound className="h-5 w-5" />} label="Сул суудал" value={`${route.seats} суудал`} />
                   <Info icon={<CreditCard className="h-5 w-5" />} label="Үнэ" value={`₮${route.price.toLocaleString()} / хүн`} />
-                  <Info icon={<Package className="h-5 w-5" />} label="Cargo" value={route.allowsCargo ? route.cargoNote : 'Авахгүй'} />
+                  <Info icon={<Package className="h-5 w-5" />} label="Дайвар ачаа" value={route.allowsCargo ? route.cargoNote : 'Авахгүй'} />
                 </div>
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <Info icon={<MapPin className="h-5 w-5" />} label="Pickup" value={route.pickup} />
-                  <Info icon={<MapPin className="h-5 w-5" />} label="Dropoff" value={route.dropoff} />
+                  <Info icon={<MapPin className="h-5 w-5" />} label="Авах цэг" value={route.pickup} />
+                  <Info icon={<MapPin className="h-5 w-5" />} label="Буулгах цэг" value={route.dropoff} />
                 </div>
               </CardBody>
             </Card>
 
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-foreground">Reviews preview</h2>
+                <h2 className="text-xl font-semibold text-foreground">Сэтгэгдлийн тойм</h2>
               </CardHeader>
               <CardBody>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -207,7 +207,7 @@ export function TripDetailPage() {
 
           <aside className="space-y-5">
             <Card className="p-5">
-              <h2 className="text-xl font-semibold text-foreground">Driver public profile</h2>
+              <h2 className="text-xl font-semibold text-foreground">Жолоочийн танилцуулга</h2>
               <div className="mt-5 flex gap-3">
                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Car className="h-7 w-7" />
@@ -227,7 +227,7 @@ export function TripDetailPage() {
             <Card className="p-5">
               <p className="text-sm text-muted-foreground">Нийт төлбөр</p>
               <p className="mt-1 text-3xl font-bold text-primary">₮{route.price.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-muted-foreground">+ service fee дараагийн proof шатанд харагдана</p>
+              <p className="mt-1 text-xs text-muted-foreground">Үйлчилгээний шимтгэл төлбөрийн шатанд тусдаа харагдана</p>
               <div className="mt-5 grid gap-3">
                 <Button size="lg" fullWidth onClick={() => setModal('booking')}>
                   Суудал захиалах
@@ -279,20 +279,20 @@ export function TripDetailPage() {
                   note: bookingNote.trim() || undefined,
                 });
                 setCreatedBookingId(booking.id);
-                setSuccess(`Booking request Supabase-д илгээгдлээ. ID: ${booking.id}`);
+                setSuccess(`Захиалгын хүсэлт илгээгдлээ. Дугаар: ${booking.id}`);
                 setModal(null);
                 setRouteError('');
               } catch (error) {
                 setSuccess('');
                 setCreatedBookingId('');
-                setRouteError(error instanceof Error ? error.message : 'Booking request илгээхэд алдаа гарлаа.');
+                setRouteError(error instanceof Error ? error.message : 'Захиалгын хүсэлт илгээхэд алдаа гарлаа.');
               } finally {
                 setSubmitting(false);
               }
               return;
             }
             setCreatedBookingId('');
-            setSuccess(modal === 'booking' ? 'Booking request mock амжилттай илгээгдлээ.' : 'Cargo request mock амжилттай илгээгдлээ.');
+            setSuccess(modal === 'booking' ? 'Захиалгын хүсэлт амжилттай илгээгдлээ.' : 'Дайвар ачааны хүсэлт амжилттай илгээгдлээ.');
             setModal(null);
           }}
           seats={bookingSeats}
@@ -331,7 +331,7 @@ function RequestModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4">
       <Card className="w-full max-w-lg p-6">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">{isCargo ? 'Cargo request' : 'Booking request'}</h2>
+          <h2 className="text-xl font-semibold text-foreground">{isCargo ? 'Дайвар ачааны хүсэлт' : 'Суудал захиалах хүсэлт'}</h2>
           <button type="button" onClick={onClose} className="rounded-lg p-2 hover:bg-muted">
             <X className="h-5 w-5" />
           </button>
@@ -346,7 +346,7 @@ function RequestModal({
           ) : (
             <>
               <Input label="Суудлын тоо" placeholder="1" inputMode="numeric" value={seats} onChange={(event) => onSeatsChange?.(event.target.value)} />
-              <Input label="Pickup note" placeholder="Сансар орчим авах боломжтой" value={note} onChange={(event) => onNoteChange?.(event.target.value)} />
+              <Input label="Авах цэгийн тэмдэглэл" placeholder="Сансар орчим авах боломжтой" value={note} onChange={(event) => onNoteChange?.(event.target.value)} />
               <Input label="Утас" placeholder="+976 9999 9999" />
             </>
           )}

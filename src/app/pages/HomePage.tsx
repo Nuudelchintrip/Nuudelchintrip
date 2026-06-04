@@ -82,7 +82,7 @@ export function HomePage() {
         <section className="relative border-b border-border bg-card">
           <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
-            <div className="reveal-up flex w-full max-w-[358px] min-w-0 flex-col justify-center sm:max-w-none">
+            <div className="flex w-full max-w-[358px] min-w-0 flex-col justify-center sm:max-w-none">
               <Badge variant="info">Орон нутгийн унаа хуваалцах платформ</Badge>
               <h1 className="mt-5 max-w-4xl text-3xl font-bold leading-tight text-foreground sm:text-5xl lg:text-6xl">
                 Орон нутаг руу хамт явах жолоочоо олоорой
@@ -242,7 +242,7 @@ export function HomePage() {
 
 function HeroVisual() {
   return (
-    <div className="reveal-up relative w-full max-w-[358px] min-w-0 sm:max-w-none" style={{ animationDelay: '120ms' }}>
+    <div className="relative w-full max-w-[358px] min-w-0 sm:max-w-none">
       <div className="relative overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <div className="relative aspect-[4/3] min-h-[360px] overflow-hidden bg-muted sm:min-h-[520px]">
           <img
@@ -265,7 +265,7 @@ function HeroVisual() {
             </div>
           </div>
 
-          <div className="floating-panel absolute bottom-4 left-4 right-4 rounded-lg border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur sm:bottom-6 sm:left-auto sm:right-6 sm:w-[390px]">
+          <div className="floating-panel absolute bottom-4 left-4 right-4 rounded-lg border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-primary">Жишээ санал</p>

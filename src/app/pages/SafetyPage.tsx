@@ -8,38 +8,38 @@ const safetyFeatures = [
   {
     icon: <BadgeCheck className="w-6 h-6" />,
     title: 'Баталгаажсан хэрэглэгч',
-    text: 'Утасны баталгаажуулалт, жолоочийн бичиг баримт, vehicle info, admin verified badge ашиглана.',
+    text: 'Утасны баталгаажуулалт, жолоочийн бичиг баримт, машины мэдээлэл, админы зөвшөөрсөн тэмдэг ашиглана.',
   },
   {
     icon: <Upload className="w-6 h-6" />,
     title: 'Төлбөрийн баримт',
-    text: 'Төлбөрийн screenshot эсвэл transaction code нь маргаан гарвал evidence timeline болно.',
+    text: 'Төлбөрийн зураг эсвэл гүйлгээний код нь маргаан гарвал нотолгоо болно.',
   },
   {
     icon: <ShieldCheck className="w-6 h-6" />,
-    title: 'Trip status',
-    text: 'Request, accepted, confirmed, on trip, completed төлөвүүдээр аяллын явцыг хянана.',
+    title: 'Аяллын төлөв',
+    text: 'Хүсэлт илгээгдсэн, зөвшөөрсөн, баталгаажсан, аялал эхэлсэн, дууссан төлөвүүдээр явцыг хянана.',
   },
   {
     icon: <FileWarning className="w-6 h-6" />,
-    title: 'Report ба moderation',
-    text: 'Хэрэглэгч report үүсгэж, admin төлбөр, жолоочийн verification, booking маргааныг шалгана.',
+    title: 'Гомдол ба хяналт',
+    text: 'Хэрэглэгч гомдол үүсгэж, админ төлбөр, жолоочийн баталгаажуулалт, захиалгын маргааныг шалгана.',
   },
 ];
 
 const safetyRules = [
-  'Жолоочийн verified badge, үнэлгээ, completed trips-ийг шалгах',
-  'Pickup/dropoff болон хөдөлгөх цагийг booking дээр тодорхой бичих',
-  'Public card дээр утас болон нарийн байршлыг бүрэн харуулахгүй байх',
-  'No-show, late trip, unsafe behavior үед report үүсгэх',
-  'Аялал дууссаны дараа rating/comment үлдээх',
+  'Жолоочийн баталгаажсан тэмдэг, үнэлгээ, дууссан аяллыг шалгах',
+  'Авах болон буулгах цэг, хөдлөх цагийг захиалга дээр тодорхой бичих',
+  'Нийтийн карт дээр утас болон нарийн байршлыг бүрэн харуулахгүй байх',
+  'Ирээгүй, хоцорсон, аюултай нөхцөл үүссэн үед гомдол илгээх',
+  'Аялал дууссаны дараа үнэлгээ, сэтгэгдэл үлдээх',
 ];
 
 const prohibitedCargo = [
   'Хууль бус бараа, зэвсэг, тэсэрч дэлбэрэх зүйл',
   'Амьд амьтан, муудах хүнс, аюултай бодис',
   'Их хэмжээний бэлэн мөнгө, өндөр үнэ цэнтэй зүйл',
-  'Буруу мэдүүлсэн эсвэл receiver info тодорхойгүй ачаа',
+  'Буруу мэдүүлсэн эсвэл хүлээн авагчийн мэдээлэл тодорхойгүй ачаа',
 ];
 
 export function SafetyPage() {
@@ -50,10 +50,10 @@ export function SafetyPage() {
       <main>
         <section className="bg-primary/5 py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Badge variant="info" className="mb-5">Trust & safety</Badge>
-            <h1 className="text-4xl font-bold text-foreground mb-4">Аюулгүй байдал бол core feature</h1>
+            <Badge variant="info" className="mb-5">Итгэлцэл ба аюулгүй байдал</Badge>
+            <h1 className="text-4xl font-bold text-foreground mb-4">Аюулгүй байдал бол үндсэн хэсэг</h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Passenger-driver marketplace дээр итгэлцэл нь гоёл биш. Verification, payment proof, status timeline, report, admin moderation бүгд booking flow-ийн үндсэн хэсэг байна.
+              Аялагч, жолоочийг холбодог платформ дээр итгэлцэл хамгийн чухал. Баталгаажуулалт, төлбөрийн баримт, төлөвийн явц, гомдол, админы хяналт бүгд захиалгын урсгалын үндсэн хэсэг байна.
             </p>
           </div>
         </section>
@@ -123,7 +123,7 @@ export function SafetyPage() {
                 </CardHeader>
                 <CardBody>
                   <p className="text-foreground leading-7">
-                    NuudelchinTrip нь аялагч, жолооч болон route дээрх жижиг дайвар ачааг холбох marketplace бөгөөд шууд тээврийн үйлчилгээ үзүүлэгч биш. Verification, proof, report, admin moderation-оор эрсдэлийг багасгана.
+                    NuudelchinTrip нь аялагч, жолооч болон чиглэл дээрх жижиг дайвар ачааг холбох платформ бөгөөд шууд тээврийн үйлчилгээ үзүүлэгч биш. Баталгаажуулалт, баримт, гомдол, админы хяналтаар эрсдэлийг багасгана.
                   </p>
                 </CardBody>
               </Card>

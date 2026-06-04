@@ -7,23 +7,23 @@ import { Navbar } from '../components/Navbar';
 const flowSteps = [
   {
     icon: <UserRoundCheck className="w-6 h-6" />,
-    title: 'Бүртгүүлэх ба role сонгох',
-    text: 'Аялагч эсвэл жолоочоор бүртгүүлж profile setup, утас болон шаардлагатай verification-оо бөглөнө.',
+    title: 'Бүртгүүлэх ба төрлөө сонгох',
+    text: 'Аялагч эсвэл жолоочоор бүртгүүлж, утас болон шаардлагатай баталгаажуулалтаа бөглөнө.',
   },
   {
     icon: <Route className="w-6 h-6" />,
     title: 'Унаа ба суудал тааруулах',
-    text: 'Аялагч route хайна. Жолооч чиглэл, огноо, сул суудал, үнийг нийтэлнэ.',
+    text: 'Аялагч чиглэл хайна. Жолооч чиглэл, огноо, сул суудал, үнийг нийтэлнэ.',
   },
   {
     icon: <CreditCard className="w-6 h-6" />,
     title: 'Төлбөр баталгаажуулах',
-    text: 'Аялагч банк эсвэл QPay-р төлөөд screenshot/transaction code байршуулна. Admin баталсны дараа booking confirmed болно.',
+    text: 'Аялагч банк эсвэл QPay-р төлөөд зураг эсвэл гүйлгээний код оруулна. Админ баталсны дараа захиалга баталгаажна.',
   },
   {
     icon: <Star className="w-6 h-6" />,
     title: 'Аялал дуусгаж үнэлэх',
-    text: 'Аяллын төлөв completed болоход хоёр тал rating/comment үлдээж marketplace-ийн итгэлийг нэмнэ.',
+    text: 'Аялал дууссаны дараа хоёр тал үнэлгээ, сэтгэгдэл үлдээж платформын итгэлцлийг нэмнэ.',
   },
 ];
 
@@ -45,10 +45,10 @@ export function HowItWorksPage() {
       <main>
         <section className="bg-primary/5 py-16">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Badge variant="info" className="mb-5">Marketplace flow</Badge>
+            <Badge variant="info" className="mb-5">Ажиллах зарчим</Badge>
             <h1 className="text-4xl font-bold text-foreground mb-4">NuudelchinTrip хэрхэн ажилладаг вэ?</h1>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Платформ нь шууд тээврийн үйлчилгээ үзүүлэгч биш. Харин орон нутаг руу явах аялагчийг найдвартай жолоочтой route, booking, төлбөрийн баримт, үнэлгээгээр холбодог.
+              Платформ нь шууд тээврийн үйлчилгээ үзүүлэгч биш. Харин орон нутаг руу явах аялагчийг найдвартай жолоочтой чиглэл, захиалга, төлбөрийн баримт, үнэлгээгээр холбодог.
             </p>
           </div>
         </section>
@@ -81,7 +81,7 @@ export function HowItWorksPage() {
                 </CardHeader>
                 <CardBody>
                   <div className="space-y-4">
-                    {['Route хайна', 'Жолоочийн санал, үнэ, сул суудал харна', 'Booking request илгээнэ', 'Төлбөрийн баримт upload хийнэ', 'Аялал дууссаны дараа review үлдээнэ'].map((item) => (
+                    {['Чиглэл хайна', 'Жолоочийн санал, үнэ, сул суудал харна', 'Захиалгын хүсэлт илгээнэ', 'Төлбөрийн баримт оруулна', 'Аялал дууссаны дараа үнэлгээ үлдээнэ'].map((item) => (
                       <div key={item} className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-success mt-0.5" />
                         <p className="text-foreground">{item}</p>
@@ -97,7 +97,7 @@ export function HowItWorksPage() {
                 </CardHeader>
                 <CardBody>
                   <div className="space-y-4">
-                    {['Verification батлуулна', 'Явах чиглэл, сул суудал, үнэ оруулна', 'Аялагчийн хүсэлтийг accept/reject хийнэ', 'Аяллын төлөв шинэчилнэ', 'Орлого, rating, completed trips хянана'].map((item) => (
+                    {['Баталгаажуулалт хийлгэнэ', 'Явах чиглэл, сул суудал, үнэ оруулна', 'Аялагчийн хүсэлтийг зөвшөөрөх эсвэл татгалзана', 'Аяллын төлөв шинэчилнэ', 'Орлого, үнэлгээ, дууссан аяллаа хянана'].map((item) => (
                       <div key={item} className="flex items-start gap-3">
                         <ShieldCheck className="w-5 h-5 text-primary mt-0.5" />
                         <p className="text-foreground">{item}</p>
@@ -114,13 +114,12 @@ export function HowItWorksPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-foreground">Booking status timeline</h2>
+                <h2 className="text-xl font-semibold text-foreground">Захиалгын төлөвийн явц</h2>
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {bookingStatuses.map(([code, label]) => (
                     <div key={code} className="p-4 border border-border rounded-lg bg-background">
-                      <p className="text-xs font-mono text-primary mb-1">{code}</p>
                       <p className="font-medium text-foreground">{label}</p>
                     </div>
                   ))}

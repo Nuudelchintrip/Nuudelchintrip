@@ -28,7 +28,7 @@ const accountTypes: {
   {
     id: 'cargo_sender',
     title: 'Дайвар ачаа',
-    description: 'Жолоочийн route дээр жижиг дайвар ачаа илгээнэ.',
+    description: 'Жолоочийн нийтэлсэн чиглэл дээр жижиг дайвар ачаа илгээнэ.',
     icon: <Package className="h-5 w-5" />,
   },
 ];
@@ -50,7 +50,7 @@ export function RegisterPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!role) return setError('Role сонгоно уу.');
+    if (!role) return setError('Ашиглах төрлөө сонгоно уу.');
     if (!fullName.trim()) return setError('Нэр оруулна уу.');
     if (!phone.replace(/\D/g, '').replace(/^976/, '')) return setError('Утасны дугаар оруулна уу.');
     if (!email.trim()) return setError('И-мэйл оруулна уу.');
@@ -78,8 +78,8 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-3xl">
+    <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-4 py-12">
+      <div className="min-w-0 max-w-3xl" style={{ width: 'min(100%, calc(100vw - 3rem))' }}>
         <a href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" />
           Буцах
@@ -92,17 +92,17 @@ export function RegisterPage() {
           <span className="text-2xl font-bold text-foreground">NuudelchinTrip</span>
         </a>
 
-        <Card>
-          <CardBody className="p-6 md:p-8">
+        <Card className="min-w-0 max-w-full overflow-hidden">
+          <CardBody className="min-w-0 p-5 md:p-8">
             <div className="mb-7">
               <h1 className="mb-2 text-3xl font-bold text-foreground">Бүртгүүлэх</h1>
-              <p className="text-muted-foreground">Role-оо сонгоод үндсэн мэдээллээ оруулна уу.</p>
+              <p className="text-muted-foreground">Ашиглах төрлөө сонгоод үндсэн мэдээллээ оруулна уу.</p>
             </div>
 
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label className="mb-3 block text-sm font-medium text-foreground">Role сонгох</label>
-                <div className="grid gap-3 md:grid-cols-3">
+                <label className="mb-3 block text-sm font-medium text-foreground">Ашиглах төрөл сонгох</label>
+                <div className="grid min-w-0 gap-3 md:grid-cols-3">
                   {accountTypes.map((type) => {
                     const selected = role === type.id;
                     return (
@@ -113,7 +113,7 @@ export function RegisterPage() {
                           setRole(type.id);
                           setError('');
                         }}
-                        className={`rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 ${
+                        className={`w-full min-w-0 rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 ${
                           selected ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card hover:border-primary/50'
                         }`}
                       >
@@ -123,7 +123,7 @@ export function RegisterPage() {
                           {type.icon}
                         </div>
                         <p className="font-semibold text-foreground">{type.title}</p>
-                        <p className="mt-1 text-sm leading-6 text-muted-foreground">{type.description}</p>
+                        <p className="mt-1 break-words text-sm leading-6 text-muted-foreground">{type.description}</p>
                       </button>
                     );
                   })}

@@ -26,8 +26,8 @@ const driverOffers = [
     id: 2,
     driver: 'Ганбаатар Дорж',
     route: 'Улаанбаатар → Сэлэнгэ',
-    vehicle: 'Фургон, замын дагуу pickup',
-    note: 'Аялагч авах боломжтой. Pickup цэг болон явах цаг уян хатан.',
+    vehicle: 'Фургон, замын дагуу авах боломжтой',
+    note: 'Аялагч авах боломжтой. Авах цэг болон явах цаг уян хатан.',
     price: 22000,
   },
 ];
@@ -44,10 +44,10 @@ export function TravelerDashboard() {
 
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
         <div className="mb-6 md:mb-8">
-          <Badge variant="info" className="mb-3">Traveler dashboard</Badge>
+          <Badge variant="info" className="mb-3">Аялагчийн самбар</Badge>
           <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">Аялагчийн хянах самбар</h1>
           <p className="mt-2 max-w-3xl text-muted-foreground">
-            Та хаашаа явахаа хайж, тохирох жолоочийн санал, суудал, үнэ, route match-уудыг ялгаж харна.
+            Та хаашаа явахаа хайж, тохирох жолоочийн санал, сул суудал, үнэ болон чиглэлийн тохирлыг нэг дор харна.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export function TravelerDashboard() {
               <div className="min-w-0">
                 <Badge variant="success">Гол урсгал</Badge>
                 <h2 className="mt-3 text-2xl font-semibold text-foreground">Жолоочтой таарах хүсэлтүүд эхэнд</h2>
-                <p className="mt-2 text-muted-foreground">Аялагчийн хувьд хамгийн түрүүнд жолоочийн санал, суудал, цаг, route тохирол харагдана.</p>
+                <p className="mt-2 text-muted-foreground">Аялагчийн хувьд хамгийн түрүүнд жолоочийн санал, сул суудал, цаг болон чиглэлийн тохирол харагдана.</p>
               </div>
               <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/traveler/find-drivers'}>
                 Жолооч хайх
@@ -147,7 +147,7 @@ export function TravelerDashboard() {
                 <ShieldCheck className="h-8 w-8 text-primary" />
                 <p className="mt-3 text-xl font-semibold text-foreground">Аюулгүй зорчих мэдээлэл</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Жолоочийн verification, route match, pickup/dropoff тохирлыг шалгаад аяллаа баталгаажуулна.
+                  Жолоочийн баталгаажуулалт, чиглэлийн тохирол, авах болон буулгах цэгийг шалгаад аяллаа баталгаажуулна.
                 </p>
                 <Button className="mt-5" variant="outline" fullWidth onClick={() => window.location.href = '/dashboard/traveler/profile'}>
                   Профайл шалгах

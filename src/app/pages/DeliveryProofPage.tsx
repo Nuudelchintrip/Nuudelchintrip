@@ -25,14 +25,14 @@ export function DeliveryProofPage() {
           onClick={() => window.location.href = `/dashboard/bookings/${booking.id}`}
         >
           <ArrowLeft className="w-4 h-4" />
-          Booking руу буцах
+          Захиалга руу буцах
         </button>
 
         <section className="mb-8 rounded-lg border border-primary/20 bg-primary/5 p-6">
-          <Badge variant="info" className="mb-4">Trip evidence</Badge>
-          <h1 className="text-3xl font-bold text-foreground mb-3">Аяллын нотолгоо ба delivery code</h1>
+          <Badge variant="info" className="mb-4">Аяллын баталгаа</Badge>
+          <h1 className="text-3xl font-bold text-foreground mb-3">Аяллын нотолгоо ба баталгаажуулах код</h1>
           <p className="max-w-3xl text-muted-foreground leading-7">
-            Pickup үеийн тэмдэглэл, хүргэсэн нотолгоо, аялагчийн 6 оронтой баталгаажуулах код нь dispute үед admin-д evidence болно.
+            Аялал эхэлсэн тэмдэглэл, хүргэсэн нотолгоо, аялагчийн 6 оронтой баталгаажуулах код нь маргаан гарвал админд шалгах баримт болно.
           </p>
         </section>
 
@@ -48,10 +48,10 @@ export function DeliveryProofPage() {
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {[
-                    'Аялагчийг pickup хийх үед эхэлсэн тэмдэглэл эсвэл зураг хадгална.',
+                    'Аялагчийг авсан үед эхэлсэн тэмдэглэл эсвэл зураг хадгална.',
                     'Аялал дуусах үед хүргэсэн нотолгоо оруулна.',
                     'Аялагчийн 6 оронтой баталгаажуулах кодыг оруулна.',
-                    'Илгээсний дараа booking completed flow руу шилжинэ.',
+                    'Илгээсний дараа захиалгын төлөв дууссан болно.',
                   ].map((item, index) => (
                     <div key={item} className="rounded-xl border border-border bg-muted/30 p-4">
                       <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
@@ -88,7 +88,7 @@ export function DeliveryProofPage() {
               </CardHeader>
               <CardBody>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Аялагчийн өгсөн 6 оронтой кодыг оруулна. Demo code: {booking.tripCode}
+                  Аялагчийн өгсөн 6 оронтой кодыг оруулна. Жишээ код: {booking.tripCode}
                 </p>
                 <Input placeholder="000000" maxLength={6} className="text-center text-2xl tracking-widest font-mono" />
               </CardBody>
@@ -101,7 +101,7 @@ export function DeliveryProofPage() {
                   Аялал дууссан гэж баталгаажуулах
                 </Button>
                 <p className="text-xs text-muted-foreground text-center mt-4">
-                  Backend холбогдох үед энэ action completed status update хийнэ.
+                  Серверийн холболт идэвхжих үед энэ товч захиалгын төлөвийг автоматаар шинэчилнэ.
                 </p>
               </CardBody>
             </Card>
@@ -110,11 +110,11 @@ export function DeliveryProofPage() {
           <aside className="space-y-6">
             <Card>
               <CardHeader>
-                <h2 className="text-xl font-semibold text-foreground">Booking summary</h2>
+                <h2 className="text-xl font-semibold text-foreground">Захиалгын хураангуй</h2>
               </CardHeader>
               <CardBody>
                 <div className="space-y-4">
-                  <SummaryRow label="Booking" value={booking.id} />
+                  <SummaryRow label="Захиалга" value={booking.id} />
                   <SummaryRow label="Суудал" value={booking.ride.title} />
                   <SummaryRow label="Чиглэл" value={`${booking.route.from} → ${booking.route.to}`} />
                   <SummaryRow label="Аялагч" value={booking.passenger.name} />
@@ -128,7 +128,7 @@ export function DeliveryProofPage() {
                 <div className="flex gap-3">
                   <ShieldCheck className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                   <p className="text-sm leading-6 text-muted-foreground">
-                    Pickup болон completed proof тэмдэглэлгүй бол маргаан шийдвэрлэхэд evidence дутуу болно.
+                    Аялал эхэлсэн болон дууссан нотолгоо байхгүй бол маргаан шийдвэрлэхэд баримт дутуу болно.
                   </p>
                 </div>
               </CardBody>
@@ -156,7 +156,7 @@ function ProofUploadCard({ title, description, icon, tone }: { title: string; de
         <div className={`border-2 border-dashed border-border rounded-xl p-8 text-center ${hoverClass} transition-colors cursor-pointer bg-muted/20`}>
           <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-foreground mb-2">{description}</p>
-          <p className="text-sm text-muted-foreground">PNG, JPG (MAX. 10MB)</p>
+          <p className="text-sm text-muted-foreground">PNG эсвэл JPG, 10MB хүртэл</p>
         </div>
       </CardBody>
     </Card>

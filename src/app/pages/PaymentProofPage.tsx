@@ -14,6 +14,18 @@ import { fetchPassengerBookingById, type PassengerBookingDetail } from '../servi
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
+const statusLabels: Record<string, string> = {
+  pending_request: 'Хүсэлт илгээгдсэн',
+  accepted: 'Зөвшөөрсөн',
+  waiting_payment: 'Төлбөр хүлээгдэж байна',
+  payment_review: 'Баримт шалгаж байна',
+  confirmed: 'Баталгаажсан',
+  on_trip: 'Аялал эхэлсэн',
+  completed: 'Дууссан',
+  cancelled: 'Цуцлагдсан',
+  disputed: 'Маргаантай',
+};
+
 export function PaymentProofPage() {
   const { id } = useParams();
   const mockBooking = getBooking(id);
@@ -269,7 +281,7 @@ export function PaymentProofPage() {
                 <div className="space-y-4">
                   <SummaryField label="Захиалга" value={payment.bookingId} />
                   <SummaryField label="Чиглэл" value={payment.routeLabel} />
-                  <SummaryField label="Одоогийн төлөв" value={payment.status} />
+                  <SummaryField label="Одоогийн төлөв" value={statusLabels[payment.status] ?? payment.status} />
                   <div className="space-y-3 border-t border-border pt-4">
                     <PriceRow label="Жолоочийн үнэ" value={payment.agreed} />
                     <PriceRow label="Үйлчилгээний шимтгэл" value={payment.serviceFee} />
