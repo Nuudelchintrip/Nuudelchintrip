@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -22,15 +22,48 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
-import { bookingStatusSteps, getBooking, getStatusIndex } from '../data/mockData';
+import { bookingStatusSteps, getBooking, getStatusIndex, type BookingStatus } from '../data/mockData';
+import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export function BookingDetailPage() {
   const { id } = useParams();
-  const booking = getBooking(id);
+  const [realBooking, setRealBooking] = useState<PassengerBookingDetail | null>(null);
+  const [loadingBooking, setLoadingBooking] = useState(Boolean(id && UUID_PATTERN.test(id)));
+  const [bookingError, setBookingError] = useState('');
+  const booking = useMemo(() => realBooking ? mapRealBooking(realBooking) : getBooking(id), [id, realBooking]);
   const currentIndex = getStatusIndex(booking.status);
   const currentStep = bookingStatusSteps[currentIndex] ?? bookingStatusSteps[0];
   const nextAction = getNextAction(booking.status, booking.id);
   const progress = Math.max(12, Math.round(((currentIndex + 1) / bookingStatusSteps.length) * 100));
+
+  useEffect(() => {
+    let active = true;
+    if (!id || !UUID_PATTERN.test(id)) {
+      setLoadingBooking(false);
+      return;
+    }
+
+    setLoadingBooking(true);
+    fetchPassengerBookingById(id)
+      .then((item) => {
+        if (!active) return;
+        setRealBooking(item);
+        setBookingError(item ? '' : 'Booking олдсонгүй.');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setBookingError(error instanceof Error ? error.message : 'Booking detail уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingBooking(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,6 +78,18 @@ export function BookingDetailPage() {
           <ArrowLeft className="w-4 h-4" />
           Dashboard руу буцах
         </button>
+
+        {loadingBooking && (
+          <div className="mb-6 rounded-lg border border-border bg-card p-4 text-muted-foreground">
+            Booking detail Supabase-аас уншиж байна...
+          </div>
+        )}
+
+        {bookingError && (
+          <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+            {bookingError}
+          </div>
+        )}
 
         <section className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -362,4 +407,92 @@ function PriceRow({ label, value, strong = false }: { label: string; value: numb
       </span>
     </div>
   );
+}
+
+function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBooking> {
+  const departure = new Date(detail.trip.departureAt);
+  const date = Number.isNaN(departure.getTime()) ? detail.trip.departureAt.slice(0, 10) : departure.toISOString().slice(0, 10);
+  const time = Number.isNaN(departure.getTime())
+    ? ''
+    : departure.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const agreed = detail.totalAmount || detail.trip.pricePerSeat * detail.seatsRequested;
+  const serviceFee = Math.round(agreed * 0.1);
+
+  return {
+    id: detail.id,
+    status: detail.status as BookingStatus,
+    ride: {
+      title: `${detail.seatsRequested} суудал`,
+      description: detail.note || 'Аялагч жолоочид суудлын booking request илгээсэн.',
+      seats: detail.seatsRequested,
+      luggage: 'Хувийн жижиг цүнх',
+      pickupNote: detail.trip.pickupNote || 'Pickup тохиролцоно',
+      dropoffNote: detail.trip.dropoffNote || 'Dropoff тохиролцоно',
+    },
+    cargo: {
+      name: `${detail.seatsRequested} суудал`,
+      description: 'Passenger booking. Дайвар ачаанаас тусдаа зорчигчийн хүсэлт.',
+      weight: 'Хувийн ачаа',
+      size: `${detail.seatsRequested} суудал`,
+      type: 'Аялагч',
+      receiverName: detail.traveler.fullName,
+      receiverPhone: detail.traveler.phone || '+976 •••• ••••',
+    },
+    route: {
+      from: detail.trip.fromLocation,
+      fromDetail: detail.trip.pickupNote || 'Pickup тохиролцоно',
+      to: detail.trip.toLocation,
+      toDetail: detail.trip.dropoffNote || 'Dropoff тохиролцоно',
+      date,
+      time,
+    },
+    sender: {
+      name: detail.traveler.fullName,
+      phone: detail.traveler.phone || '+976 •••• ••••',
+      email: detail.traveler.email || '',
+      verified: detail.traveler.phoneVerified,
+    },
+    passenger: {
+      name: detail.traveler.fullName,
+      phone: detail.traveler.phone || '+976 •••• ••••',
+      email: detail.traveler.email || '',
+      verified: detail.traveler.phoneVerified,
+    },
+    traveler: {
+      name: detail.driver.fullName,
+      phone: detail.driver.phone || '+976 •••• ••••',
+      email: detail.driver.email || '',
+      rating: detail.driver.rating,
+      verified: detail.driver.verificationStatus === 'approved',
+      bankAccount: '',
+      bankName: '',
+    },
+    driver: {
+      name: detail.driver.fullName,
+      phone: detail.driver.phone || '+976 •••• ••••',
+      email: detail.driver.email || '',
+      rating: detail.driver.rating,
+      verified: detail.driver.verificationStatus === 'approved',
+      vehicle: detail.driver.carModel || 'Машины мэдээлэл хүлээгдэж байна',
+      completedTrips: detail.driver.completedTrips,
+      bankAccount: '',
+      bankName: '',
+    },
+    price: {
+      agreed,
+      serviceFee,
+      total: agreed + serviceFee,
+    },
+    payment: {
+      method: 'Банкны шилжүүлэг',
+      transactionCode: '',
+      screenshotName: '',
+      status: detail.status === 'payment_review' || detail.status === 'confirmed' ? 'approved' : 'pending',
+    },
+    tripCode: detail.id.slice(0, 6).toUpperCase(),
+    deliveryCode: detail.id.slice(0, 6).toUpperCase(),
+    messages: detail.note
+      ? [{ author: detail.traveler.fullName, body: detail.note, time: 'Booking үүсэх үед', own: false }]
+      : [],
+  };
 }

@@ -59,10 +59,13 @@ export function TripDetailPage() {
   const { id } = useParams();
   const [modal, setModal] = useState<'booking' | 'cargo' | null>(null);
   const [success, setSuccess] = useState('');
+  const [createdBookingId, setCreatedBookingId] = useState('');
   const [route, setRoute] = useState<RouteDetailView>(fallbackRoute);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [routeError, setRouteError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [bookingSeats, setBookingSeats] = useState('1');
+  const [bookingNote, setBookingNote] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -124,8 +127,18 @@ export function TripDetailPage() {
 
         {success && (
           <div className="mb-6 rounded-lg border border-success/30 bg-success/5 p-4 text-success">
-            <CheckCircle2 className="mr-2 inline h-5 w-5" />
-            {success}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                <CheckCircle2 className="mr-2 inline h-5 w-5" />
+                {success}
+              </p>
+              {createdBookingId && (
+                <Button size="sm" onClick={() => { window.location.href = `/dashboard/bookings/${createdBookingId}`; }}>
+                  Booking detail харах
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
@@ -220,7 +233,18 @@ export function TripDetailPage() {
                   Суудал захиалах
                 </Button>
                 {route.allowsCargo && (
-                  <Button size="lg" variant="outline" fullWidth onClick={() => setModal('cargo')}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    fullWidth
+                    onClick={() => {
+                      if (route.source === 'supabase') {
+                        window.location.href = `/cargo/new?tripId=${route.id}`;
+                        return;
+                      }
+                      setModal('cargo');
+                    }}
+                  >
                     Дайвар ачаа илгээх
                   </Button>
                 )}
@@ -237,26 +261,44 @@ export function TripDetailPage() {
           submitting={submitting}
           onSubmit={async () => {
             if (modal === 'booking' && route.source === 'supabase') {
+              const seats = Number(bookingSeats);
+              if (!Number.isFinite(seats) || seats < 1) {
+                setRouteError('Суудлын тоог зөв оруулна уу.');
+                return;
+              }
+              if (seats > route.seats) {
+                setRouteError('Сонгосон суудлын тоо сул суудлаас их байна.');
+                return;
+              }
+
               setSubmitting(true);
               try {
                 const booking = await createPassengerBooking({
                   tripId: String(route.id),
-                  seatsRequested: 1,
-                  note: 'Created from route detail page',
+                  seatsRequested: seats,
+                  note: bookingNote.trim() || undefined,
                 });
+                setCreatedBookingId(booking.id);
                 setSuccess(`Booking request Supabase-д илгээгдлээ. ID: ${booking.id}`);
                 setModal(null);
+                setRouteError('');
               } catch (error) {
                 setSuccess('');
+                setCreatedBookingId('');
                 setRouteError(error instanceof Error ? error.message : 'Booking request илгээхэд алдаа гарлаа.');
               } finally {
                 setSubmitting(false);
               }
               return;
             }
+            setCreatedBookingId('');
             setSuccess(modal === 'booking' ? 'Booking request mock амжилттай илгээгдлээ.' : 'Cargo request mock амжилттай илгээгдлээ.');
             setModal(null);
           }}
+          seats={bookingSeats}
+          onSeatsChange={setBookingSeats}
+          note={bookingNote}
+          onNoteChange={setBookingNote}
         />
       )}
 
@@ -265,7 +307,25 @@ export function TripDetailPage() {
   );
 }
 
-function RequestModal({ type, onClose, onSubmit, submitting = false }: { type: 'booking' | 'cargo'; onClose: () => void; onSubmit: () => void | Promise<void>; submitting?: boolean }) {
+function RequestModal({
+  type,
+  onClose,
+  onSubmit,
+  submitting = false,
+  seats = '1',
+  onSeatsChange,
+  note = '',
+  onNoteChange,
+}: {
+  type: 'booking' | 'cargo';
+  onClose: () => void;
+  onSubmit: () => void | Promise<void>;
+  submitting?: boolean;
+  seats?: string;
+  onSeatsChange?: (value: string) => void;
+  note?: string;
+  onNoteChange?: (value: string) => void;
+}) {
   const isCargo = type === 'cargo';
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4">
@@ -285,8 +345,8 @@ function RequestModal({ type, onClose, onSubmit, submitting = false }: { type: '
             </>
           ) : (
             <>
-              <Input label="Суудлын тоо" placeholder="1" />
-              <Input label="Pickup note" placeholder="Сансар орчим авах боломжтой" />
+              <Input label="Суудлын тоо" placeholder="1" inputMode="numeric" value={seats} onChange={(event) => onSeatsChange?.(event.target.value)} />
+              <Input label="Pickup note" placeholder="Сансар орчим авах боломжтой" value={note} onChange={(event) => onNoteChange?.(event.target.value)} />
               <Input label="Утас" placeholder="+976 9999 9999" />
             </>
           )}

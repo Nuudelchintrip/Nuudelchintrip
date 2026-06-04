@@ -97,6 +97,42 @@ export interface CreateCargoRequestInput {
   pickupNote?: string;
 }
 
+export interface PassengerBookingDetail {
+  id: string;
+  tripId: string;
+  travelerId: string;
+  status: string;
+  seatsRequested: number;
+  totalAmount: number;
+  note?: string;
+  createdAt: string;
+  trip: {
+    driverId: string;
+    fromLocation: string;
+    toLocation: string;
+    departureAt: string;
+    pickupNote?: string;
+    dropoffNote?: string;
+    pricePerSeat: number;
+    allowsCargo: boolean;
+  };
+  traveler: {
+    fullName: string;
+    phone?: string;
+    email?: string;
+    phoneVerified: boolean;
+  };
+  driver: {
+    fullName: string;
+    phone?: string;
+    email?: string;
+    carModel?: string;
+    rating: number;
+    completedTrips: number;
+    verificationStatus?: TripDriverSummary['verificationStatus'];
+  };
+}
+
 interface TripRow {
   id: string;
   driver_id: string;
@@ -138,6 +174,10 @@ interface BookingRow {
   total_amount: number | null;
   note: string | null;
   created_at: string;
+}
+
+interface BookingDetailRow extends BookingRow {
+  trip_id: string;
 }
 
 interface CargoRequestRow {
@@ -551,6 +591,86 @@ export async function updatePassengerBookingStatus(
 
   if (error) throw toError(error, 'Booking status шинэчлэхэд алдаа гарлаа.');
   return data;
+}
+
+export async function fetchPassengerBookingById(bookingId: string): Promise<PassengerBookingDetail | null> {
+  if (!supabase) return null;
+
+  const { data: booking, error: bookingError } = await supabase
+    .from('passenger_bookings')
+    .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+    .eq('id', bookingId)
+    .maybeSingle();
+
+  if (bookingError) throw toError(bookingError, 'Booking detail уншихад алдаа гарлаа.');
+  if (!booking) return null;
+
+  const bookingRow = booking as BookingDetailRow;
+  const { data: trip, error: tripError } = await supabase
+    .from('trips')
+    .select('id, driver_id, from_location, to_location, departure_at, pickup_note, dropoff_note, price_per_seat, allows_cargo')
+    .eq('id', bookingRow.trip_id)
+    .single();
+
+  if (tripError) throw toError(tripError, 'Booking trip уншихад алдаа гарлаа.');
+
+  const [{ data: traveler, error: travelerError }, { data: driver, error: driverError }, { data: driverProfile, error: driverProfileError }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, full_name, phone, email, phone_verified')
+      .eq('id', bookingRow.traveler_id)
+      .maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('id, full_name, phone, email, phone_verified')
+      .eq('id', trip.driver_id)
+      .maybeSingle(),
+    supabase
+      .from('driver_profiles')
+      .select('user_id, verification_status, car_model, rating, completed_trips')
+      .eq('user_id', trip.driver_id)
+      .maybeSingle(),
+  ]);
+
+  if (travelerError) throw toError(travelerError, 'Traveler profile уншихад алдаа гарлаа.');
+  if (driverError) throw toError(driverError, 'Driver profile уншихад алдаа гарлаа.');
+  if (driverProfileError) throw toError(driverProfileError, 'Driver verification уншихад алдаа гарлаа.');
+
+  return {
+    id: bookingRow.id,
+    tripId: bookingRow.trip_id,
+    travelerId: bookingRow.traveler_id,
+    status: bookingRow.status,
+    seatsRequested: bookingRow.seats_requested,
+    totalAmount: Number(bookingRow.total_amount || 0),
+    note: bookingRow.note || undefined,
+    createdAt: bookingRow.created_at,
+    trip: {
+      driverId: trip.driver_id,
+      fromLocation: trip.from_location,
+      toLocation: trip.to_location,
+      departureAt: trip.departure_at,
+      pickupNote: trip.pickup_note || undefined,
+      dropoffNote: trip.dropoff_note || undefined,
+      pricePerSeat: Number(trip.price_per_seat || 0),
+      allowsCargo: Boolean(trip.allows_cargo),
+    },
+    traveler: {
+      fullName: traveler?.full_name || 'Аялагч',
+      phone: traveler?.phone || undefined,
+      email: traveler?.email || undefined,
+      phoneVerified: Boolean(traveler?.phone_verified),
+    },
+    driver: {
+      fullName: driver?.full_name || 'Жолооч',
+      phone: driver?.phone || undefined,
+      email: driver?.email || undefined,
+      carModel: driverProfile?.car_model || undefined,
+      rating: Number(driverProfile?.rating || 0),
+      completedTrips: Number(driverProfile?.completed_trips || 0),
+      verificationStatus: driverProfile?.verification_status,
+    },
+  };
 }
 
 export async function createCargoRequest(input: CreateCargoRequestInput) {
