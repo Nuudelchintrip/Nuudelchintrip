@@ -336,12 +336,22 @@ export function BookingDetailPage() {
 }
 
 function getNextAction(status: string, bookingId: string) {
-  if (status === 'waiting_payment') {
+  if (status === 'accepted' || status === 'waiting_payment') {
     return {
       icon: <CreditCard className="w-6 h-6" />,
       title: 'Дараагийн алхам: төлбөрийн proof илгээх',
       description: 'Төлбөрөө шилжүүлээд screenshot эсвэл transaction code оруулна. Admin баталгаажуулсны дараа аялал confirmed болно.',
       button: 'Төлбөрийн баримт',
+      href: `/dashboard/bookings/${bookingId}/payment-proof`,
+    };
+  }
+
+  if (status === 'payment_review') {
+    return {
+      icon: <CreditCard className="w-6 h-6" />,
+      title: 'Төлбөрийн баримт шалгагдаж байна',
+      description: 'Таны proof admin queue руу орсон. Баталгаажсаны дараа booking confirmed төлөв рүү шилжинэ.',
+      button: 'Баримтаа харах',
       href: `/dashboard/bookings/${bookingId}/payment-proof`,
     };
   }
@@ -487,7 +497,7 @@ function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBo
       method: 'Банкны шилжүүлэг',
       transactionCode: '',
       screenshotName: '',
-      status: detail.status === 'payment_review' || detail.status === 'confirmed' ? 'approved' : 'pending',
+      status: detail.status === 'confirmed' || detail.status === 'on_trip' || detail.status === 'completed' ? 'approved' : 'pending',
     },
     tripCode: detail.id.slice(0, 6).toUpperCase(),
     deliveryCode: detail.id.slice(0, 6).toUpperCase(),
