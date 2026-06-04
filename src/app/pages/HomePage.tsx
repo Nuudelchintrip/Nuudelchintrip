@@ -1,17 +1,20 @@
 import {
   ArrowRight,
   BadgeCheck,
+  CalendarDays,
   Car,
   CheckCircle2,
+  Clock3,
   CreditCard,
   Flag,
   HelpCircle,
   MapPin,
   Package,
-  Route,
+  PhoneCall,
   ShieldCheck,
   Star,
   UserRound,
+  UsersRound,
 } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -22,52 +25,52 @@ import { Navbar } from '../components/Navbar';
 const roles = [
   {
     title: 'Аялагч',
-    text: 'Орон нутаг руу явах жолооч, сул суудал, үнэ, verification мэдээллийг харж хүсэлт илгээнэ.',
+    text: 'Орон нутаг руу явах жолооч, сул суудал, үнэ, цагийн мэдээллийг харж суудлын хүсэлт илгээнэ.',
     icon: <UserRound className="h-6 w-6" />,
     href: '/auth/register?role=traveler',
     cta: 'Жолооч хайж эхлэх',
   },
   {
     title: 'Жолооч',
-    text: 'Чиглэл, цаг, сул суудал, үнээ нийтэлж аялагчийн хүсэлтүүдийг хүлээн авна.',
+    text: 'Явах чиглэл, цаг, сул суудал, үнийг нийтэлж аялагчийн хүсэлтүүдийг хүлээн авна.',
     icon: <Car className="h-6 w-6" />,
     href: '/auth/register?role=driver',
-    cta: 'Чиглэл нэмэх',
+    cta: 'Чиглэл нийтлэх',
   },
   {
     title: 'Дайвар ачаа',
-    text: 'Дайвар ачаа нь зөвхөн жолоочийн route дээр суурилсан жижиг нэмэлт боломж.',
+    text: 'Жолоочийн нийтэлсэн чиглэл дээр жижиг дайвар ачаа илгээх хүсэлт үүсгэнэ.',
     icon: <Package className="h-6 w-6" />,
     href: '/auth/register?role=cargo_sender',
-    cta: 'Ачаа авах route хайх',
+    cta: 'Ачаа авах чиглэл хайх',
   },
 ];
 
 const steps = [
-  { title: 'Бүртгүүлнэ', text: 'Role-оо сонгоод basic account үүсгэнэ.' },
-  { title: 'Утсаа баталгаажуулна', text: 'MVP дээр demo баталгаажуулалт, production үед SMS webhook.' },
-  { title: 'Role setup хийнэ', text: 'Аялагч, жолооч, ачаа илгээгч тус бүр өөр setup-тэй.' },
-  { title: 'Хүсэлт илгээнэ', text: 'Аялагч суудал захиална, жолооч accept/reject хийнэ.' },
-  { title: 'Status хянана', text: 'Payment proof, trip timeline, report/support нэг урсгалд байна.' },
+  { title: 'Бүртгэл үүсгэнэ', text: 'Нэр, утас, имэйлээ оруулаад ашиглах зорилгоо сонгоно.' },
+  { title: 'Утсаа баталгаажуулна', text: 'Утасны дугаар баталгаажсаны дараа таны самбар нээгдэнэ.' },
+  { title: 'Чиглэл сонгоно', text: 'Аялагч жолооч хайна, жолооч өөрийн явах чиглэлээ нийтэлнэ.' },
+  { title: 'Хүсэлт баталгаажна', text: 'Жолооч зөвшөөрсний дараа төлбөрийн баримт, төлөв ил тод харагдана.' },
+  { title: 'Аялал эхэлнэ', text: 'Аяллын явц, үнэлгээ, тусламжийн сувгууд нэг дор хадгалагдана.' },
 ];
 
 const routePreviews = [
-  { route: 'Улаанбаатар → Дархан', detail: 'Жишээ route card · 3 сул суудал', tag: 'Verified driver' },
-  { route: 'Улаанбаатар → Эрдэнэт', detail: 'Жишээ route card · дайвар ачаа авч болно', tag: 'Cargo add-on' },
-  { route: 'Дархан → Улаанбаатар', detail: 'Жишээ route card · payment proof flow', tag: 'Proof ready' },
+  { route: 'Улаанбаатар → Дархан', detail: '3 сул суудал · нэг хүний үнэ · авах цэгийн тайлбар', tag: 'Жишээ санал' },
+  { route: 'Улаанбаатар → Эрдэнэт', detail: 'Жолоочийн мэдээлэл · үнэлгээ · дайвар ачаа авах боломж', tag: 'Дайвар ачаа' },
+  { route: 'Дархан → Улаанбаатар', detail: 'Төлбөрийн баримт · аяллын төлөв · тусламжийн холбоос', tag: 'Итгэлцэл' },
 ];
 
 const trust = [
-  { title: 'Баталгаажсан жолооч', text: 'Утас, машины мэдээлэл, жолоочийн verification status харагдана.', icon: <ShieldCheck className="h-6 w-6" /> },
-  { title: 'Төлбөрийн баримт', text: 'Manual payment proof upload болон admin review хийхэд бэлэн бүтэцтэй.', icon: <CreditCard className="h-6 w-6" /> },
-  { title: 'Үнэлгээ', text: 'Аяллын дараа traveler-driver review flow-оор итгэлцэл нэмэгдэнэ.', icon: <Star className="h-6 w-6" /> },
-  { title: 'Report/support', text: 'Маргаан, асуудал гарвал support болон admin moderation queue руу орно.', icon: <Flag className="h-6 w-6" /> },
+  { title: 'Баталгаажсан жолооч', text: 'Утас, машин, жолоочийн баталгаажуулалтын төлөв аяллын өмнө харагдана.', icon: <ShieldCheck className="h-6 w-6" /> },
+  { title: 'Төлбөрийн баримт', text: 'Шилжүүлгийн баримтыг оруулж, админ шалгасны дараа аяллын төлөв шинэчлэгдэнэ.', icon: <CreditCard className="h-6 w-6" /> },
+  { title: 'Үнэлгээ ба сэтгэгдэл', text: 'Аяллын дараа аялагч, жолооч хоёр харилцан үнэлгээ өгч итгэлцэл нэмнэ.', icon: <Star className="h-6 w-6" /> },
+  { title: 'Маргаан шийдвэрлэх', text: 'Асуудал гарвал тусламжийн хүсэлт үүсгэж админ шалгах дараалалтай.', icon: <Flag className="h-6 w-6" /> },
 ];
 
 const faqs = [
-  ['Public дээр шууд жолооч хайж болох уу?', 'Public page нь үйлчилгээний утгыг тайлбарлаж, хэрэглэгчийг register/login рүү оруулна. Бодит хайлт, booking, proof upload нь нэвтэрсний дараа ажиллана.'],
-  ['Дайвар ачаа гол үйлчилгээ юу?', 'Үгүй. Гол урсгал нь аялагч-жолооч matching. Дайвар ачаа бол жолоочийн route дээр суурилсан secondary add-on.'],
-  ['Жолооч чиглэл нэмэхэд юу шаардлагатай вэ?', 'Утас баталгаажсан, onboarding дууссан, driver verification approved болсон үед route нийтлэх боломжтой.'],
+  ['Нүүр хуудас дээр шууд жолооч хайж болох уу?', 'Нүүр хуудас үйлчилгээний санаа, итгэлцэл, бүртгэлийн замыг тайлбарлана. Жинхэнэ хайлт, захиалга, төлбөрийн баримт нэвтэрсний дараа ажиллана.'],
+  ['Дайвар ачаа нь гол үйлчилгээ юу?', 'Үгүй. Гол урсгал нь аялагч, жолоочийг нэг чиглэл дээр холбох. Дайвар ачаа нь жолоочийн чиглэл дээрх жижиг нэмэлт боломж.'],
+  ['Жолооч чиглэл нийтлэхэд юу шаардлагатай вэ?', 'Утас баталгаажсан, жолоочийн мэдээлэл админаар зөвшөөрөгдсөн үед чиглэл нийтлэх боломжтой.'],
 ];
 
 export function HomePage() {
@@ -78,14 +81,14 @@ export function HomePage() {
       <main>
         <section className="relative border-b border-border bg-card">
           <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
-          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 sm:py-18 lg:grid-cols-[1.02fr_0.98fr] lg:px-8 lg:py-20">
-            <div className="reveal-up">
-              <Badge variant="info">Passenger-driver route sharing</Badge>
-              <h1 className="mt-5 max-w-4xl text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
+            <div className="reveal-up flex w-full max-w-[358px] min-w-0 flex-col justify-center sm:max-w-none">
+              <Badge variant="info">Орон нутгийн унаа хуваалцах платформ</Badge>
+              <h1 className="mt-5 max-w-4xl text-3xl font-bold leading-tight text-foreground sm:text-5xl lg:text-6xl">
                 Орон нутаг руу хамт явах жолоочоо олоорой
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
-                NuudelchinTrip нь нэг чиглэлд явах аялагч, сул суудалтай жолоочийг холбох платформ. Дайвар ачаа нь жолоочийн route дээр суурилсан жижиг нэмэлт боломж хэвээр байна.
+                NuudelchinTrip нь нэг чиглэлд явах аялагчийг сул суудалтай жолоочтой холбодог. Дайвар ачаа нь зөвхөн тухайн жолоочийн чиглэл дээр суурилсан жижиг нэмэлт боломж байна.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -102,7 +105,7 @@ export function HomePage() {
               </div>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {['Role-based dashboard', 'Payment proof', 'Route-based cargo'].map((item) => (
+                {['Тус бүрийн самбар', 'Төлбөрийн баримт', 'Чиглэл дээрх дайвар ачаа'].map((item) => (
                   <div key={item} className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                     <CheckCircle2 className="h-4 w-4 text-success" />
                     {item}
@@ -111,13 +114,13 @@ export function HomePage() {
               </div>
             </div>
 
-            <HeroRoutePreview />
+            <HeroVisual />
           </div>
         </section>
 
         <section className="py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionTitle kicker="Role cards" title="Та аль урсгалаар эхлэх вэ?" />
+            <SectionTitle kicker="Хэрэглэгчийн урсгал" title="Та ямар зорилгоор ашиглах вэ?" />
             <div className="grid gap-5 md:grid-cols-3">
               {roles.map((role, index) => (
                 <Card key={role.title} className="reveal-up p-6" style={{ animationDelay: `${index * 90}ms` }}>
@@ -136,7 +139,7 @@ export function HomePage() {
 
         <section className="bg-muted/35 py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionTitle kicker="How it works" title="Public website-ээс dashboard хүртэлх энгийн урсгал" />
+            <SectionTitle kicker="Ажиллах дараалал" title="Нэвтэрсний дараа бүх үйлдэл өөрийн самбар дээр үргэлжилнэ" />
             <div className="grid gap-4 md:grid-cols-5">
               {steps.map((step, index) => (
                 <Card key={step.title} className="p-5">
@@ -153,19 +156,19 @@ export function HomePage() {
 
         <section className="py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionTitle kicker="Route previews" title="Жолоочийн санал ямар мэдээлэлтэй харагдах вэ?" />
+            <SectionTitle kicker="Чиглэлийн жишээ" title="Жолоочийн санал дээр харагдах үндсэн мэдээлэл" />
             <div className="grid gap-5 lg:grid-cols-3">
               {routePreviews.map((item) => (
                 <Card key={item.route} className="p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h2 className="text-lg font-semibold text-foreground">{item.route}</h2>
-                      <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.detail}</p>
                     </div>
-                    <Badge variant={item.tag === 'Cargo add-on' ? 'warning' : 'success'}>{item.tag}</Badge>
+                    <Badge variant={item.tag === 'Дайвар ачаа' ? 'warning' : 'success'}>{item.tag}</Badge>
                   </div>
                   <Button className="mt-5" variant="outline" fullWidth onClick={() => { window.location.href = '/auth/login?next=/traveler/find-drivers'; }}>
-                    Нэвтэрч route хайх
+                    Нэвтэрч чиглэл хайх
                   </Button>
                 </Card>
               ))}
@@ -175,7 +178,7 @@ export function HomePage() {
 
         <section className="bg-card py-14 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <SectionTitle kicker="Trust & safety" title="Итгэлцэл нь booking flow-ийн үндсэн хэсэг" />
+            <SectionTitle kicker="Итгэлцэл" title="Аяллын өмнө мэдэх ёстой зүйлс ил тод байна" />
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
               {trust.map((item) => (
                 <Card key={item.title} className="p-6">
@@ -191,17 +194,17 @@ export function HomePage() {
         <section className="bg-warning/5 py-14 sm:py-16">
           <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
             <div>
-              <Badge variant="warning">Daivar achaa add-on</Badge>
+              <Badge variant="warning">Дайвар ачаа</Badge>
               <h2 className="mt-4 text-3xl font-bold leading-tight text-foreground">
-                Дайвар ачаа нь тусдаа том marketplace биш
+                Дайвар ачаа нь тусдаа ачаа тээврийн зах биш
               </h2>
               <p className="mt-4 leading-8 text-muted-foreground">
-                Жолооч route нэмэхдээ “дайвар ачаа авч болно” гэж сонговол тухайн чиглэл дээр жижиг ачааны request авах боломжтой. Passenger-driver booking нь үндсэн flow хэвээр үлдэнэ.
+                Жолооч чиглэл нийтлэхдээ “дайвар ачаа авч болно” гэж сонговол тухайн чиглэл дээр жижиг ачааны хүсэлт авах боломжтой. Үндсэн үйлчилгээ нь аялагч, жолоочийг холбох хэвээр байна.
               </p>
             </div>
             <Card className="p-6">
               <div className="grid gap-4 md:grid-cols-2">
-                {['Allows cargo toggle', 'Cargo capacity', 'Allowed cargo types', 'Delivery code/status'].map((item) => (
+                {['Ачаа авах эсэх', 'Ачааны багтаамж', 'Зөвшөөрөх төрөл', 'Хүргэлтийн код'].map((item) => (
                   <div key={item} className="rounded-lg border border-border bg-card p-4">
                     <BadgeCheck className="mb-3 h-6 w-6 text-warning" />
                     <p className="font-semibold text-foreground">{item}</p>
@@ -214,7 +217,7 @@ export function HomePage() {
 
         <section className="py-14 sm:py-16">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <SectionTitle kicker="FAQ" title="Түгээмэл асуулт" center />
+            <SectionTitle kicker="Түгээмэл асуулт" title="Хэрэглэгчийн хамгийн түрүүнд асуух зүйлс" center />
             <div className="space-y-4">
               {faqs.map(([question, answer]) => (
                 <Card key={question} className="p-5">
@@ -222,7 +225,7 @@ export function HomePage() {
                     <HelpCircle className="mt-1 h-5 w-5 shrink-0 text-primary" />
                     <div>
                       <h2 className="font-semibold text-foreground">{question}</h2>
-                      <p className="mt-2 text-muted-foreground">{answer}</p>
+                      <p className="mt-2 leading-7 text-muted-foreground">{answer}</p>
                     </div>
                   </div>
                 </Card>
@@ -237,66 +240,75 @@ export function HomePage() {
   );
 }
 
-function HeroRoutePreview() {
+function HeroVisual() {
   return (
-    <div className="reveal-up relative" style={{ animationDelay: '120ms' }}>
-      <Card className="overflow-hidden p-5 sm:p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Authenticated search preview</p>
-            <h2 className="text-2xl font-semibold text-foreground">УБ → Дархан route</h2>
-          </div>
-          <Route className="h-8 w-8 text-primary" />
-        </div>
+    <div className="reveal-up relative w-full max-w-[358px] min-w-0 sm:max-w-none" style={{ animationDelay: '120ms' }}>
+      <div className="relative overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+        <div className="relative aspect-[4/3] min-h-[360px] overflow-hidden bg-muted sm:min-h-[520px]">
+          <img
+            src="/hero-road.jpg"
+            alt="Монгол орны хөдөө замаар явж буй машин"
+            className="hero-image-zoom h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent" />
 
-        <div className="relative min-h-72 rounded-lg border border-border bg-muted/30 p-5">
-          <div className="absolute left-8 right-8 top-1/2 h-1 -translate-y-1/2 rounded-full bg-border">
-            <div className="route-line h-1 rounded-full bg-primary" />
+          <div className="absolute left-4 right-4 top-4 rounded-lg border border-white/20 bg-white/90 p-4 shadow-lg backdrop-blur sm:left-6 sm:right-auto sm:w-[360px]">
+            <p className="text-sm font-semibold text-primary">Хайлтын жишээ</p>
+            <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+              <LocationMini label="Хаанаас" value="Улаанбаатар" />
+              <ArrowRight className="h-5 w-5 text-muted-foreground" />
+              <LocationMini label="Хаашаа" value="Дархан" />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <MiniInfo icon={<CalendarDays className="h-4 w-4" />} label="Огноо" value="Маргааш" />
+              <MiniInfo icon={<UsersRound className="h-4 w-4" />} label="Хүн" value="2" />
+            </div>
           </div>
-          <div className="route-car absolute top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-lg">
-            <Car className="h-6 w-6" />
-          </div>
-          <RouteStop className="left-5 top-1/2 -translate-y-1/2" label="Улаанбаатар" />
-          <RouteStop className="right-5 top-1/2 -translate-y-1/2" label="Дархан" align="right" />
 
-          <div className="absolute inset-x-5 bottom-5 grid gap-3 sm:grid-cols-3">
-            <MiniMetric label="Сул суудал" value="3" />
-            <MiniMetric label="Үнэ" value="₮35k" />
-            <MiniMetric label="Cargo" value="Add-on" />
+          <div className="floating-panel absolute bottom-4 left-4 right-4 rounded-lg border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur sm:bottom-6 sm:left-auto sm:right-6 sm:w-[390px]">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">Жишээ санал</p>
+                <h2 className="mt-1 text-xl font-bold text-foreground">Улаанбаатар → Дархан</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">3 сул суудал · ₮35,000 · дайвар ачаа авч болно</p>
+              </div>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Car className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <MiniInfo icon={<Clock3 className="h-4 w-4" />} label="Цаг" value="09:00" />
+              <MiniInfo icon={<ShieldCheck className="h-4 w-4" />} label="Төлөв" value="Баталгаатай" />
+              <MiniInfo icon={<Package className="h-4 w-4" />} label="Ачаа" value="Болно" />
+            </div>
           </div>
         </div>
-
-        <div className="mt-5 rounded-lg border border-success/25 bg-success/5 p-4">
-          <div className="flex gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
-            <p className="text-sm leading-6 text-muted-foreground">
-              Route detail дээр verified badge, rating, seats, price, pickup/dropoff note болон allows_cargo status хамт харагдана.
-            </p>
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function RouteStop({ label, className, align = 'left' }: { label: string; className: string; align?: 'left' | 'right' }) {
-  return (
-    <div className={`absolute ${className}`}>
-      <div className={`flex flex-col ${align === 'right' ? 'items-end' : 'items-start'}`}>
-        <div className="route-pulse flex h-11 w-11 items-center justify-center rounded-full border-4 border-card bg-primary text-primary-foreground shadow-md">
-          <MapPin className="h-5 w-5" />
-        </div>
-        <span className="mt-3 rounded-lg bg-card px-3 py-1 text-sm font-semibold text-foreground shadow-sm">{label}</span>
       </div>
+      <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <PhoneCall className="h-4 w-4" />
+        Жинхэнэ захиалга, утасны мэдээлэл зөвхөн нэвтэрсний дараа харагдана.
+      </p>
     </div>
   );
 }
 
-function MiniMetric({ label, value }: { label: string; value: string }) {
+function LocationMini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-card p-3 shadow-sm">
+    <div>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 font-semibold text-foreground">{value}</p>
+      <p className="mt-1 truncate font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function MiniInfo({ icon, label, value }: { icon: JSX.Element; label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card/85 p-3">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        {icon}
+        {label}
+      </div>
+      <p className="mt-1 truncate text-sm font-semibold text-foreground">{value}</p>
     </div>
   );
 }

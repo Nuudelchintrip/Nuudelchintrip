@@ -12,7 +12,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import { uploadPaymentProof } from '../services/paymentService';
 import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
 export function PaymentProofPage() {
   const { id } = useParams();
@@ -38,11 +38,11 @@ export function PaymentProofPage() {
       .then((booking) => {
         if (!active) return;
         setRealBooking(booking);
-        setError(booking ? '' : 'Booking олдсонгүй.');
+        setError(booking ? '' : 'Захиалга олдсонгүй.');
       })
       .catch((fetchError) => {
         if (!active) return;
-        setError(fetchError instanceof Error ? fetchError.message : 'Booking уншихад алдаа гарлаа.');
+        setError(fetchError instanceof Error ? fetchError.message : 'Захиалгын мэдээлэл уншихад алдаа гарлаа.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -59,7 +59,7 @@ export function PaymentProofPage() {
         bookingId: mockBooking.id,
         routeLabel: `${mockBooking.route.from} → ${mockBooking.route.to}`,
         driverName: mockBooking.driver.name,
-        driverBankName: mockBooking.driver.bankName || 'Банк / QPay',
+        driverBankName: mockBooking.driver.bankName || 'Банк эсвэл QPay',
         driverBankAccount: mockBooking.driver.bankAccount || 'Жолоочтой тохиролцоно',
         agreed: mockBooking.price.agreed,
         serviceFee: mockBooking.price.serviceFee,
@@ -75,7 +75,7 @@ export function PaymentProofPage() {
       bookingId: realBooking.id,
       routeLabel: `${realBooking.trip.fromLocation} → ${realBooking.trip.toLocation}`,
       driverName: realBooking.driver.fullName,
-      driverBankName: 'Банк / QPay',
+      driverBankName: 'Банк эсвэл QPay',
       driverBankAccount: 'Жолоочтой тохиролцсон данс',
       agreed,
       serviceFee,
@@ -94,7 +94,7 @@ export function PaymentProofPage() {
     }
 
     if (!isRealBooking || !id || !isSupabaseConfigured) {
-      setSuccess('Баримт илгээгдсэн гэж тэмдэглэлээ. Demo booking тул database-д хадгалахгүй.');
+      setSuccess('Баримт илгээгдсэн гэж тэмдэглэлээ. Жишээ захиалга тул өгөгдлийн санд хадгалахгүй.');
       return;
     }
 
@@ -108,7 +108,7 @@ export function PaymentProofPage() {
         note: transactionNote,
       });
 
-      setSuccess(`Төлбөрийн баримт амжилттай илгээгдлээ. Payment: ${result.paymentId.slice(0, 8)}...`);
+      setSuccess(`Төлбөрийн баримт амжилттай илгээгдлээ. Баримтын дугаар: ${result.paymentId.slice(0, 8)}...`);
       setRealBooking((current) => current ? { ...current, status: 'payment_review' } : current);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Төлбөрийн баримт хадгалахад алдаа гарлаа.');
@@ -134,21 +134,21 @@ export function PaymentProofPage() {
           onClick={() => window.location.href = `/dashboard/bookings/${payment.bookingId}`}
         >
           <ArrowLeft className="h-4 w-4" />
-          Booking руу буцах
+          Захиалга руу буцах
         </button>
 
-        <section className="mb-8 rounded-2xl border border-warning/20 bg-warning/5 p-5 md:p-6">
+        <section className="mb-8 rounded-lg border border-warning/20 bg-warning/5 p-5 md:p-6">
           <Badge variant="warning" className="mb-4">Төлбөрийн баталгаажуулалт</Badge>
           <h1 className="mb-3 text-2xl font-bold text-foreground md:text-3xl">Төлбөрийн баримт илгээх</h1>
           <p className="max-w-3xl leading-7 text-muted-foreground">
-            Төлбөрөө шилжүүлсний дараа screenshot, PDF эсвэл transaction code оруулна.
-            Баримт илгээгдмэгц booking төлөв <strong>payment_review</strong> болж admin баталгаажуулалтад орно.
+            Төлбөрөө шилжүүлсний дараа screenshot, PDF эсвэл гүйлгээний код оруулна.
+            Баримт илгээгдмэгц захиалгын төлөв <strong>шалгаж байна</strong> болж админы баталгаажуулалтад орно.
           </p>
         </section>
 
         {loading && (
           <div className="mb-5 rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
-            Booking мэдээллийг Supabase-аас уншиж байна...
+            Захиалгын мэдээллийг уншиж байна...
           </div>
         )}
 
@@ -170,7 +170,7 @@ export function PaymentProofPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-5 w-5 text-primary" />
-                  <h2 className="text-lg font-semibold text-foreground">Төлбөр төлөх заавар</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Төлбөр төлөх дараалал</h2>
                 </div>
               </CardHeader>
               <CardBody>
@@ -178,11 +178,11 @@ export function PaymentProofPage() {
                   {[
                     'Нийт төлөх дүнг жолоочтой тохирсон данс эсвэл QPay-р шилжүүлнэ.',
                     `Гүйлгээний утга дээр ${payment.bookingId} гэж бичвэл шалгахад амар.`,
-                    'Screenshot эсвэл transaction code-оо энэ хуудсанд оруулна.',
-                    'Admin approve хийсний дараа аялал confirmed төлөв рүү шилжинэ.',
+                    'Screenshot эсвэл гүйлгээний кодоо энэ хуудсанд оруулна.',
+                    'Админ баталгаажуулсны дараа аялал баталгаажсан төлөв рүү шилжинэ.',
                   ].map((item, index) => (
-                    <div key={item} className="rounded-xl border border-border bg-muted/30 p-4">
-                      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
+                    <div key={item} className="rounded-lg border border-border bg-muted/30 p-4">
+                      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">
                         {index + 1}
                       </div>
                       <p className="text-sm leading-6 text-foreground">{item}</p>
@@ -203,8 +203,8 @@ export function PaymentProofPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <BankField label="Хүлээн авагч" value={payment.driverName} />
                   <BankField label="Төлөх суваг" value={payment.driverBankName} />
-                  <div className="rounded-xl border border-border bg-muted/30 p-4">
-                    <p className="mb-1 text-sm text-muted-foreground">Данс / note</p>
+                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <p className="mb-1 text-sm text-muted-foreground">Данс эсвэл тэмдэглэл</p>
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-foreground">{payment.driverBankAccount}</p>
                       <Button variant="ghost" size="sm" onClick={copyAccount} disabled={payment.driverBankAccount === 'Жолоочтой тохиролцсон данс'}>
@@ -220,20 +220,20 @@ export function PaymentProofPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <ReceiptText className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-semibold text-foreground">Баримтаа upload хийх</h2>
+                  <h2 className="text-xl font-semibold text-foreground">Баримтаа оруулах</h2>
                 </div>
               </CardHeader>
               <CardBody>
                 <div className="space-y-5">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-foreground">Гүйлгээний screenshot / PDF</span>
+                    <span className="mb-2 block text-sm font-medium text-foreground">Гүйлгээний screenshot эсвэл PDF</span>
                     <input
                       type="file"
                       accept="image/*,.pdf"
                       className="sr-only"
                       onChange={(event) => setFile(event.target.files?.[0] || null)}
                     />
-                    <div className="cursor-pointer rounded-xl border-2 border-dashed border-border bg-muted/20 p-8 text-center transition-colors hover:border-primary">
+                    <div className="cursor-pointer rounded-lg border-2 border-dashed border-border bg-muted/20 p-8 text-center transition-colors hover:border-primary">
                       <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
                       <p className="mb-2 text-foreground">{file ? file.name : 'Файл сонгох эсвэл энд дарна уу'}</p>
                       <p className="text-sm text-muted-foreground">PNG, JPG эсвэл PDF. Дээд хэмжээ 10MB.</p>
@@ -253,7 +253,7 @@ export function PaymentProofPage() {
                   </Button>
 
                   <p className="text-center text-xs text-muted-foreground">
-                    Баримтыг admin шалгасны дараа booking баталгаажсан төлөв рүү шилжинэ.
+                    Баримтыг админ шалгасны дараа захиалга баталгаажсан төлөв рүү шилжинэ.
                   </p>
                 </div>
               </CardBody>
@@ -263,18 +263,18 @@ export function PaymentProofPage() {
           <aside className="space-y-6">
             <Card>
               <CardHeader>
-                <h3 className="font-semibold text-foreground">Payment summary</h3>
+                <h3 className="font-semibold text-foreground">Төлбөрийн хураангуй</h3>
               </CardHeader>
               <CardBody>
                 <div className="space-y-4">
-                  <SummaryField label="Booking" value={payment.bookingId} />
+                  <SummaryField label="Захиалга" value={payment.bookingId} />
                   <SummaryField label="Чиглэл" value={payment.routeLabel} />
                   <SummaryField label="Одоогийн төлөв" value={payment.status} />
-                  <div className="border-t border-border pt-4 space-y-3">
+                  <div className="space-y-3 border-t border-border pt-4">
                     <PriceRow label="Жолоочийн үнэ" value={payment.agreed} />
                     <PriceRow label="Үйлчилгээний шимтгэл" value={payment.serviceFee} />
                     <div className="border-t border-border pt-3">
-                      <PriceRow label="Нийт" value={payment.total} strong />
+                      <PriceRow label="Нийт төлөх дүн" value={payment.total} strong />
                     </div>
                   </div>
                 </div>
@@ -283,16 +283,15 @@ export function PaymentProofPage() {
 
             <Card className="border-primary/20 bg-primary/5">
               <CardBody>
-                <h3 className="mb-2 font-semibold text-foreground">Admin approval</h3>
+                <h3 className="mb-2 font-semibold text-foreground">Админы шалгалт</h3>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Proof илгээсний дараа admin төлбөрийг шалгаж approve/reject хийнэ.
-                  Approve хийвэл booking `confirmed`, reject хийвэл дахин upload хийх action нээгдэнэ.
+                  Баримт илгээсний дараа админ төлбөрийг шалгаж зөвшөөрөх эсвэл буцаана.
+                  Зөвшөөрөгдвөл захиалга баталгаажсан төлөв рүү шилжинэ.
                 </p>
               </CardBody>
             </Card>
           </aside>
         </div>
-
       </main>
       <Footer />
     </div>
@@ -301,7 +300,7 @@ export function PaymentProofPage() {
 
 function BankField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-muted/30 p-4">
+    <div className="rounded-lg border border-border bg-muted/30 p-4">
       <p className="mb-1 text-sm text-muted-foreground">{label}</p>
       <p className="font-semibold text-foreground">{value}</p>
     </div>

@@ -3,8 +3,8 @@ const footerGroups = [
     title: 'Платформ',
     links: [
       { href: '/how-it-works', label: 'Хэрхэн ажилладаг' },
-      { href: '/pricing', label: 'Үнэ, service fee' },
-      { href: '/routes', label: 'Route preview' },
+      { href: '/pricing', label: 'Үнэ ба үйлчилгээний шимтгэл' },
+      { href: '/routes', label: 'Чиглэлийн жишээ' },
     ],
   },
   {
@@ -37,7 +37,7 @@ export function Footer() {
               <span className="text-xl font-bold text-foreground">NuudelchinTrip</span>
             </div>
             <p className="max-w-sm text-sm leading-6 text-muted-foreground">
-              Орон нутгийн аялагчийг сул суудалтай жолоочтой холбох route-sharing платформ.
+              Орон нутгийн аялагчийг сул суудалтай жолоочтой холбох унаа хуваалцах платформ.
             </p>
           </div>
 
@@ -61,9 +61,9 @@ export function Footer() {
           <div>
             <h2 className="mb-4 text-base font-semibold text-foreground">Холбоо барих</h2>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>И-мэйл: info@nuudelchintrip.mn</li>
-              <li>Утас: +976 7000-0000</li>
-              <li>Support: /support</li>
+              <li>И-мэйл: contact@nuudelchintrip.com</li>
+              <li>Тусламж: /support</li>
+              <li>Асуудал гарвал тусламжийн хүсэлт илгээнэ үү.</li>
             </ul>
           </div>
         </div>
@@ -82,7 +82,7 @@ export function AppFooter() {
       <div className="flex flex-col gap-4 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-semibold text-foreground">NuudelchinTrip</p>
-          <p className="mt-1">Аялагч, жолооч, route дээр суурилсан дайвар ачааг холбох платформ.</p>
+          <p className="mt-1">Аялагч, жолооч болон чиглэл дээр суурилсан дайвар ачааг холбох платформ.</p>
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <a href="/how-it-works" className="hover:text-primary">Хэрхэн ажилладаг</a>
