@@ -52,6 +52,51 @@ export interface CreateDriverTripInput {
   cargoPriceNote?: string;
 }
 
+export interface DriverPassengerRequest {
+  id: string;
+  tripId: string;
+  travelerId: string;
+  travelerName: string;
+  travelerPhone?: string;
+  route: string;
+  departureAt: string;
+  seatsRequested: number;
+  totalAmount: number;
+  note?: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface DriverCargoRequest {
+  id: string;
+  tripId: string;
+  senderId: string;
+  senderName: string;
+  senderPhone?: string;
+  route: string;
+  cargoName: string;
+  cargoType?: string;
+  sizeNote?: string;
+  weightKg?: number;
+  receiverName: string;
+  receiverPhone: string;
+  pickupNote?: string;
+  status: string;
+  deliveryCode: string;
+  createdAt: string;
+}
+
+export interface CreateCargoRequestInput {
+  tripId: string;
+  cargoName: string;
+  cargoType?: string;
+  sizeNote?: string;
+  weightKg?: number;
+  receiverName: string;
+  receiverPhone: string;
+  pickupNote?: string;
+}
+
 interface TripRow {
   id: string;
   driver_id: string;
@@ -82,6 +127,33 @@ interface DriverProfileRow {
   car_model: string | null;
   rating: number | null;
   completed_trips: number | null;
+}
+
+interface BookingRow {
+  id: string;
+  trip_id: string;
+  traveler_id: string;
+  seats_requested: number;
+  status: string;
+  total_amount: number | null;
+  note: string | null;
+  created_at: string;
+}
+
+interface CargoRequestRow {
+  id: string;
+  trip_id: string;
+  sender_id: string;
+  cargo_name: string;
+  cargo_type: string | null;
+  size_note: string | null;
+  weight_kg: number | null;
+  receiver_name: string;
+  receiver_phone: string;
+  pickup_note: string | null;
+  status: string;
+  delivery_code: string;
+  created_at: string;
 }
 
 function mapTripRows(
@@ -216,6 +288,51 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
   return data;
 }
 
+export async function fetchCurrentDriverTrips() {
+  if (!supabase) return [];
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw toError(userError, 'User session check failed.');
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('Жолоочийн route харахын тулд дахин нэвтэрнэ үү.');
+
+  const { data: tripRows, error: tripError } = await supabase
+    .from('trips')
+    .select(`
+      id,
+      driver_id,
+      from_location,
+      to_location,
+      departure_at,
+      seats_total,
+      seats_available,
+      price_per_seat,
+      pickup_note,
+      dropoff_note,
+      allows_cargo,
+      cargo_capacity_kg,
+      allowed_cargo_types,
+      cargo_price_note,
+      status
+    `)
+    .eq('driver_id', userId)
+    .order('departure_at', { ascending: false });
+
+  if (tripError) throw toError(tripError, 'Driver trips request failed.');
+  if (!tripRows?.length) return [];
+
+  const [{ data: profileRows }, { data: driverRows }] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, phone').eq('id', userId),
+    supabase.from('driver_profiles').select('user_id, verification_status, car_model, rating, completed_trips').eq('user_id', userId),
+  ]);
+
+  return mapTripRows(
+    tripRows as TripRow[],
+    (profileRows || []) as ProfileRow[],
+    (driverRows || []) as DriverProfileRow[],
+  );
+}
+
 export async function fetchActiveTrips() {
   if (!supabase) return [];
 
@@ -266,6 +383,11 @@ export async function fetchActiveTrips() {
     (profileRows || []) as ProfileRow[],
     (driverRows || []) as DriverProfileRow[],
   );
+}
+
+export async function fetchCargoEnabledTrips() {
+  const trips = await fetchActiveTrips();
+  return trips.filter((trip) => trip.allowsCargo);
 }
 
 export async function fetchTripById(tripId: string) {
@@ -353,5 +475,188 @@ export async function createPassengerBooking(input: {
     .single();
 
   if (error) throw toError(error, 'Supabase request failed.');
+  return data;
+}
+
+export async function fetchCurrentDriverPassengerRequests() {
+  if (!supabase) return [];
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw toError(userError, 'User session check failed.');
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('Ирсэн хүсэлт харахын тулд дахин нэвтэрнэ үү.');
+
+  const { data: driverTrips, error: tripsError } = await supabase
+    .from('trips')
+    .select('id, from_location, to_location, departure_at, driver_id')
+    .eq('driver_id', userId);
+
+  if (tripsError) throw toError(tripsError, 'Driver trips request failed.');
+  if (!driverTrips?.length) return [];
+
+  const tripIds = driverTrips.map((trip) => trip.id);
+  const { data: bookingRows, error: bookingError } = await supabase
+    .from('passenger_bookings')
+    .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+    .in('trip_id', tripIds)
+    .order('created_at', { ascending: false });
+
+  if (bookingError) throw toError(bookingError, 'Passenger request уншихад алдаа гарлаа.');
+  if (!bookingRows?.length) return [];
+
+  const travelerIds = Array.from(new Set(bookingRows.map((booking) => booking.traveler_id)));
+  const { data: travelers, error: travelerError } = await supabase
+    .from('profiles')
+    .select('id, full_name, phone')
+    .in('id', travelerIds);
+
+  if (travelerError) throw toError(travelerError, 'Traveler profile уншихад алдаа гарлаа.');
+
+  const tripsById = new Map(driverTrips.map((trip) => [trip.id, trip]));
+  const travelersById = new Map((travelers || []).map((profile) => [profile.id, profile]));
+
+  return (bookingRows as BookingRow[]).map((booking) => {
+    const trip = tripsById.get(booking.trip_id);
+    const traveler = travelersById.get(booking.traveler_id);
+
+    return {
+      id: booking.id,
+      tripId: booking.trip_id,
+      travelerId: booking.traveler_id,
+      travelerName: traveler?.full_name || 'Аялагч',
+      travelerPhone: traveler?.phone || undefined,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Route',
+      departureAt: trip?.departure_at || booking.created_at,
+      seatsRequested: booking.seats_requested,
+      totalAmount: Number(booking.total_amount || 0),
+      note: booking.note || undefined,
+      status: booking.status,
+      createdAt: booking.created_at,
+    } satisfies DriverPassengerRequest;
+  });
+}
+
+export async function updatePassengerBookingStatus(
+  bookingId: string,
+  status: 'accepted' | 'rejected' | 'waiting_payment' | 'confirmed' | 'cancelled',
+) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data, error } = await supabase
+    .from('passenger_bookings')
+    .update({ status })
+    .eq('id', bookingId)
+    .select('id, status')
+    .single();
+
+  if (error) throw toError(error, 'Booking status шинэчлэхэд алдаа гарлаа.');
+  return data;
+}
+
+export async function createCargoRequest(input: CreateCargoRequestInput) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw toError(userError, 'User session check failed.');
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('Cargo request илгээхийн тулд дахин нэвтэрнэ үү.');
+
+  const { data, error } = await supabase
+    .from('cargo_requests')
+    .insert({
+      trip_id: input.tripId,
+      sender_id: userId,
+      cargo_name: input.cargoName,
+      cargo_type: input.cargoType || null,
+      size_note: input.sizeNote || null,
+      weight_kg: input.weightKg ?? null,
+      receiver_name: input.receiverName,
+      receiver_phone: input.receiverPhone,
+      pickup_note: input.pickupNote || null,
+      status: 'cargo_requested',
+    })
+    .select('id, status, delivery_code')
+    .single();
+
+  if (error) throw toError(error, 'Cargo request хадгалахад алдаа гарлаа.');
+  return data;
+}
+
+export async function fetchCurrentDriverCargoRequests() {
+  if (!supabase) return [];
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw toError(userError, 'User session check failed.');
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('Дайвар ачааны хүсэлт харахын тулд дахин нэвтэрнэ үү.');
+
+  const { data: driverTrips, error: tripsError } = await supabase
+    .from('trips')
+    .select('id, from_location, to_location, departure_at, driver_id')
+    .eq('driver_id', userId);
+
+  if (tripsError) throw toError(tripsError, 'Driver trips request failed.');
+  if (!driverTrips?.length) return [];
+
+  const tripIds = driverTrips.map((trip) => trip.id);
+  const { data: cargoRows, error: cargoError } = await supabase
+    .from('cargo_requests')
+    .select('id, trip_id, sender_id, cargo_name, cargo_type, size_note, weight_kg, receiver_name, receiver_phone, pickup_note, status, delivery_code, created_at')
+    .in('trip_id', tripIds)
+    .order('created_at', { ascending: false });
+
+  if (cargoError) throw toError(cargoError, 'Cargo requests уншихад алдаа гарлаа.');
+  if (!cargoRows?.length) return [];
+
+  const senderIds = Array.from(new Set(cargoRows.map((request) => request.sender_id)));
+  const { data: senders, error: senderError } = await supabase
+    .from('profiles')
+    .select('id, full_name, phone')
+    .in('id', senderIds);
+
+  if (senderError) throw toError(senderError, 'Sender profile уншихад алдаа гарлаа.');
+
+  const tripsById = new Map(driverTrips.map((trip) => [trip.id, trip]));
+  const sendersById = new Map((senders || []).map((profile) => [profile.id, profile]));
+
+  return (cargoRows as CargoRequestRow[]).map((request) => {
+    const trip = tripsById.get(request.trip_id);
+    const sender = sendersById.get(request.sender_id);
+
+    return {
+      id: request.id,
+      tripId: request.trip_id,
+      senderId: request.sender_id,
+      senderName: sender?.full_name || 'Илгээгч',
+      senderPhone: sender?.phone || undefined,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Route',
+      cargoName: request.cargo_name,
+      cargoType: request.cargo_type || undefined,
+      sizeNote: request.size_note || undefined,
+      weightKg: request.weight_kg ?? undefined,
+      receiverName: request.receiver_name,
+      receiverPhone: request.receiver_phone,
+      pickupNote: request.pickup_note || undefined,
+      status: request.status,
+      deliveryCode: request.delivery_code,
+      createdAt: request.created_at,
+    } satisfies DriverCargoRequest;
+  });
+}
+
+export async function updateCargoRequestStatus(
+  cargoRequestId: string,
+  status: 'cargo_accepted' | 'rejected' | 'waiting_payment' | 'picked_up' | 'in_transit' | 'delivered' | 'completed',
+) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data, error } = await supabase
+    .from('cargo_requests')
+    .update({ status })
+    .eq('id', cargoRequestId)
+    .select('id, status')
+    .single();
+
+  if (error) throw toError(error, 'Cargo status шинэчлэхэд алдаа гарлаа.');
   return data;
 }

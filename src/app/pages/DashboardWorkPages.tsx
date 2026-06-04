@@ -13,7 +13,20 @@ import { locationMatchesText } from '../data/locations';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import { refreshLocalProfileFromSupabase } from '../services/supabaseAuth';
-import { canCurrentDriverCreateTrip, createDriverTrip, fetchActiveTrips, type MarketplaceTrip } from '../services/tripService';
+import {
+  canCurrentDriverCreateTrip,
+  createDriverTrip,
+  fetchActiveTrips,
+  fetchCargoEnabledTrips,
+  fetchCurrentDriverCargoRequests,
+  fetchCurrentDriverPassengerRequests,
+  fetchCurrentDriverTrips,
+  updateCargoRequestStatus,
+  updatePassengerBookingStatus,
+  type DriverCargoRequest,
+  type DriverPassengerRequest,
+  type MarketplaceTrip,
+} from '../services/tripService';
 import { getStoredUser, type MockUserProfile } from '../utils/auth';
 
 type WorkRole = 'traveler' | 'driver';
@@ -523,6 +536,49 @@ export function TripFormPage({ role }: { role: WorkRole }) {
 export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'accept' | 'reject' }) {
   const copy = roleCopy[role];
   const requests = role === 'driver' ? driverMatchRequests : travelerMatchRequests;
+  const [driverRequests, setDriverRequests] = useState<DriverPassengerRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(role === 'driver' && isSupabaseConfigured);
+  const [requestError, setRequestError] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (role !== 'driver' || !isSupabaseConfigured) return;
+
+    setLoadingRequests(true);
+    fetchCurrentDriverPassengerRequests()
+      .then((items) => {
+        if (!active) return;
+        setDriverRequests(items);
+        setRequestError('');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setRequestError(error instanceof Error ? error.message : 'Ирсэн хүсэлт уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingRequests(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [role]);
+
+  const changeBookingStatus = async (bookingId: string, nextStatus: 'accepted' | 'rejected') => {
+    setActionMessage('');
+    setRequestError('');
+
+    try {
+      await updatePassengerBookingStatus(bookingId, nextStatus);
+      setDriverRequests((current) => current.map((item) => (
+        item.id === bookingId ? { ...item, status: nextStatus } : item
+      )));
+      setActionMessage(nextStatus === 'accepted' ? 'Хүсэлт зөвшөөрөгдлөө. Аялагч төлбөрийн баримт илгээх шат руу орно.' : 'Хүсэлт татгалзагдлаа.');
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : 'Status шинэчлэхэд алдаа гарлаа.');
+    }
+  };
 
   return (
     <DashboardFrame role={role} active="requests">
@@ -538,6 +594,56 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
           </div>
         </Card>
       )}
+      {loadingRequests && (
+        <Card className="mb-5 p-4">
+          <p className="text-sm text-muted-foreground">Ирсэн passenger request-үүдийг Supabase-аас уншиж байна...</p>
+        </Card>
+      )}
+      {requestError && (
+        <Card className="mb-5 border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">{requestError}</p>
+        </Card>
+      )}
+      {actionMessage && (
+        <Card className="mb-5 border-success/20 bg-success/5 p-4">
+          <p className="text-sm font-medium text-success">{actionMessage}</p>
+        </Card>
+      )}
+      {role === 'driver' && driverRequests.length > 0 ? (
+        <div className="grid gap-5">
+          {driverRequests.map((request) => (
+            <Card key={request.id} className="p-6">
+              <div className="grid gap-5 lg:grid-cols-[1fr_240px] lg:items-center">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="success">Passenger request</Badge>
+                    <Badge variant={request.status === 'accepted' ? 'success' : request.status === 'rejected' ? 'danger' : 'warning'}>
+                      {request.status}
+                    </Badge>
+                  </div>
+                  <h2 className="mt-3 text-2xl font-semibold text-foreground">{request.route}</h2>
+                  <p className="mt-2 text-muted-foreground">
+                    {request.travelerName} · {request.seatsRequested} суудал · {new Date(request.departureAt).toLocaleString('mn-MN')}
+                  </p>
+                  {request.note && <p className="mt-2 text-sm leading-6 text-muted-foreground">{request.note}</p>}
+                </div>
+                <div className="rounded-lg bg-muted/40 p-4">
+                  <p className="text-sm text-muted-foreground">Нийт дүн</p>
+                  <p className="mt-1 text-2xl font-bold text-primary">₮{request.totalAmount.toLocaleString()}</p>
+                  <div className="mt-4 grid gap-2">
+                    <Button size="sm" onClick={() => changeBookingStatus(request.id, 'accepted')} disabled={request.status === 'accepted'}>
+                      Зөвшөөрөх
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => changeBookingStatus(request.id, 'rejected')} disabled={request.status === 'rejected'}>
+                      Татгалзах
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
       <div className="grid gap-5">
         {requests.map((request, index) => (
           <Card key={`${request.name}-${index}`} className="p-6">
@@ -562,6 +668,7 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
           </Card>
         ))}
       </div>
+      )}
     </DashboardFrame>
   );
 }
@@ -759,8 +866,35 @@ export function CargoFindRoutesPage() {
   const [fromSoum, setFromSoum] = useState('');
   const [toAimag, setToAimag] = useState('');
   const [toSoum, setToSoum] = useState('');
+  const [cargoOffers, setCargoOffers] = useState<DriverOffer[]>(isSupabaseConfigured ? [] : driverOffers.filter((offer) => offer.allowsCargo));
+  const [loadingCargoRoutes, setLoadingCargoRoutes] = useState(isSupabaseConfigured);
+  const [cargoRouteError, setCargoRouteError] = useState('');
 
-  const cargoRoutes = driverOffers.filter((offer) => {
+  useEffect(() => {
+    let active = true;
+    if (!isSupabaseConfigured) return;
+
+    setLoadingCargoRoutes(true);
+    fetchCargoEnabledTrips()
+      .then((trips) => {
+        if (!active) return;
+        setCargoOffers(trips.map(toDriverOffer));
+        setCargoRouteError('');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setCargoRouteError(error instanceof Error ? error.message : 'Cargo route уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingCargoRoutes(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const cargoRoutes = cargoOffers.filter((offer) => {
     const matchesFrom = locationMatchesText(`${offer.from} ${offer.pickup}`, fromAimag, fromSoum);
     const matchesTo = locationMatchesText(offer.to, toAimag, toSoum);
     return offer.allowsCargo && matchesFrom && matchesTo;
@@ -805,6 +939,18 @@ export function CargoFindRoutesPage() {
         </Button>
       </Card>
 
+      {loadingCargoRoutes && (
+        <Card className="mb-5 p-4">
+          <p className="text-sm text-muted-foreground">Cargo авч болох route-уудыг уншиж байна...</p>
+        </Card>
+      )}
+
+      {cargoRouteError && (
+        <Card className="mb-5 border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">{cargoRouteError}</p>
+        </Card>
+      )}
+
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <Card className="p-5">
           <Badge variant="warning">Allows cargo</Badge>
@@ -842,10 +988,47 @@ export function CargoFindRoutesPage() {
 
 export function MyRoutesPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
+  const [driverTrips, setDriverTrips] = useState<MarketplaceTrip[]>([]);
+  const [loadingRoutes, setLoadingRoutes] = useState(role === 'driver' && isSupabaseConfigured);
+  const [routesError, setRoutesError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (role !== 'driver' || !isSupabaseConfigured) return;
+
+    setLoadingRoutes(true);
+    fetchCurrentDriverTrips()
+      .then((trips) => {
+        if (!active) return;
+        setDriverTrips(trips);
+        setRoutesError('');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setRoutesError(error instanceof Error ? error.message : 'Миний чиглэлүүдийг уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingRoutes(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [role]);
 
   return (
     <DashboardFrame role={role} active="routes">
       <PageTop badge={copy.badge} title={copy.routes} description="Өөрийн нийтэлсэн чиглэлүүд, таарсан хүмүүс, booking болсон урсгалыг нэг дор харна." backHref={copy.base} />
+      {loadingRoutes && (
+        <Card className="mb-5 p-4">
+          <p className="text-sm text-muted-foreground">Таны route-уудыг Supabase-аас уншиж байна...</p>
+        </Card>
+      )}
+      {routesError && (
+        <Card className="mb-5 border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">{routesError}</p>
+        </Card>
+      )}
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -857,6 +1040,23 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
           </div>
         </CardHeader>
         <CardBody>
+          {role === 'driver' && driverTrips.length > 0 ? (
+            <div className="space-y-4">
+              {driverTrips.map((trip) => (
+                <div key={trip.id} className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-[1fr_160px_140px_160px] md:items-center">
+                  <div>
+                    <p className="font-semibold text-foreground">{trip.fromLocation} → {trip.toLocation}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(trip.departureAt).toLocaleString('mn-MN')} · {trip.seatsAvailable}/{trip.seatsTotal} сул · ₮{trip.pricePerSeat.toLocaleString()}
+                    </p>
+                  </div>
+                  <Badge variant={trip.status === 'active' ? 'success' : trip.status === 'cancelled' ? 'danger' : 'default'}>{trip.status}</Badge>
+                  <p className="text-sm text-muted-foreground">{trip.allowsCargo ? 'Cargo авна' : 'Зөвхөн зорчигч'}</p>
+                  <Button variant="outline" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
+                </div>
+              ))}
+            </div>
+          ) : (
           <div className="space-y-4">
             {routeRows.map((row) => (
               <div key={row.route} className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-[1fr_160px_140px_160px] md:items-center">
@@ -870,6 +1070,7 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
               </div>
             ))}
           </div>
+          )}
         </CardBody>
       </Card>
     </DashboardFrame>
@@ -877,6 +1078,52 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
 }
 
 export function DriverCargoRequestsPage() {
+  const [cargoRequests, setCargoRequests] = useState<DriverCargoRequest[]>([]);
+  const [loadingCargoRequests, setLoadingCargoRequests] = useState(isSupabaseConfigured);
+  const [cargoRequestError, setCargoRequestError] = useState('');
+  const [cargoActionMessage, setCargoActionMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (!isSupabaseConfigured) return;
+
+    setLoadingCargoRequests(true);
+    fetchCurrentDriverCargoRequests()
+      .then((items) => {
+        if (!active) return;
+        setCargoRequests(items);
+        setCargoRequestError('');
+      })
+      .catch((error) => {
+        if (!active) return;
+        setCargoRequestError(error instanceof Error ? error.message : 'Дайвар ачааны хүсэлт уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoadingCargoRequests(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const changeCargoStatus = async (requestId: string, nextStatus: 'cargo_accepted' | 'rejected') => {
+    setCargoActionMessage('');
+    setCargoRequestError('');
+
+    try {
+      await updateCargoRequestStatus(requestId, nextStatus);
+      setCargoRequests((current) => current.map((item) => (
+        item.id === requestId ? { ...item, status: nextStatus } : item
+      )));
+      setCargoActionMessage(nextStatus === 'cargo_accepted'
+        ? 'Дайвар ачааны хүсэлт зөвшөөрөгдлөө. Илгээгч payment proof шат руу орно.'
+        : 'Дайвар ачааны хүсэлт татгалзагдлаа.');
+    } catch (error) {
+      setCargoRequestError(error instanceof Error ? error.message : 'Cargo status шинэчлэхэд алдаа гарлаа.');
+    }
+  };
+
   return (
     <DashboardFrame role="driver">
       <PageTop
@@ -903,8 +1150,30 @@ export function DriverCargoRequestsPage() {
         </div>
       </Card>
 
+      {loadingCargoRequests && (
+        <Card className="mb-5 p-4">
+          <p className="text-sm text-muted-foreground">Дайвар ачааны хүсэлтүүдийг Supabase-аас уншиж байна...</p>
+        </Card>
+      )}
+
+      {cargoRequestError && (
+        <Card className="mb-5 border-destructive/20 bg-destructive/5 p-4">
+          <p className="text-sm font-medium text-destructive">{cargoRequestError}</p>
+        </Card>
+      )}
+
+      {cargoActionMessage && (
+        <Card className="mb-5 border-success/20 bg-success/5 p-4">
+          <p className="text-sm font-medium text-success">{cargoActionMessage}</p>
+        </Card>
+      )}
+
       <div className="grid gap-5">
-        {driverCargoRequests.map((request) => (
+        {(cargoRequests.length > 0 ? cargoRequests : driverCargoRequests).map((request) => {
+          const isLiveRequest = 'cargoName' in request;
+          const live = isLiveRequest ? request as DriverCargoRequest : null;
+
+          return (
           <Card key={request.id} className="p-6">
             <div className="grid gap-5 xl:grid-cols-[1fr_220px] xl:items-center">
               <div>
@@ -914,27 +1183,43 @@ export function DriverCargoRequestsPage() {
                 </div>
                 <h2 className="text-2xl font-semibold text-foreground">{request.route}</h2>
                 <p className="mt-2 text-muted-foreground">
-                  {request.sender} илгээгчээс {request.cargo.toLowerCase()} дайх хүсэлт ирсэн.
+                  {live
+                    ? `${live.senderName} илгээгчээс ${live.cargoName.toLowerCase()} дайх хүсэлт ирсэн.`
+                    : `${request.sender} илгээгчээс ${request.cargo.toLowerCase()} дайх хүсэлт ирсэн.`}
                 </p>
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
-                  <InfoPill icon={<Box className="h-4 w-4" />} label="Ачаа" value={request.cargo} />
-                  <InfoPill icon={<PackageCheck className="h-4 w-4" />} label="Хэмжээ" value={request.size} />
-                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Pickup" value={request.pickup} />
-                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Dropoff" value={request.dropoff} />
+                  <InfoPill icon={<Box className="h-4 w-4" />} label="Ачаа" value={live?.cargoName || request.cargo} />
+                  <InfoPill icon={<PackageCheck className="h-4 w-4" />} label="Хэмжээ" value={live ? `${live.weightKg || '-'} кг · ${live.sizeNote || live.cargoType || 'төрөл ороогүй'}` : request.size} />
+                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Pickup" value={live?.pickupNote || request.pickup} />
+                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Хүлээн авагч" value={live ? `${live.receiverName} · ${live.receiverPhone}` : request.dropoff} />
                 </div>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-sm text-muted-foreground">Санал болгосон үнэ</p>
-                <p className="mt-1 text-3xl font-bold text-primary">{request.offer}</p>
+                <p className="text-sm text-muted-foreground">{live ? 'Delivery code' : 'Санал болгосон үнэ'}</p>
+                <p className="mt-1 text-3xl font-bold text-primary">{live ? live.deliveryCode : request.offer}</p>
                 <div className="mt-5 grid gap-2">
-                  <Button fullWidth>Зөвшөөрөх</Button>
-                  <Button variant="outline" fullWidth>Татгалзах</Button>
+                  <Button
+                    fullWidth
+                    disabled={!live || live.status === 'cargo_accepted'}
+                    onClick={() => live ? changeCargoStatus(live.id, 'cargo_accepted') : undefined}
+                  >
+                    Зөвшөөрөх
+                  </Button>
+                  <Button
+                    variant="outline"
+                    fullWidth
+                    disabled={!live || live.status === 'rejected'}
+                    onClick={() => live ? changeCargoStatus(live.id, 'rejected') : undefined}
+                  >
+                    Татгалзах
+                  </Button>
                 </div>
               </div>
             </div>
           </Card>
-        ))}
+        );
+        })}
       </div>
     </DashboardFrame>
   );
@@ -990,7 +1275,7 @@ function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer:
           <p className="mt-1 text-3xl font-bold text-primary">₮{offer.price.toLocaleString()}</p>
           <p className="mt-1 text-xs text-muted-foreground">{isCargoMode ? offer.cargoNote : '+ platform fee'}</p>
           <div className="mt-5 grid gap-2">
-            <Button fullWidth onClick={() => window.location.href = isCargoMode ? '/cargo/new' : `/routes/${offer.id}`}>
+            <Button fullWidth onClick={() => window.location.href = isCargoMode ? `/cargo/new?tripId=${offer.id}` : `/routes/${offer.id}`}>
               {isCargoMode ? 'Cargo request илгээх' : 'Хүсэлт илгээх'}
             </Button>
             <Button variant="outline" fullWidth onClick={() => window.location.href = `/routes/${offer.id}`}>
