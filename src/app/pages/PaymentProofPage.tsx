@@ -4,11 +4,10 @@ import { useParams } from 'react-router';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
-import { AppFooter } from '../components/Footer';
+import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
-import { Sidebar } from '../components/Sidebar';
+import { Navbar } from '../components/Navbar';
 import { getBooking } from '../data/mockData';
-import { getDashboardMenu } from '../navigation/dashboardMenus';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { uploadPaymentProof } from '../services/paymentService';
 import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
@@ -95,7 +94,7 @@ export function PaymentProofPage() {
     }
 
     if (!isRealBooking || !id || !isSupabaseConfigured) {
-      setSuccess('Demo mode: баримт амжилттай илгээгдсэн гэж тэмдэглэлээ.');
+      setSuccess('Баримт илгээгдсэн гэж тэмдэглэлээ. Demo booking тул database-д хадгалахгүй.');
       return;
     }
 
@@ -109,7 +108,7 @@ export function PaymentProofPage() {
         note: transactionNote,
       });
 
-      setSuccess(`Төлбөрийн баримт Supabase-д хадгалагдлаа. Payment: ${result.paymentId.slice(0, 8)}...`);
+      setSuccess(`Төлбөрийн баримт амжилттай илгээгдлээ. Payment: ${result.paymentId.slice(0, 8)}...`);
       setRealBooking((current) => current ? { ...current, status: 'payment_review' } : current);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Төлбөрийн баримт хадгалахад алдаа гарлаа.');
@@ -125,14 +124,10 @@ export function PaymentProofPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background md:flex-row">
-      <Sidebar
-        menuItems={getDashboardMenu('traveler')}
-        accountRole="traveler"
-        activeHref={`/dashboard/bookings/${payment.bookingId}/payment-proof`}
-      />
+    <div className="min-h-screen bg-background">
+      <Navbar />
 
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <button
           type="button"
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
@@ -142,8 +137,8 @@ export function PaymentProofPage() {
           Booking руу буцах
         </button>
 
-        <section className="mb-8 rounded-lg border border-warning/20 bg-warning/5 p-5 md:p-6">
-          <Badge variant="warning" className="mb-4">Manual payment v1</Badge>
+        <section className="mb-8 rounded-2xl border border-warning/20 bg-warning/5 p-5 md:p-6">
+          <Badge variant="warning" className="mb-4">Төлбөрийн баталгаажуулалт</Badge>
           <h1 className="mb-3 text-2xl font-bold text-foreground md:text-3xl">Төлбөрийн баримт илгээх</h1>
           <p className="max-w-3xl leading-7 text-muted-foreground">
             Төлбөрөө шилжүүлсний дараа screenshot, PDF эсвэл transaction code оруулна.
@@ -258,7 +253,7 @@ export function PaymentProofPage() {
                   </Button>
 
                   <p className="text-center text-xs text-muted-foreground">
-                    Real booking дээр файл `payment-proofs` storage bucket-д, metadata нь `payments` болон `proofs` table-д хадгалагдана.
+                    Баримтыг admin шалгасны дараа booking баталгаажсан төлөв рүү шилжинэ.
                   </p>
                 </div>
               </CardBody>
@@ -298,8 +293,8 @@ export function PaymentProofPage() {
           </aside>
         </div>
 
-        <AppFooter />
       </main>
+      <Footer />
     </div>
   );
 }
