@@ -13,6 +13,12 @@ import { fetchPassengerBookingById, type PassengerBookingDetail } from '../servi
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
+const platformPayment = {
+  holder: import.meta.env.VITE_PLATFORM_BANK_HOLDER || 'NuudelchinTrip админ',
+  bankName: import.meta.env.VITE_PLATFORM_BANK_NAME || 'Админы данс',
+  account: import.meta.env.VITE_PLATFORM_BANK_ACCOUNT || 'Дансны мэдээллийг админ тохируулна',
+};
+
 const statusLabels: Record<string, string> = {
   pending_request: 'Хүсэлт илгээгдсэн',
   accepted: 'Зөвшөөрсөн',
@@ -74,9 +80,9 @@ export function PaymentProofPage() {
     return {
       bookingId: realBooking.id,
       routeLabel: `${realBooking.trip.fromLocation} → ${realBooking.trip.toLocation}`,
-      driverName: realBooking.driver.fullName,
-      driverBankName: 'Банк эсвэл QPay',
-      driverBankAccount: 'Жолоочтой тохиролцсон данс',
+      driverName: platformPayment.holder,
+      driverBankName: platformPayment.bankName,
+      driverBankAccount: platformPayment.account,
       agreed,
       serviceFee,
       total: agreed + serviceFee,
@@ -160,7 +166,7 @@ export function PaymentProofPage() {
   }
 
   const copyAccount = () => {
-    if (payment.driverBankAccount && payment.driverBankAccount !== 'Жолоочтой тохиролцсон данс') {
+    if (payment.driverBankAccount && payment.driverBankAccount !== 'Дансны мэдээллийг админ тохируулна') {
       void navigator.clipboard.writeText(payment.driverBankAccount);
     }
   };
@@ -218,7 +224,7 @@ export function PaymentProofPage() {
               <CardBody>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                   {[
-                    'Нийт төлөх дүнг жолоочтой тохирсон данс эсвэл QPay-р шилжүүлнэ.',
+                    'Нийт төлөх дүнг платформын админы данс руу шилжүүлнэ.',
                     `Гүйлгээний утга дээр ${payment.bookingId} гэж бичвэл шалгахад амар.`,
                     'Төлбөрийн зураг эсвэл гүйлгээний кодоо энэ хуудсанд оруулна.',
                     'Админ баталгаажуулсны дараа аялал баталгаажсан төлөв рүү шилжинэ.',
@@ -249,7 +255,7 @@ export function PaymentProofPage() {
                     <p className="mb-1 text-sm text-muted-foreground">Данс эсвэл тэмдэглэл</p>
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-foreground">{payment.driverBankAccount}</p>
-                      <Button variant="ghost" size="sm" onClick={copyAccount} disabled={payment.driverBankAccount === 'Жолоочтой тохиролцсон данс'}>
+                      <Button variant="ghost" size="sm" onClick={copyAccount} disabled={payment.driverBankAccount === 'Дансны мэдээллийг админ тохируулна'}>
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
