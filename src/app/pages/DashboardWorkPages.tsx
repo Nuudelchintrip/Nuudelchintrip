@@ -6,9 +6,11 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { AppFooter } from '../components/Footer';
 import { Input } from '../components/Input';
 import { LocationSelectGroup } from '../components/LocationSelectGroup';
+import { SeatPicker } from '../components/SeatPicker';
 import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
 import { bookings, reports, users } from '../data/mockData';
+import { getDefaultSeatIds } from '../data/seats';
 import { locationMatchesText } from '../data/locations';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
@@ -286,6 +288,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   const [departureDate, setDepartureDate] = useState('');
   const [departureTime, setDepartureTime] = useState('');
   const [seatsTotal, setSeatsTotal] = useState('');
+  const [availableSeatLabels, setAvailableSeatLabels] = useState<string[]>([]);
   const [pricePerSeat, setPricePerSeat] = useState('');
   const [pickupNote, setPickupNote] = useState('');
   const [dropoffNote, setDropoffNote] = useState('');
@@ -356,6 +359,19 @@ export function TripFormPage({ role }: { role: WorkRole }) {
     return soum ? `${aimag} - ${soum}` : aimag;
   };
 
+  const handleSeatsTotalChange = (value: string) => {
+    setSeatsTotal(value);
+    const count = Number(value);
+    if (role === 'driver' && Number.isFinite(count) && count >= 0) {
+      setAvailableSeatLabels(getDefaultSeatIds(count));
+    }
+  };
+
+  const handleAvailableSeatsChange = (seats: string[]) => {
+    setAvailableSeatLabels(seats);
+    setSeatsTotal(seats.length ? String(seats.length) : '');
+  };
+
   const handleSubmit = async () => {
     setError('');
     setSubmittedTripId('');
@@ -374,7 +390,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       return;
     }
 
-    const seats = Number(seatsTotal);
+    const seats = role === 'driver' && availableSeatLabels.length ? availableSeatLabels.length : Number(seatsTotal);
     const price = Number(pricePerSeat);
     if (!Number.isFinite(seats) || seats < 1) {
       setError('Сул суудлын тоо 1-ээс их байх ёстой.');
@@ -398,6 +414,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
         toLocation: formatLocation(toAimag, toSoum),
         departureAt: new Date(`${departureDate}T${departureTime}`).toISOString(),
         seatsTotal: seats,
+        availableSeatLabels: availableSeatLabels.length ? availableSeatLabels : getDefaultSeatIds(seats),
         pricePerSeat: price,
         pickupNote: pickupNote || formNote,
         dropoffNote,
@@ -489,8 +506,20 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               { value: 'bus', label: 'Нийтийн тээврийн аялал' },
               { value: 'shared', label: 'Хамт явах санал' },
             ]} />
-            <Input label={role === 'driver' ? 'Сул суудал' : 'Зорчих хүний тоо'} type="number" min="1" placeholder={role === 'driver' ? '3' : '1'} value={seatsTotal} onChange={(event) => setSeatsTotal(event.target.value)} />
+            <Input label={role === 'driver' ? 'Сул суудлын тоо' : 'Зорчих хүний тоо'} type="number" min="1" placeholder={role === 'driver' ? '3' : '1'} value={seatsTotal} onChange={(event) => handleSeatsTotalChange(event.target.value)} />
             <Input label="Нэг хүний үнэ" type="number" min="0" placeholder="35000" value={pricePerSeat} onChange={(event) => setPricePerSeat(event.target.value)} />
+            {role === 'driver' && (
+              <div className="md:col-span-2">
+                <SeatPicker
+                  mode="driver"
+                  label="Сул суудлаа сонгох"
+                  description="Аялагч захиалга хийхдээ таны энд сонгосон суудлуудаас өөрөө сонгоно."
+                  selectedSeats={availableSeatLabels}
+                  onChange={handleAvailableSeatsChange}
+                  disabled={driverBlocked || permissionLoading}
+                />
+              </div>
+            )}
             <Input label="Авах цэгийн тайлбар" placeholder="Жишээ: Драмын театрын урд" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
             <Input label="Буух цэгийн тайлбар" placeholder="Жишээ: Дархан захын ойролцоо" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
             {role === 'driver' && (

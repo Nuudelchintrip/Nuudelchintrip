@@ -8,6 +8,8 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
+import { SeatPicker } from '../components/SeatPicker';
+import { formatSeatList, normalizeSeatIds } from '../data/seats';
 import { createPassengerBooking, fetchTripById } from '../services/tripService';
 
 type RouteDetailView = {
@@ -17,6 +19,7 @@ type RouteDetailView = {
   date: string;
   time: string;
   seats: number;
+  availableSeatLabels: string[];
   price: number;
   vehicle: string;
   pickup: string;
@@ -44,6 +47,7 @@ export function TripDetailPage() {
   const [routeError, setRouteError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [bookingSeats, setBookingSeats] = useState('1');
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [bookingNote, setBookingNote] = useState('');
 
   useEffect(() => {
@@ -65,6 +69,7 @@ export function TripDetailPage() {
           return;
         }
         const departure = new Date(trip.departureAt);
+        const availableSeatLabels = normalizeSeatIds(trip.availableSeatLabels, trip.seatsAvailable);
         setRoute({
           id: trip.id,
           from: trip.fromLocation,
@@ -74,6 +79,7 @@ export function TripDetailPage() {
             ? ''
             : departure.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit', hour12: false }),
           seats: trip.seatsAvailable,
+          availableSeatLabels,
           price: trip.pricePerSeat,
           vehicle: trip.driver.carModel || 'Машины мэдээлэл хүлээгдэж байна',
           pickup: trip.pickupNote || 'Авах цэг тохиролцоно',
@@ -90,6 +96,8 @@ export function TripDetailPage() {
             phone: trip.driver.phone ? `${trip.driver.phone.slice(0, 8)}••••` : '+976 •••• ••••',
           },
         });
+        setSelectedSeats(availableSeatLabels.slice(0, 1));
+        setBookingSeats(availableSeatLabels.length ? '1' : '');
         setRouteError('');
       })
       .catch((error) => {
@@ -182,6 +190,10 @@ export function TripDetailPage() {
                   <Info icon={<CreditCard className="h-5 w-5" />} label="Үнэ" value={`₮${route.price.toLocaleString()} / хүн`} />
                   <Info icon={<Package className="h-5 w-5" />} label="Дайвар ачаа" value={route.allowsCargo ? route.cargoNote : 'Авахгүй'} />
                 </div>
+                <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <p className="text-sm font-semibold text-foreground">Сонгож болох суудал</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{formatSeatList(route.availableSeatLabels)}</p>
+                </div>
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   <Info icon={<MapPin className="h-5 w-5" />} label="Авах цэг" value={route.pickup} />
                   <Info icon={<MapPin className="h-5 w-5" />} label="Буулгах цэг" value={route.dropoff} />
@@ -264,9 +276,9 @@ export function TripDetailPage() {
           submitting={submitting}
           onSubmit={async () => {
             if (modal === 'booking' && route.source === 'supabase') {
-              const seats = Number(bookingSeats);
+              const seats = selectedSeats.length;
               if (!Number.isFinite(seats) || seats < 1) {
-                setRouteError('Суудлын тоог зөв оруулна уу.');
+                setRouteError('Захиалах суудлаа сонгоно уу.');
                 return;
               }
               if (seats > route.seats) {
@@ -279,6 +291,7 @@ export function TripDetailPage() {
                 const booking = await createPassengerBooking({
                   tripId: String(route.id),
                   seatsRequested: seats,
+                  selectedSeats,
                   note: bookingNote.trim() || undefined,
                 });
                 setCreatedBookingId(booking.id);
@@ -300,9 +313,15 @@ export function TripDetailPage() {
             setModal(null);
           }}
           seats={bookingSeats}
-          onSeatsChange={setBookingSeats}
+          availableSeats={route.availableSeatLabels}
+          selectedSeats={selectedSeats}
+          onSelectedSeatsChange={(nextSeats) => {
+            setSelectedSeats(nextSeats);
+            setBookingSeats(String(nextSeats.length));
+          }}
           note={bookingNote}
           onNoteChange={setBookingNote}
+          pricePerSeat={route.price}
         />
       )}
 
@@ -317,18 +336,24 @@ function RequestModal({
   onSubmit,
   submitting = false,
   seats = '1',
-  onSeatsChange,
+  availableSeats = [],
+  selectedSeats = [],
+  onSelectedSeatsChange,
   note = '',
   onNoteChange,
+  pricePerSeat = 0,
 }: {
   type: 'booking' | 'cargo';
   onClose: () => void;
   onSubmit: () => void | Promise<void>;
   submitting?: boolean;
   seats?: string;
-  onSeatsChange?: (value: string) => void;
+  availableSeats?: string[];
+  selectedSeats?: string[];
+  onSelectedSeatsChange?: (value: string[]) => void;
   note?: string;
   onNoteChange?: (value: string) => void;
+  pricePerSeat?: number;
 }) {
   const isCargo = type === 'cargo';
   return (
@@ -349,9 +374,24 @@ function RequestModal({
             </>
           ) : (
             <>
-              <Input label="Суудлын тоо" placeholder="1" inputMode="numeric" value={seats} onChange={(event) => onSeatsChange?.(event.target.value)} />
+              <SeatPicker
+                label="Суудлаа сонгох"
+                description="Зөвхөн жолоочийн сул гэж нийтэлсэн суудлуудыг сонгоно."
+                selectedSeats={selectedSeats}
+                availableSeats={availableSeats}
+                onChange={(nextSeats) => onSelectedSeatsChange?.(nextSeats)}
+              />
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="flex items-center justify-between gap-4 text-sm">
+                  <span className="text-muted-foreground">Суудлын тоо</span>
+                  <span className="font-semibold text-foreground">{seats || selectedSeats.length}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-4 text-sm">
+                  <span className="text-muted-foreground">Нийт төлбөр</span>
+                  <span className="font-semibold text-primary">₮{(pricePerSeat * selectedSeats.length).toLocaleString()}</span>
+                </div>
+              </div>
               <Input label="Авах цэгийн тэмдэглэл" placeholder="Сансар орчим авах боломжтой" value={note} onChange={(event) => onNoteChange?.(event.target.value)} />
-              <Input label="Утас" placeholder="+976 9999 9999" />
             </>
           )}
         </div>

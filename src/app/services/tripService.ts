@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getDefaultSeatIds, normalizeSeatIds } from '../data/seats';
 
 function toError(error: unknown, fallback: string) {
   if (error instanceof Error) return error;
@@ -27,6 +28,7 @@ export interface MarketplaceTrip {
   departureAt: string;
   seatsTotal: number;
   seatsAvailable: number;
+  availableSeatLabels: string[];
   pricePerSeat: number;
   pickupNote?: string;
   dropoffNote?: string;
@@ -43,6 +45,7 @@ export interface CreateDriverTripInput {
   toLocation: string;
   departureAt: string;
   seatsTotal: number;
+  availableSeatLabels?: string[];
   pricePerSeat: number;
   pickupNote?: string;
   dropoffNote?: string;
@@ -103,6 +106,7 @@ export interface PassengerBookingDetail {
   travelerId: string;
   status: string;
   seatsRequested: number;
+  selectedSeats: string[];
   totalAmount: number;
   note?: string;
   createdAt: string;
@@ -141,6 +145,7 @@ interface TripRow {
   departure_at: string;
   seats_total: number;
   seats_available: number;
+  available_seat_labels?: string[] | null;
   price_per_seat: number;
   pickup_note: string | null;
   dropoff_note: string | null;
@@ -170,6 +175,7 @@ interface BookingRow {
   trip_id: string;
   traveler_id: string;
   seats_requested: number;
+  selected_seats?: string[] | null;
   status: string;
   total_amount: number | null;
   note: string | null;
@@ -216,6 +222,7 @@ function mapTripRows(
       departureAt: trip.departure_at,
       seatsTotal: trip.seats_total,
       seatsAvailable: trip.seats_available,
+      availableSeatLabels: normalizeSeatIds(trip.available_seat_labels, trip.seats_available),
       pricePerSeat: trip.price_per_seat,
       pickupNote: trip.pickup_note || undefined,
       dropoffNote: trip.dropoff_note || undefined,
@@ -279,15 +286,14 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     ].join(' | '));
   }
 
-  const { data, error } = await supabase
-    .from('trips')
-    .insert({
+  const tripPayload = {
       driver_id: userId,
       from_location: input.fromLocation,
       to_location: input.toLocation,
       departure_at: input.departureAt,
       seats_total: input.seatsTotal,
       seats_available: input.seatsTotal,
+      available_seat_labels: normalizeSeatIds(input.availableSeatLabels, input.seatsTotal),
       price_per_seat: input.pricePerSeat,
       pickup_note: input.pickupNote || null,
       dropoff_note: input.dropoffNote || null,
@@ -296,9 +302,24 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
       allowed_cargo_types: input.allowsCargo ? input.allowedCargoTypes ?? [] : null,
       cargo_price_note: input.allowsCargo ? input.cargoPriceNote || null : null,
       status: 'active',
-    })
+  };
+
+  let { data, error } = await supabase
+    .from('trips')
+    .insert(tripPayload)
     .select('id')
     .single();
+
+  if (error && toError(error, '').message.includes('available_seat_labels')) {
+    const { available_seat_labels: _seatLabels, ...legacyTripPayload } = tripPayload;
+    const retry = await supabase
+      .from('trips')
+      .insert(legacyTripPayload)
+      .select('id')
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     const [{ data: profile }, { data: driverProfile }] = await Promise.all([
@@ -433,9 +454,7 @@ export async function fetchCargoEnabledTrips() {
 export async function fetchTripById(tripId: string) {
   if (!supabase) return null;
 
-  const { data: trip, error: tripError } = await supabase
-    .from('trips')
-    .select(`
+  const tripColumns = `
       id,
       driver_id,
       from_location,
@@ -451,9 +470,26 @@ export async function fetchTripById(tripId: string) {
       allowed_cargo_types,
       cargo_price_note,
       status
+    `;
+
+  let { data: trip, error: tripError } = await supabase
+    .from('trips')
+    .select(`
+      ${tripColumns},
+      available_seat_labels
     `)
     .eq('id', tripId)
     .maybeSingle();
+
+  if (tripError && toError(tripError, '').message.includes('available_seat_labels')) {
+    const retry = await supabase
+      .from('trips')
+      .select(tripColumns)
+      .eq('id', tripId)
+      .maybeSingle();
+    trip = retry.data;
+    tripError = retry.error;
+  }
 
   if (tripError) throw toError(tripError, 'Trip request failed.');
   if (!trip) return null;
@@ -481,6 +517,7 @@ export async function fetchTripById(tripId: string) {
 export async function createPassengerBooking(input: {
   tripId: string;
   seatsRequested: number;
+  selectedSeats?: string[];
   note?: string;
 }) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
@@ -489,6 +526,23 @@ export async function createPassengerBooking(input: {
   if (userError) throw toError(userError, 'User session check failed.');
   const userId = userData.user?.id;
   if (!userId) throw new Error('Booking request илгээхийн тулд дахин нэвтэрнэ үү.');
+
+  const selectedSeats = normalizeSeatIds(input.selectedSeats, input.seatsRequested);
+
+  const rpcResult = await supabase.rpc('create_passenger_booking_with_seats', {
+    p_trip_id: input.tripId,
+    p_selected_seats: selectedSeats,
+    p_note: input.note || null,
+  });
+
+  if (!rpcResult.error && rpcResult.data?.[0]) {
+    return rpcResult.data[0] as { id: string; status: string };
+  }
+
+  const rpcMessage = rpcResult.error ? toError(rpcResult.error, '').message : '';
+  if (rpcResult.error && !rpcMessage.includes('create_passenger_booking_with_seats')) {
+    throw toError(rpcResult.error, 'Seat booking request failed.');
+  }
 
   const { data: trip, error: tripError } = await supabase
     .from('trips')
@@ -501,18 +555,32 @@ export async function createPassengerBooking(input: {
     throw new Error('Сул суудлын тоо хүрэлцэхгүй байна.');
   }
 
-  const { data, error } = await supabase
+  const bookingPayload = {
+    trip_id: input.tripId,
+    traveler_id: userId,
+    seats_requested: selectedSeats.length,
+    selected_seats: selectedSeats,
+    total_amount: trip.price_per_seat * selectedSeats.length,
+    note: input.note || null,
+    status: 'pending_request',
+  };
+
+  let { data, error } = await supabase
     .from('passenger_bookings')
-    .insert({
-      trip_id: input.tripId,
-      traveler_id: userId,
-      seats_requested: input.seatsRequested,
-      total_amount: trip.price_per_seat * input.seatsRequested,
-      note: input.note || null,
-      status: 'pending_request',
-    })
+    .insert(bookingPayload)
     .select('id, status')
     .single();
+
+  if (error && toError(error, '').message.includes('selected_seats')) {
+    const { selected_seats: _selectedSeats, ...legacyBookingPayload } = bookingPayload;
+    const retry = await supabase
+      .from('passenger_bookings')
+      .insert(legacyBookingPayload)
+      .select('id, status')
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) throw toError(error, 'Supabase request failed.');
   return data;
@@ -535,11 +603,21 @@ export async function fetchCurrentDriverPassengerRequests() {
   if (!driverTrips?.length) return [];
 
   const tripIds = driverTrips.map((trip) => trip.id);
-  const { data: bookingRows, error: bookingError } = await supabase
+  let { data: bookingRows, error: bookingError } = await supabase
     .from('passenger_bookings')
-    .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+    .select('id, trip_id, traveler_id, seats_requested, selected_seats, status, total_amount, note, created_at')
     .in('trip_id', tripIds)
     .order('created_at', { ascending: false });
+
+  if (bookingError && toError(bookingError, '').message.includes('selected_seats')) {
+    const retry = await supabase
+      .from('passenger_bookings')
+      .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+      .in('trip_id', tripIds)
+      .order('created_at', { ascending: false });
+    bookingRows = retry.data;
+    bookingError = retry.error;
+  }
 
   if (bookingError) throw toError(bookingError, 'Passenger request уншихад алдаа гарлаа.');
   if (!bookingRows?.length) return [];
@@ -596,11 +674,21 @@ export async function updatePassengerBookingStatus(
 export async function fetchPassengerBookingById(bookingId: string): Promise<PassengerBookingDetail | null> {
   if (!supabase) return null;
 
-  const { data: booking, error: bookingError } = await supabase
+  let { data: booking, error: bookingError } = await supabase
     .from('passenger_bookings')
-    .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+    .select('id, trip_id, traveler_id, seats_requested, selected_seats, status, total_amount, note, created_at')
     .eq('id', bookingId)
     .maybeSingle();
+
+  if (bookingError && toError(bookingError, '').message.includes('selected_seats')) {
+    const retry = await supabase
+      .from('passenger_bookings')
+      .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+      .eq('id', bookingId)
+      .maybeSingle();
+    booking = retry.data;
+    bookingError = retry.error;
+  }
 
   if (bookingError) throw toError(bookingError, 'Booking detail уншихад алдаа гарлаа.');
   if (!booking) return null;
@@ -642,6 +730,7 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
     travelerId: bookingRow.traveler_id,
     status: bookingRow.status,
     seatsRequested: bookingRow.seats_requested,
+    selectedSeats: normalizeSeatIds(bookingRow.selected_seats, bookingRow.seats_requested),
     totalAmount: Number(bookingRow.total_amount || 0),
     note: bookingRow.note || undefined,
     createdAt: bookingRow.created_at,
