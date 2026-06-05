@@ -20,6 +20,16 @@ type ProfileRow = {
   cargo_policy_accepted: boolean;
 };
 
+function toError(error: unknown, fallback: string) {
+  if (error instanceof Error) return error;
+  if (error && typeof error === 'object') {
+    const record = error as { message?: string; details?: string; hint?: string; code?: string };
+    const parts = [record.message, record.details, record.hint, record.code ? `code: ${record.code}` : undefined].filter(Boolean);
+    if (parts.length) return new Error(parts.join(' | '));
+  }
+  return new Error(fallback);
+}
+
 function toLocalProfile(row: ProfileRow, fallbackEmail = ''): MockUserProfile {
   return {
     role: row.role,
@@ -87,13 +97,18 @@ export async function loginWithSupabase(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 
+  await supabase.rpc('ensure_current_profile');
+
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('role, full_name, phone, email, phone_verified, onboarding_completed, cargo_policy_accepted')
     .eq('id', data.user.id)
-    .single();
+    .maybeSingle();
 
-  if (profileError) throw profileError;
+  if (profileError) throw toError(profileError, 'Profile мэдээлэл уншихад алдаа гарлаа.');
+  if (!profile) {
+    throw new Error('Auth login амжилттай боловч profiles мөр олдсонгүй. Supabase SQL дээр ensure_current_profile migration ажиллуулна уу.');
+  }
 
   let verificationStatus: ProfileRow['verification_status'];
   if (profile.role === 'driver') {
