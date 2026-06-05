@@ -161,6 +161,7 @@ export default function App() {
         <Route path="/admin/cargo" element={<AdminOnly><AdminQueuePage view="cargo" /></AdminOnly>} />
         <Route path="/admin/routes" element={<AdminOnly><AdminQueuePage view="routes" /></AdminOnly>} />
         <Route path="/admin/bookings" element={<AdminOnly><AdminQueuePage view="bookings" /></AdminOnly>} />
+        <Route path="/admin/logs" element={<AdminOnly><AdminQueuePage view="logs" /></AdminOnly>} />
 
         <Route path="/login" element={<Navigate to="/auth/login" replace />} />
         <Route path="/register" element={<Navigate to="/auth/register" replace />} />

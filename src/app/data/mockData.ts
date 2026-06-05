@@ -11,13 +11,13 @@ export type BookingStatus =
   | 'disputed';
 
 export const bookingStatusSteps: { code: BookingStatus; label: string; description: string }[] = [
-  { code: 'pending_request', label: 'Хүсэлт илгээгдсэн', description: 'Аялагч жолоочид booking request илгээсэн.' },
+  { code: 'pending_request', label: 'Хүсэлт илгээгдсэн', description: 'Аялагч жолоочид суудлын хүсэлт илгээсэн.' },
   { code: 'accepted', label: 'Зөвшөөрсөн', description: 'Жолооч аяллын хүсэлтийг зөвшөөрсөн.' },
-  { code: 'waiting_payment', label: 'Төлбөр хүлээгдэж байна', description: 'Аялагч төлбөрийн баримтаа upload хийх ёстой.' },
-  { code: 'payment_review', label: 'Баримт шалгаж байна', description: 'Admin эсвэл систем payment proof шалгаж байна.' },
-  { code: 'confirmed', label: 'Баталгаажсан', description: 'Төлбөр баталгаажиж аялал confirmed болсон.' },
+  { code: 'waiting_payment', label: 'Төлбөр хүлээгдэж байна', description: 'Аялагч төлбөрийн баримтаа оруулах ёстой.' },
+  { code: 'payment_review', label: 'Баримт шалгаж байна', description: 'Админ төлбөрийн баримтыг шалгаж байна.' },
+  { code: 'confirmed', label: 'Баталгаажсан', description: 'Төлбөр баталгаажиж аялал баталгаатай болсон.' },
   { code: 'on_trip', label: 'Аялал эхэлсэн', description: 'Жолооч болон аялагч аяллын явцад байна.' },
-  { code: 'completed', label: 'Дууссан', description: 'Аялал амжилттай дууссан, review нээгдсэн.' },
+  { code: 'completed', label: 'Дууссан', description: 'Аялал амжилттай дууссан, үнэлгээ өгөх боломж нээгдсэн.' },
 ];
 
 export const bookings = [
@@ -26,7 +26,7 @@ export const bookings = [
     status: 'waiting_payment' as BookingStatus,
     ride: {
       title: '1 суудал',
-      description: 'УБ-аас Дархан руу явах аялагчийн booking. Pickup цэг болон суудлын тоо жолоочтой баталгаажсан.',
+      description: 'Улаанбаатараас Дархан руу явах аялагчийн захиалга. Авах цэг болон суудлын тоо жолоочтой баталгаажсан.',
       seats: 1,
       luggage: '1 жижиг цүнх',
       pickupNote: 'Баянзүрхээс 08:30-08:50 хооронд авах боломжтой.',

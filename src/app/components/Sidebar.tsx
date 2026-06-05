@@ -30,7 +30,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
         </a>
         <button
           type="button"
-          aria-label="Menu"
+          aria-label="Цэс нээх"
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground"
           onClick={() => setMobileOpen(true)}
         >
@@ -42,7 +42,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
         <div className="fixed inset-0 z-50 md:hidden">
           <button
             type="button"
-            aria-label="Close menu backdrop"
+            aria-label="Цэсний арын хэсгийг хаах"
             className="absolute inset-0 bg-foreground/40"
             onClick={() => setMobileOpen(false)}
           />
@@ -56,7 +56,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
               </a>
               <button
                 type="button"
-                aria-label="Close menu"
+                aria-label="Цэс хаах"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground"
                 onClick={() => setMobileOpen(false)}
               >
@@ -204,8 +204,8 @@ function getAccountContext(pathname: string, accountRole?: DashboardRole) {
 
   if (role === 'admin') {
     return {
-      name: 'Admin user',
-      label: 'Platform moderation',
+      name: 'Админ хэрэглэгч',
+      label: 'Платформын хяналт',
       profileHref: '/admin/profile',
       settingsHref: '/admin/settings',
     };

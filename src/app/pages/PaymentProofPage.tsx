@@ -101,7 +101,7 @@ export function PaymentProofPage() {
     setSuccess('');
 
     if (!file) {
-      setError('Screenshot эсвэл PDF баримтаа сонгоно уу.');
+      setError('Төлбөрийн зураг эсвэл PDF баримтаа сонгоно уу.');
       return;
     }
 
@@ -153,7 +153,7 @@ export function PaymentProofPage() {
           <Badge variant="warning" className="mb-4">Төлбөрийн баталгаажуулалт</Badge>
           <h1 className="mb-3 text-2xl font-bold text-foreground md:text-3xl">Төлбөрийн баримт илгээх</h1>
           <p className="max-w-3xl leading-7 text-muted-foreground">
-            Төлбөрөө шилжүүлсний дараа screenshot, PDF эсвэл гүйлгээний код оруулна.
+            Төлбөрөө шилжүүлсний дараа зураг, PDF эсвэл гүйлгээний код оруулна.
             Баримт илгээгдмэгц захиалгын төлөв <strong>шалгаж байна</strong> болж админы баталгаажуулалтад орно.
           </p>
         </section>
@@ -190,7 +190,7 @@ export function PaymentProofPage() {
                   {[
                     'Нийт төлөх дүнг жолоочтой тохирсон данс эсвэл QPay-р шилжүүлнэ.',
                     `Гүйлгээний утга дээр ${payment.bookingId} гэж бичвэл шалгахад амар.`,
-                    'Screenshot эсвэл гүйлгээний кодоо энэ хуудсанд оруулна.',
+                    'Төлбөрийн зураг эсвэл гүйлгээний кодоо энэ хуудсанд оруулна.',
                     'Админ баталгаажуулсны дараа аялал баталгаажсан төлөв рүү шилжинэ.',
                   ].map((item, index) => (
                     <div key={item} className="rounded-lg border border-border bg-muted/30 p-4">
@@ -238,7 +238,7 @@ export function PaymentProofPage() {
               <CardBody>
                 <div className="space-y-5">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-foreground">Гүйлгээний screenshot эсвэл PDF</span>
+                    <span className="mb-2 block text-sm font-medium text-foreground">Гүйлгээний зураг эсвэл PDF</span>
                     <input
                       type="file"
                       accept="image/*,.pdf"

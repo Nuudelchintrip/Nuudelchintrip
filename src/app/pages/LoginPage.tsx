@@ -5,7 +5,7 @@ import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
 import { loginWithSupabase } from '../services/supabaseAuth';
-import { getDashboardPath } from '../utils/auth';
+import { addActionLog, getDashboardPath } from '../utils/auth';
 
 function getLoginErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message : '';
@@ -18,7 +18,7 @@ function getLoginErrorMessage(error: unknown) {
     return 'И-мэйл баталгаажаагүй байна. Supabase/Auth email-ээ шалгаарай.';
   }
   if (lower.includes('auth session missing')) {
-    return 'Login session олдсонгүй. Дахин нэвтэрнэ үү.';
+    return 'Нэвтрэлтийн session олдсонгүй. Дахин нэвтэрнэ үү.';
   }
 
   return message || 'Нэвтрэхэд алдаа гарлаа.';
@@ -60,7 +60,7 @@ export function LoginPage() {
             {reason && (
               <div className="mb-5 rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <p className="text-sm font-medium text-foreground">{reason}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Login хийсний дараа role-доо тохирсон dashboard/search руу орно.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Нэвтэрсний дараа таны төрлөөс хамаарсан самбар руу шилжинэ.</p>
               </div>
             )}
 
@@ -76,9 +76,24 @@ export function LoginPage() {
                 setIsSubmitting(true);
                 try {
                   const profile = await loginWithSupabase(email.trim(), password);
+                  addActionLog({
+                    actor: profile.full_name || email.trim(),
+                    user: profile.full_name || email.trim(),
+                    actionType: 'Нэвтрэх',
+                    status: 'Амжилттай',
+                    details: 'Хэрэглэгч системд амжилттай нэвтэрсэн.',
+                  });
                   window.location.href = next || getDashboardPath(profile.role);
                 } catch (err) {
-                  setError(getLoginErrorMessage(err));
+                  const message = getLoginErrorMessage(err);
+                  addActionLog({
+                    actor: email.trim() || 'Тодорхойгүй хэрэглэгч',
+                    user: email.trim() || 'Тодорхойгүй хэрэглэгч',
+                    actionType: 'Нэвтрэх',
+                    status: 'Амжилтгүй',
+                    details: message,
+                  });
+                  setError(message);
                 } finally {
                   setIsSubmitting(false);
                 }

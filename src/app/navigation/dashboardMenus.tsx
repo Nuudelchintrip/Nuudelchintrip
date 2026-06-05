@@ -1,4 +1,4 @@
-import { Banknote, Box, Bus, CreditCard, FileCheck2, Flag, LayoutDashboard, PackageCheck, PackagePlus, Route, Search, Settings, ShieldCheck, Star, UserCircle, UsersRound } from 'lucide-react';
+import { Banknote, Box, Bus, CreditCard, FileCheck2, Flag, LayoutDashboard, ListChecks, PackageCheck, PackagePlus, Route, Search, Settings, ShieldCheck, Star, UserCircle, UsersRound } from 'lucide-react';
 
 export type DashboardRole = 'sender' | 'traveler' | 'driver' | 'admin';
 
@@ -51,6 +51,7 @@ export function getDashboardMenu(role: DashboardRole) {
     { icon: <Bus className="h-5 w-5" />, label: 'Захиалгууд', href: '/admin/bookings' },
     { icon: <PackageCheck className="h-5 w-5" />, label: 'Ачааны хүсэлтүүд', href: '/admin/cargo' },
     { icon: <Flag className="h-5 w-5" />, label: 'Гомдол, маргаан', href: '/admin/reports' },
+    { icon: <ListChecks className="h-5 w-5" />, label: 'Үйлдлийн түүх', href: '/admin/logs' },
     { icon: <Settings className="h-5 w-5" />, label: 'Тохиргоо', href: '/admin/settings' },
   ];
 }

@@ -50,11 +50,11 @@ export function BookingDetailPage() {
       .then((item) => {
         if (!active) return;
         setRealBooking(item);
-        setBookingError(item ? '' : 'Booking олдсонгүй.');
+        setBookingError(item ? '' : 'Захиалга олдсонгүй.');
       })
       .catch((error) => {
         if (!active) return;
-        setBookingError(error instanceof Error ? error.message : 'Booking detail уншихад алдаа гарлаа.');
+        setBookingError(error instanceof Error ? error.message : 'Захиалгын дэлгэрэнгүй мэдээлэл уншихад алдаа гарлаа.');
       })
       .finally(() => {
         if (active) setLoadingBooking(false);

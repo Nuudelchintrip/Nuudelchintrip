@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
@@ -17,7 +18,9 @@ import {
   ShieldCheck,
   Star,
   Trash2,
+  Upload,
   UserCircle,
+  XCircle,
 } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -28,6 +31,15 @@ import { Navbar } from '../components/Navbar';
 import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
+import {
+  getActionLogs,
+  getIdentityRequests,
+  getStoredUser,
+  upsertIdentityRequest,
+  type IdentityVerificationRequest,
+  type MarketplaceRole,
+  type VerificationStatus,
+} from '../utils/auth';
 
 type AccountRole = 'sender' | 'traveler' | 'driver' | 'admin';
 
@@ -123,7 +135,7 @@ function LegacyAccountProfilePage({ role }: { role: AccountRole }) {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Badge variant="success">Утас баталгаажсан</Badge>
                   <Badge variant="success">Профайл баталгаажсан</Badge>
-                  <Badge variant="default">{role}</Badge>
+                <Badge variant="default">{profile.label}</Badge>
                 </div>
               </div>
             </div>
@@ -133,14 +145,14 @@ function LegacyAccountProfilePage({ role }: { role: AccountRole }) {
               <Input label="Утас" defaultValue={profile.phone} />
               <Input label="И-мэйл" defaultValue={profile.email} />
               <Select
-                label="Role"
+                label="Хэрэглэгчийн төрөл"
                 value={role}
                 disabled
                 options={[
                   { value: 'traveler', label: 'Аялагч' },
                   { value: 'driver', label: 'Жолооч' },
                   { value: 'sender', label: 'Дайвар ачаа илгээгч' },
-                  { value: 'admin', label: 'Admin' },
+                  { value: 'admin', label: 'Админ' },
                 ]}
               />
             </div>
@@ -150,7 +162,7 @@ function LegacyAccountProfilePage({ role }: { role: AccountRole }) {
             {role === 'sender' && <SenderProfileFields />}
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button>Profile хадгалах</Button>
+              <Button>Профайл хадгалах</Button>
               <Button variant="outline" onClick={() => window.location.href = getVerificationHref(role)}>
                 Баталгаажуулалтын төв
                 <ArrowRight className="h-4 w-4" />
@@ -183,9 +195,9 @@ function LegacyAccountProfilePage({ role }: { role: AccountRole }) {
           </Card>
 
           <Card className="p-5">
-            <h2 className="text-xl font-semibold text-foreground">Next action</h2>
+            <h2 className="text-xl font-semibold text-foreground">Дараагийн алхам</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Profile trust өндөр байх тусам booking request, driver acceptance, cargo request илүү найдвартай харагдана.
+              Профайлын баталгаажуулалт өндөр байх тусам суудлын хүсэлт, жолоочийн зөвшөөрөл, дайвар ачааны хүсэлт илүү найдвартай харагдана.
             </p>
             <Button className="mt-5" fullWidth onClick={() => window.location.href = profile.dashboardHref}>
               Самбар руу буцах
@@ -319,7 +331,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
                   { value: 'traveler', label: 'Аялагч' },
                   { value: 'driver', label: 'Жолооч' },
                   { value: 'sender', label: 'Дайвар ачаа илгээгч' },
-                  { value: 'admin', label: 'Admin' },
+                  { value: 'admin', label: 'Админ' },
                 ]}
               />
               {details.privateFields.map((field) => (
@@ -452,7 +464,7 @@ function getProfileExperience(role: AccountRole) {
         { title: 'Идэвхтэй чиглэл', text: '18' },
       ],
       rating: '-',
-      completed: 'Admin',
+      completed: 'Админ',
       activity: [
         { title: 'Төлбөрийн баримт зөвшөөрсөн', meta: 'BK-001', right: 'Өнөөдөр' },
         { title: 'Жолоочийн баталгаажуулалт шалгасан', meta: 'DRV-204', right: '09:48' },
@@ -564,7 +576,7 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
           <section id="verification" className="scroll-mt-6">
             <SettingsSection
               title="Баталгаажуулалт"
-              description="Marketplace trust-д хэрэгтэй баталгаажуулалтын төлөв."
+              description="Платформын итгэлцэлд хэрэгтэй баталгаажуулалтын төлөв."
             >
               <div className="grid gap-4 md:grid-cols-3">
                 <VerificationStatusCard title="Утас" text="Утас баталгаажсан" status="Баталгаажсан" />
@@ -643,29 +655,29 @@ function LegacyAccountSettingsPage({ role }: { role: AccountRole }) {
     <AccountFrame role={role}>
       <div className="mb-8">
         <Badge variant="info">{profiles[role].label}</Badge>
-        <h1 className="mt-4 text-3xl font-bold text-foreground">Settings</h1>
+        <h1 className="mt-4 text-3xl font-bold text-foreground">Тохиргоо</h1>
         <p className="mt-3 max-w-3xl text-muted-foreground">
-          Account, security, notification, privacy тохиргоо role-оос үл хамаараад нэг стандартаар ажиллана.
+          Бүртгэл, хамгаалалт, мэдэгдэл, нууцлалын тохиргоо хэрэглэгчийн төрлөөс үл хамаараад нэг стандартаар ажиллана.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <SettingCard icon={<UserCircle />} title="Account settings" description="Нэр, зураг, утас, имэйл, account status.">
+          <SettingCard icon={<UserCircle />} title="Бүртгэлийн тохиргоо" description="Нэр, зураг, утас, имэйл, бүртгэлийн төлөв.">
             <div className="grid gap-4 md:grid-cols-2">
               <Input label="Нэр" defaultValue={profiles[role].name} />
               <Input label="Утас" defaultValue={profiles[role].phone} />
               <Input label="И-мэйл" defaultValue={profiles[role].email} />
-              <Select label="Account status" options={[{ value: 'active', label: 'Active' }, { value: 'deactivate', label: 'Deactivate requested' }]} />
+              <Select label="Бүртгэлийн төлөв" options={[{ value: 'active', label: 'Идэвхтэй' }, { value: 'deactivate', label: 'Идэвхгүй болгох хүсэлттэй' }]} />
             </div>
           </SettingCard>
 
-          <SettingCard icon={<LockKeyhole />} title="Security settings" description="Password, session, 2FA placeholder, phone verification.">
+          <SettingCard icon={<LockKeyhole />} title="Хамгаалалтын тохиргоо" description="Нууц үг, session, давхар хамгаалалт, утас баталгаажуулалт.">
             <div className="grid gap-3 md:grid-cols-4">
-              <StatusTile title="Password" text="32 хоногийн өмнө" />
-              <StatusTile title="Login history" text="2 төхөөрөмж" />
+              <StatusTile title="Нууц үг" text="32 хоногийн өмнө" />
+              <StatusTile title="Нэвтрэлтийн түүх" text="2 төхөөрөмж" />
               <StatusTile title="Давхар хамгаалалт" text="Дараагийн шатанд" />
-              <StatusTile title="Phone" text="Verified" success />
+              <StatusTile title="Утас" text="Баталгаажсан" success />
             </div>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => window.location.href = getPasswordHref(role)}>
@@ -676,36 +688,36 @@ function LegacyAccountSettingsPage({ role }: { role: AccountRole }) {
             </div>
           </SettingCard>
 
-          <SettingCard icon={<Bell />} title="Notification settings" description="Booking, payment, trip, cargo, review reminder.">
-            <ToggleRow label="Booking request notification" checked />
-            <ToggleRow label="Driver accepted notification" checked />
+          <SettingCard icon={<Bell />} title="Мэдэгдлийн тохиргоо" description="Захиалга, төлбөр, аялал, ачаа, үнэлгээний сануулга.">
+            <ToggleRow label="Захиалгын хүсэлтийн мэдэгдэл" checked />
+            <ToggleRow label="Жолооч зөвшөөрсөн мэдэгдэл" checked />
             <ToggleRow label="Төлбөр баталгаажсан мэдэгдэл" checked />
-            <ToggleRow label="Trip reminder" checked />
-            <ToggleRow label="Cargo status update" checked={role !== 'traveler'} />
-            <ToggleRow label="Review reminder" checked />
+            <ToggleRow label="Аяллын сануулга" checked />
+            <ToggleRow label="Ачааны төлөв шинэчлэгдэх мэдэгдэл" checked={role !== 'traveler'} />
+            <ToggleRow label="Үнэлгээ өгөх сануулга" checked />
           </SettingCard>
         </div>
 
         <aside className="space-y-6">
-          <SettingCard icon={<ShieldCheck />} title="Privacy settings" description="Утас, profile, review visibility.">
+          <SettingCard icon={<ShieldCheck />} title="Нууцлалын тохиргоо" description="Утас, профайл, үнэлгээний харагдах байдал.">
             <Select label="Утас хэзээ харагдах вэ?" options={[
-              { value: 'accepted', label: 'Accepted booking дараа' },
-              { value: 'confirmed', label: 'Payment confirmed дараа' },
-              { value: 'never', label: 'Зөвхөн admin-д' },
+              { value: 'accepted', label: 'Хүсэлт зөвшөөрсний дараа' },
+              { value: 'confirmed', label: 'Төлбөр баталгаажсаны дараа' },
+              { value: 'never', label: 'Зөвхөн админд' },
             ]} />
-            <ToggleRow label="Profile public" checked />
-            <ToggleRow label="Review public" checked />
+            <ToggleRow label="Профайл нийтэд харагдана" checked />
+            <ToggleRow label="Үнэлгээ нийтэд харагдана" checked />
           </SettingCard>
 
           <Card className="border-destructive/20 bg-destructive/5 p-5">
             <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
               <Trash2 className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-foreground">Deactivate account</h2>
+            <h2 className="mt-4 text-xl font-semibold text-foreground">Бүртгэл идэвхгүй болгох</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              MVP дээр account delete request admin review-р шийдэгдэнэ. Active booking байвал шууд устгахгүй.
+              MVP дээр бүртгэл устгах хүсэлтийг админ шалгаж шийдвэрлэнэ. Идэвхтэй захиалга байвал шууд устгахгүй.
             </p>
-            <Button className="mt-5" variant="outline" fullWidth>Deactivate request</Button>
+            <Button className="mt-5" variant="outline" fullWidth>Идэвхгүй болгох хүсэлт</Button>
           </Card>
         </aside>
       </div>
@@ -716,6 +728,70 @@ function LegacyAccountSettingsPage({ role }: { role: AccountRole }) {
 export function AccountVerificationPage({ role }: { role: AccountRole }) {
   const isDriver = role === 'driver';
   const isSender = role === 'sender';
+  const storedUser = getStoredUser();
+  const profile = profiles[role];
+  const marketplaceRole = mapAccountRole(role);
+  const initialRequest = useMemo(() => {
+    const requests = getIdentityRequests();
+    return requests.find((request) => {
+      const sameEmail = storedUser?.email && request.email === storedUser.email;
+      const samePhone = storedUser?.phone && request.phone === storedUser.phone;
+      return sameEmail || samePhone;
+    });
+  }, [storedUser?.email, storedUser?.phone]);
+  const [request, setRequest] = useState<IdentityVerificationRequest | undefined>(initialRequest);
+  const [familyName, setFamilyName] = useState(initialRequest?.familyName || '');
+  const [fullName, setFullName] = useState(initialRequest?.fullName || storedUser?.full_name || profile.name);
+  const [registerNumber, setRegisterNumber] = useState(initialRequest?.registerNumber || '');
+  const [documentName, setDocumentName] = useState(initialRequest?.documentName || '');
+  const [selfieName, setSelfieName] = useState(initialRequest?.selfieName || '');
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  const identityStatus = request?.status || storedUser?.identity_verification?.status || 'not_submitted';
+  const relatedLogs = getActionLogs()
+    .filter((log) => {
+      const target = `${log.user} ${log.actor} ${log.details}`.toLowerCase();
+      return [storedUser?.email, storedUser?.phone, fullName].some((item) => item && target.includes(item.toLowerCase()));
+    })
+    .slice(0, 4);
+
+  const handleSubmitIdentity = () => {
+    setFormError('');
+    setFormSuccess('');
+
+    if (!familyName.trim()) {
+      setFormError('Овгоо оруулна уу.');
+      return;
+    }
+    if (!fullName.trim()) {
+      setFormError('Нэрээ оруулна уу.');
+      return;
+    }
+    if (registerNumber.trim().length < 8) {
+      setFormError('Регистрийн дугаараа зөв оруулна уу. Жишээ: УБ99112233');
+      return;
+    }
+    if (!documentName) {
+      setFormError('Иргэний үнэмлэхний зураг эсвэл PDF файлын нэр сонгоно уу.');
+      return;
+    }
+
+    const nextRequest = upsertIdentityRequest({
+      role: marketplaceRole,
+      userName: fullName.trim(),
+      phone: storedUser?.phone || profile.phone,
+      email: storedUser?.email || profile.email,
+      familyName: familyName.trim(),
+      fullName: fullName.trim(),
+      registerNumber: registerNumber.trim().toUpperCase(),
+      documentName,
+      selfieName: selfieName || undefined,
+    });
+
+    setRequest(nextRequest);
+    setFormSuccess('Баталгаажуулалтын хүсэлт админ руу илгээгдлээ.');
+  };
 
   return (
     <AccountFrame role={role}>
@@ -723,24 +799,102 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
         <Badge variant="success">Баталгаажуулалт</Badge>
         <h1 className="mt-4 text-3xl font-bold text-foreground">Баталгаажуулалтын төв</h1>
         <p className="mt-3 max-w-3xl text-muted-foreground">
-          Утас, и-мэйл, бичиг баримт, машины мэдээлэл болон ачааны дүрмийн төлвийг нэг дор хянана.
+          Утас, иргэний үнэмлэх, жолоочийн бичиг баримт болон ачааны дүрмийн төлвийг нэг дор хянана.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold text-foreground">Бүх хэрэглэгчид</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
-              <VerificationItem title="Утас баталгаажуулах" status="approved" icon={<Phone />} />
-              <VerificationItem title="И-мэйл баталгаажуулах" status="approved" icon={<Mail />} />
-              <VerificationItem title="Иргэний үнэмлэх" status="placeholder" icon={<FileCheck2 />} />
+          <Card className="p-5 sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-foreground">Үндсэн баталгаажуулалт</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                  Marketplace дээр жолооч, аялагч, ачаа илгээгч бүгд утас болон иргэний үнэмлэхний үндсэн шалгалттай байна.
+                </p>
+              </div>
+              <IdentityStatusBadge status={identityStatus} />
+            </div>
+
+            {identityStatus === 'rejected' && request?.rejectionReason && (
+              <div className="mt-5 flex gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+                <XCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <p className="font-semibold">Хүсэлт буцаагдсан</p>
+                  <p className="mt-1 leading-6">{request.rejectionReason}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              <VerificationItem title="Утас баталгаажсан" status={storedUser?.phone_verified === false ? 'review' : 'approved'} icon={<Phone />} />
+              <VerificationItem title="И-мэйл бүртгэлтэй" status="approved" icon={<Mail />} />
+              <VerificationItem title="Иргэний үнэмлэх" status={toVerificationItemStatus(identityStatus)} icon={<FileCheck2 />} />
+            </div>
+
+            <div className="mt-6 grid gap-5 md:grid-cols-2">
+              <Input label="Овог" value={familyName} onChange={(event) => setFamilyName(event.target.value)} placeholder="Жишээ: Бат" />
+              <Input label="Нэр" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Жишээ: Болд" />
+              <Input
+                label="Регистрийн дугаар"
+                value={registerNumber}
+                onChange={(event) => setRegisterNumber(event.target.value.toUpperCase())}
+                placeholder="Жишээ: УБ99112233"
+              />
+              <Input label="Утас" value={storedUser?.phone || profile.phone} readOnly />
+            </div>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <FileSelectBox
+                label="Иргэний үнэмлэхний зураг / PDF"
+                value={documentName}
+                required
+                onChange={setDocumentName}
+              />
+              <FileSelectBox
+                label="Нүүрний зураг (сонголтоор)"
+                value={selfieName}
+                onChange={setSelfieName}
+              />
+            </div>
+
+            <div className="mt-5 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
+              <div className="flex gap-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <p>
+                  Туршилтын хувилбар дээр файл бодитоор хадгалахгүй, зөвхөн файлын нэр хадгалж админы шалгалтын урсгалыг харуулна. Бодит хувилбар дээр Supabase Storage ашиглана.
+                </p>
+              </div>
+            </div>
+
+            {formError && (
+              <div className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+                {formError}
+              </div>
+            )}
+            {formSuccess && (
+              <div className="mt-5 rounded-lg border border-success/20 bg-success/10 px-4 py-3 text-sm font-medium text-success">
+                {formSuccess}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Button onClick={handleSubmitIdentity}>
+                <Upload className="h-4 w-4" />
+                Хүсэлт илгээх
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = profile.dashboardHref}>
+                Самбар руу буцах
+              </Button>
             </div>
           </Card>
 
           {isDriver && (
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <h2 className="text-xl font-semibold text-foreground">Жолоочийн баталгаажуулалт</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Машин, жолооны үнэмлэхний мэдээлэл админ зөвшөөрсний дараа чиглэл нийтлэх эрх нээгдэнэ.
+              </p>
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <VerificationItem title="Жолооны үнэмлэх" status="review" icon={<FileCheck2 />} />
                 <VerificationItem title="Машины гэрчилгээ" status="review" icon={<Car />} />
@@ -750,8 +904,11 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
           )}
 
           {(isDriver || isSender) && (
-            <Card className="p-6">
+            <Card className="p-5 sm:p-6">
               <h2 className="text-xl font-semibold text-foreground">Дайвар ачааны эрх</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Дайвар ачаа нь жолоочийн route дээр суурилсан нэмэлт боломж тул дүрэм зөвшөөрсөн хэрэглэгчид л харагдана.
+              </p>
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <VerificationItem title="Ачааны дүрэм зөвшөөрөх" status="approved" icon={<PackageCheck />} />
                 <VerificationItem title="Хориглосон барааны дүрэм" status="approved" icon={<ShieldCheck />} />
@@ -763,11 +920,11 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
 
         <aside className="space-y-6">
           <Card className="border-primary/20 bg-primary/5 p-5">
-            <h2 className="text-xl font-semibold text-foreground">Админы шалгалтын төлөв</h2>
+            <h2 className="text-xl font-semibold text-foreground">Шалгалтын төлөв</h2>
             <div className="mt-5 space-y-4">
-              <ProgressRow label="Утас" value={100} />
-              <ProgressRow label="Профайл" value={90} />
-              <ProgressRow label={isDriver ? 'Жолоочийн бичиг баримт' : 'Үндсэн мэдээлэл'} value={isDriver ? 68 : 40} />
+              <ProgressRow label="Утас" value={storedUser?.phone_verified === false ? 40 : 100} />
+              <ProgressRow label="Профайл" value={storedUser?.onboarding_completed === false ? 60 : 90} />
+              <ProgressRow label="Иргэний үнэмлэх" value={identityStatus === 'approved' ? 100 : identityStatus === 'pending' ? 65 : identityStatus === 'rejected' ? 30 : 10} />
               <ProgressRow label="Ачааны дүрэм" value={isDriver || isSender ? 100 : 0} />
             </div>
           </Card>
@@ -775,15 +932,88 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
           <Card className="p-5">
             <h2 className="text-xl font-semibold text-foreground">Дараагийн алхам</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Жолоочийн бичиг баримт зөвшөөрөгдсөний дараа чиглэл нийтлэх эрх бүрэн нээгдэнэ.
+              {identityStatus === 'approved'
+                ? 'Таны үндсэн баталгаажуулалт дууссан. Role-д тохирсон үйлдлүүдээ үргэлжлүүлнэ.'
+                : identityStatus === 'pending'
+                  ? 'Админ таны мэдээллийг шалгаж байна. Шалгалтын хариу энд шинэчлэгдэнэ.'
+                  : identityStatus === 'rejected'
+                    ? 'Буцаасан шалтгааныг засаж, хүсэлтээ дахин илгээнэ үү.'
+                    : 'Иргэний үнэмлэхний мэдээллээ илгээж үндсэн баталгаажуулалтаа эхлүүлнэ үү.'}
             </p>
-            <Button className="mt-5" fullWidth onClick={() => window.location.href = '/admin/verifications'}>
-              Админы жагсаалт харах
-            </Button>
+            {role === 'admin' ? (
+              <Button className="mt-5" fullWidth onClick={() => window.location.href = '/admin/verifications'}>
+                Админы жагсаалт харах
+              </Button>
+            ) : (
+              <Button className="mt-5" variant="outline" fullWidth onClick={() => window.location.href = profile.dashboardHref}>
+                Самбар руу буцах
+              </Button>
+            )}
+          </Card>
+
+          <Card className="p-5">
+            <h2 className="text-xl font-semibold text-foreground">Сүүлийн үйлдэл</h2>
+            <div className="mt-4 space-y-3">
+              {relatedLogs.length ? (
+                relatedLogs.map((log) => (
+                  <div key={log.id} className="rounded-lg border border-border p-3">
+                    <p className="text-sm font-semibold text-foreground">{log.actionType}</p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{log.details}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm leading-6 text-muted-foreground">Одоогоор үйлдлийн түүх алга.</p>
+              )}
+            </div>
           </Card>
         </aside>
       </div>
     </AccountFrame>
+  );
+}
+
+function mapAccountRole(role: AccountRole): MarketplaceRole {
+  if (role === 'sender') return 'cargo_sender';
+  return role;
+}
+
+function toVerificationItemStatus(status: VerificationStatus) {
+  if (status === 'approved') return 'approved';
+  if (status === 'pending') return 'review';
+  if (status === 'rejected') return 'placeholder';
+  return 'placeholder';
+}
+
+function IdentityStatusBadge({ status }: { status: VerificationStatus }) {
+  const copy = {
+    not_submitted: { label: 'Баталгаажуулаагүй', variant: 'default' as const },
+    pending: { label: 'Шалгаж байна', variant: 'warning' as const },
+    approved: { label: 'Баталгаажсан', variant: 'success' as const },
+    rejected: { label: 'Татгалзсан', variant: 'danger' as const },
+  }[status];
+
+  return <Badge variant={copy.variant}>{copy.label}</Badge>;
+}
+
+function FileSelectBox({ label, value, required, onChange }: { label: string; value: string; required?: boolean; onChange: (value: string) => void }) {
+  return (
+    <label className="block">
+      <span className="text-sm font-semibold text-foreground">
+        {label}
+        {required ? <span className="text-destructive"> *</span> : null}
+      </span>
+      <span className="mt-2 flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 py-5 text-center transition hover:border-primary hover:bg-primary/5">
+        <Upload className="h-6 w-6 text-primary" />
+        <span className="mt-2 text-sm font-medium text-foreground">{value || 'Файл сонгох'}</span>
+        <span className="mt-1 text-xs text-muted-foreground">Зураг эсвэл PDF файлын нэр</span>
+      </span>
+      <input
+        className="sr-only"
+        type="file"
+        accept="image/*,.pdf"
+        onChange={(event) => onChange(event.target.files?.[0]?.name || '')}
+      />
+    </label>
   );
 }
 

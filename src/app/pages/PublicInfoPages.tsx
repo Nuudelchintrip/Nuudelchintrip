@@ -11,7 +11,7 @@ import { sendPasswordResetEmail, updatePasswordWithRecovery } from '../services/
 const values = [
   'NuudelchinTrip нь тээврийн компани биш, аялагч болон жолоочийг ил тод мэдээллээр холбох платформ.',
   'Гол урсгал нь унаа хайж буй аялагч, сул суудалтай жолооч хоёрыг тохирох хүсэлтээр тааруулах.',
-  'Төлбөрийн баримт, verified badge, review, report нь trust layer болж ажиллана.',
+  'Төлбөрийн баримт, баталгаажсан тэмдэг, үнэлгээ, гомдол илгээх боломж нь итгэлцлийн давхарга болж ажиллана.',
 ];
 
 export function AboutPage() {
@@ -94,7 +94,7 @@ export function SupportPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Нэр" placeholder="Таны нэр" />
             <Input label="Утас" placeholder="+976 9999 9999" />
-            <Input label="Booking дугаар" placeholder="BK-001" />
+            <Input label="Захиалгын дугаар" placeholder="BK-001" />
             <Input label="Асуудлын төрөл" placeholder="Төлбөр, баримт, чиглэл..." />
           </div>
           <label className="mt-4 block text-sm font-medium text-foreground">Дэлгэрэнгүй</label>

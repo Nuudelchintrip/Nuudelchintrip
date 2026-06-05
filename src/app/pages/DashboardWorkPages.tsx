@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ArrowLeft, Banknote, Box, Calendar, Car, CheckCircle2, Clock3, Eye, FileCheck2, MapPin, PackageCheck, Plus, Search, ShieldCheck, Star, UsersRound, X } from 'lucide-react';
+import { ArrowLeft, Banknote, Box, Calendar, Car, CheckCircle2, Clock3, Eye, FileCheck2, Filter, ListChecks, MapPin, PackageCheck, Plus, Search, ShieldCheck, Star, UsersRound, X } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
@@ -27,11 +27,20 @@ import {
   type DriverPassengerRequest,
   type MarketplaceTrip,
 } from '../services/tripService';
-import { getStoredUser, type MockUserProfile } from '../utils/auth';
+import {
+  addActionLog,
+  getActionLogs,
+  getIdentityRequests,
+  getStoredUser,
+  updateIdentityRequestStatus,
+  type ActionLogEntry,
+  type IdentityVerificationRequest,
+  type MockUserProfile,
+} from '../utils/auth';
 
 type WorkRole = 'traveler' | 'driver';
 type SenderView = 'cargo' | 'proof' | 'status';
-type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings';
+type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings' | 'logs';
 
 const roleCopy = {
   traveler: {
@@ -419,7 +428,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
                 <div>
                   <p className="font-semibold text-foreground">Жолоочийн баталгаажуулалт хүлээгдэж байна</p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    Admin таны жолооны үнэмлэх, машины мэдээллийг шалгасны дараа чиглэл нийтлэх боломж нээгдэнэ.
+                    Админ таны жолооны үнэмлэх, машины мэдээллийг шалгасны дараа чиглэл нийтлэх боломж нээгдэнэ.
                   </p>
                   {(permissionMessage || permissionProfile) && (
                     <p className="mt-2 rounded-md bg-background/70 px-3 py-2 text-xs leading-5 text-muted-foreground">
@@ -596,7 +605,7 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
       )}
       {loadingRequests && (
         <Card className="mb-5 p-4">
-          <p className="text-sm text-muted-foreground">Ирсэн passenger request-үүдийг Supabase-аас уншиж байна...</p>
+          <p className="text-sm text-muted-foreground">Ирсэн суудлын хүсэлтүүдийг Supabase-аас уншиж байна...</p>
         </Card>
       )}
       {requestError && (
@@ -616,9 +625,9 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
               <div className="grid gap-5 lg:grid-cols-[1fr_240px] lg:items-center">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="success">Passenger request</Badge>
+                    <Badge variant="success">Суудлын хүсэлт</Badge>
                     <Badge variant={request.status === 'accepted' ? 'success' : request.status === 'rejected' ? 'danger' : 'warning'}>
-                      {request.status}
+                      {getRequestStatusLabel(request.status)}
                     </Badge>
                   </div>
                   <h2 className="mt-3 text-2xl font-semibold text-foreground">{request.route}</h2>
@@ -822,6 +831,14 @@ export function FindDriversPage() {
       )}
     </DashboardFrame>
   );
+}
+
+function getRequestStatusLabel(status: string) {
+  if (status === 'accepted') return 'Зөвшөөрсөн';
+  if (status === 'rejected') return 'Татгалзсан';
+  if (status === 'waiting_payment') return 'Төлбөр хүлээгдэж байна';
+  if (status === 'confirmed') return 'Баталгаажсан';
+  return 'Хүлээгдэж байна';
 }
 
 export function DriverOffersPage() {
@@ -1406,21 +1423,23 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
   const titles = {
     payments: 'Төлбөр батлах',
     users: 'Хэрэглэгчид',
-    reports: 'Reports & disputes',
-    verifications: 'Жолоочийн баталгаажуулалт',
+    reports: 'Гомдол, маргаан',
+    verifications: 'Баталгаажуулалт',
     cargo: 'Дайвар ачааны хяналт',
     routes: 'Чиглэлийн хяналт',
     bookings: 'Захиалгын хяналт',
+    logs: 'Үйлдлийн түүх',
   };
 
   const descriptions = {
     payments: 'Аялагчийн төлбөрийн баримтыг шалгаж зөвшөөрөх эсвэл буцаавал захиалгын төлөв дараагийн шат руу шилжинэ.',
     users: 'Хэрэглэгчийн төрөл, баталгаажуулалт, бүртгэлийн төлөв, дууссан аяллын мэдээллийг нэг дор хянана.',
     reports: 'Маргаан, мэдэгдэл, ирээгүй тохиолдол, төлбөрийн асуудлыг захиалгын нотолгоотой холбож шалгана.',
-    verifications: 'Жолоочийн бичиг баримт, машины мэдээлэл, профайлын баталгаажуулалтыг зөвшөөрөх эсвэл буцаана.',
+    verifications: 'Иргэний үнэмлэх, жолоочийн бичиг баримт, машины мэдээлэл, профайлын баталгаажуулалтыг зөвшөөрөх эсвэл буцаана.',
     cargo: 'Дайвар ачааны хүсэлт, авсан/хүргэсэн баталгаа, 6 оронтой кодын төлөвийг хянана.',
     routes: 'Хуурамч, давхардсан, дүрэм зөрчсөн чиглэлүүдийг шалгаж хаах боломжтой.',
     bookings: 'Аялагч-жолоочийн захиалгын төлөв, дараагийн алхам, төлбөрийн шалгалт, маргааны эрсдэлийг хянана.',
+    logs: 'Нэвтрэлт, OTP, баталгаажуулалт, төлбөр, админы шийдвэр зэрэг гол үйлдлийг шүүж харна.',
   };
 
   return (
@@ -1434,6 +1453,7 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
       {view === 'cargo' && <AdminCargoList />}
       {view === 'routes' && <AdminRoutesList />}
       {view === 'bookings' && <AdminBookingsList />}
+      {view === 'logs' && <AdminActionLogsList />}
     </DashboardFrame>
   );
 }
@@ -1572,7 +1592,7 @@ function AdminReportsList() {
                 <FileCheck2 className="h-4 w-4" />
                 Нотолгоо харах
               </Button>
-              <Button variant="outline">Decision log</Button>
+              <Button variant="outline">Шийдвэрийн түүх</Button>
             </div>
           </div>
         </Card>
@@ -1581,37 +1601,273 @@ function AdminReportsList() {
   );
 }
 
+const seedIdentityVerificationRequests: IdentityVerificationRequest[] = [
+  {
+    id: 'IDV-DEMO-1',
+    role: 'driver',
+    userName: 'Бат Болд',
+    phone: '+976 9090 9090',
+    email: 'driver@nuudelchintrip.mn',
+    familyName: 'Бат',
+    fullName: 'Бат Болд',
+    registerNumber: 'УБ99112233',
+    documentName: 'irgenii-unemleh-front.jpg',
+    selfieName: 'nuurnii-zurag.jpg',
+    status: 'pending',
+    submittedAt: '2026-06-03T09:20:00.000Z',
+  },
+  {
+    id: 'IDV-DEMO-2',
+    role: 'traveler',
+    userName: 'Сарангэрэл Цэцэг',
+    phone: '+976 8088 3461',
+    email: 'traveler@nuudelchintrip.mn',
+    familyName: 'Дорж',
+    fullName: 'Сарангэрэл Цэцэг',
+    registerNumber: 'АР00112233',
+    documentName: 'passport-photo.pdf',
+    status: 'approved',
+    submittedAt: '2026-06-02T14:10:00.000Z',
+    reviewedAt: '2026-06-02T15:20:00.000Z',
+    reviewedBy: 'Админ',
+  },
+];
+
 function AdminVerificationList() {
+  const [requests, setRequests] = useState<IdentityVerificationRequest[]>(() => {
+    const storedRequests = getIdentityRequests();
+    return storedRequests.length ? storedRequests : seedIdentityVerificationRequests;
+  });
+  const [reasonById, setReasonById] = useState<Record<string, string>>({});
+
+  const handleDecision = (id: string, decision: 'approved' | 'rejected') => {
+    const reason = reasonById[id]?.trim();
+    const realRequest = getIdentityRequests().some((request) => request.id === id);
+    const updated = realRequest ? updateIdentityRequestStatus(id, decision, reason) : null;
+
+    setRequests((current) =>
+      current.map((request) => {
+        if (request.id !== id) return request;
+        const next: IdentityVerificationRequest = {
+          ...request,
+          status: decision,
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: 'Админ',
+          rejectionReason: decision === 'rejected' ? reason || 'Баримтын зураг тодорхойгүй байна.' : undefined,
+        };
+        return updated || next;
+      }),
+    );
+
+    if (!realRequest) {
+      const target = requests.find((request) => request.id === id);
+      addActionLog({
+        actor: 'Админ',
+        user: target?.fullName || target?.userName || id,
+        actionType: 'Иргэний үнэмлэхний баталгаажуулалт',
+        status: decision === 'approved' ? 'Амжилттай' : 'Татгалзсан',
+        details:
+          decision === 'approved'
+            ? 'Demo хүсэлтийг зөвшөөрсөн.'
+            : `Demo хүсэлтийг буцаасан. Шалтгаан: ${reason || 'Баримтын зураг тодорхойгүй байна.'}`,
+      });
+    }
+  };
+
   return (
     <div className="grid gap-5">
-      {adminVerificationQueue.map((item) => (
-        <Card key={item.id} className="p-6">
-          <div className="grid gap-5 lg:grid-cols-[1fr_240px] lg:items-center">
+      <Card className="border-primary/20 bg-primary/5 p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Иргэний үнэмлэхний шалгалт</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Хэрэглэгчийн илгээсэн мэдээллийг шалгаад зөвшөөрөх эсвэл тодорхой шалтгаантай буцаана.
+            </p>
+          </div>
+          <Badge variant="warning">{requests.filter((request) => request.status === 'pending').length} шалгах</Badge>
+        </div>
+      </Card>
+
+      {requests.map((item) => (
+        <Card key={item.id} className="p-5 sm:p-6">
+          <div className="grid gap-5 xl:grid-cols-[1fr_280px] xl:items-start">
             <div>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="info">{item.id}</Badge>
-                <Badge variant="default">{item.role}</Badge>
+                <Badge variant="default">{getAdminRoleLabel(item.role)}</Badge>
+                <AdminStatusBadge status={item.status} />
               </div>
-              <h2 className="mt-3 text-xl font-semibold text-foreground">{item.user}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{item.phone} · {item.submitted}</p>
-              <p className="mt-3 text-muted-foreground">{item.evidence}</p>
-              <p className="mt-2 text-sm text-warning">{item.next}</p>
+              <h2 className="mt-3 text-xl font-semibold text-foreground">{item.fullName}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{item.phone} · {formatAdminDate(item.submittedAt)}</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <InfoLine label="Овог" value={item.familyName} />
+                <InfoLine label="Регистр" value={item.registerNumber} />
+                <InfoLine label="Үнэмлэхний файл" value={item.documentName} />
+                <InfoLine label="Нүүрний зураг" value={item.selfieName || 'Илгээгээгүй'} />
+              </div>
+              {item.rejectionReason && (
+                <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive">
+                  Буцаасан шалтгаан: {item.rejectionReason}
+                </div>
+              )}
             </div>
-            <div className="grid gap-2">
-              <Button>
+            <div className="grid gap-3">
+              <textarea
+                className="min-h-24 w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                placeholder="Буцаах шалтгаан бичих"
+                value={reasonById[item.id] || ''}
+                onChange={(event) => setReasonById((current) => ({ ...current, [item.id]: event.target.value }))}
+              />
+              <Button disabled={item.status === 'approved'} onClick={() => handleDecision(item.id, 'approved')}>
                 <ShieldCheck className="h-4 w-4" />
-                Жолооч зөвшөөрөх
+                Зөвшөөрөх
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" disabled={item.status === 'rejected'} onClick={() => handleDecision(item.id, 'rejected')}>
                 <X className="h-4 w-4" />
-                Буцаах шалтгаан
+                Шалтгаантай буцаах
               </Button>
             </div>
           </div>
         </Card>
       ))}
+
+      <Card className="p-5 sm:p-6">
+        <h2 className="text-xl font-semibold text-foreground">Жолоочийн бичиг баримтын queue</h2>
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          {adminVerificationQueue.map((item) => (
+            <div key={item.id} className="rounded-lg border border-border p-4">
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="info">{item.id}</Badge>
+                <Badge variant="default">{item.role}</Badge>
+              </div>
+              <h3 className="mt-3 font-semibold text-foreground">{item.user}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{item.phone} · {item.submitted}</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.evidence}</p>
+              <p className="mt-2 text-sm font-medium text-warning">{item.next}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
+}
+
+function AdminActionLogsList() {
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('all');
+  const logs = getActionLogs();
+
+  const filteredLogs = logs.filter((log) => {
+    const matchesQuery = `${log.actor} ${log.user} ${log.actionType} ${log.details}`.toLowerCase().includes(query.toLowerCase());
+    const matchesStatus = status === 'all' || log.status === status;
+    return matchesQuery && matchesStatus;
+  });
+
+  return (
+    <div className="grid gap-5">
+      <Card className="p-5 sm:p-6">
+        <div className="grid gap-4 lg:grid-cols-[1fr_240px]">
+          <div className="relative">
+            <Input
+              label="Хайлт"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Хэрэглэгч, үйлдэл, тайлбар..."
+            />
+            <Search className="absolute bottom-3 right-4 h-5 w-5 text-muted-foreground" />
+          </div>
+          <Select
+            label="Төлөв"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            options={[
+              { value: 'all', label: 'Бүх төлөв' },
+              { value: 'Амжилттай', label: 'Амжилттай' },
+              { value: 'Амжилтгүй', label: 'Амжилтгүй' },
+              { value: 'Хүлээгдэж байна', label: 'Хүлээгдэж байна' },
+              { value: 'Татгалзсан', label: 'Татгалзсан' },
+            ]}
+          />
+        </div>
+      </Card>
+
+      {filteredLogs.length ? (
+        filteredLogs.map((log) => <ActionLogCard key={log.id} log={log} />)
+      ) : (
+        <Card className="p-8 text-center">
+          <ListChecks className="mx-auto h-10 w-10 text-muted-foreground" />
+          <h2 className="mt-3 text-xl font-semibold text-foreground">Илэрц олдсонгүй</h2>
+          <p className="mt-2 text-muted-foreground">Шүүлтүүрээ өөрчлөөд дахин хайна уу.</p>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function ActionLogCard({ log }: { log: ActionLogEntry }) {
+  return (
+    <Card className="p-5 sm:p-6">
+      <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+        <div>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="info">{log.id}</Badge>
+            <AdminLogStatusBadge status={log.status} />
+          </div>
+          <h2 className="mt-3 text-xl font-semibold text-foreground">{log.actionType}</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">{log.details}</p>
+          <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
+            <InfoLine label="Хэрэглэгч" value={log.user} />
+            <InfoLine label="Үйлдэл хийсэн" value={log.actor} />
+            <InfoLine label="Огноо" value={formatAdminDate(log.createdAt)} />
+          </div>
+        </div>
+        <div className="rounded-lg bg-muted/40 px-4 py-3 text-sm font-medium text-foreground">
+          <Filter className="mr-2 inline h-4 w-4 text-primary" />
+          Үйлдлийн мөр
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function AdminStatusBadge({ status }: { status: IdentityVerificationRequest['status'] }) {
+  if (status === 'approved') return <Badge variant="success">Баталгаажсан</Badge>;
+  if (status === 'rejected') return <Badge variant="danger">Татгалзсан</Badge>;
+  if (status === 'pending') return <Badge variant="warning">Шалгаж байна</Badge>;
+  return <Badge variant="default">Илгээгээгүй</Badge>;
+}
+
+function AdminLogStatusBadge({ status }: { status: ActionLogEntry['status'] }) {
+  if (status === 'Амжилттай') return <Badge variant="success">{status}</Badge>;
+  if (status === 'Амжилтгүй') return <Badge variant="danger">{status}</Badge>;
+  if (status === 'Татгалзсан') return <Badge variant="danger">{status}</Badge>;
+  return <Badge variant="warning">{status}</Badge>;
+}
+
+function InfoLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function getAdminRoleLabel(role: IdentityVerificationRequest['role']) {
+  if (role === 'driver') return 'Жолооч';
+  if (role === 'cargo_sender') return 'Дайвар ачаа';
+  if (role === 'admin') return 'Админ';
+  return 'Аялагч';
+}
+
+function formatAdminDate(value: string) {
+  return new Intl.DateTimeFormat('mn-MN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
 }
 
 function AdminCargoList() {
@@ -1636,7 +1892,7 @@ function AdminCargoList() {
                 <PackageCheck className="h-4 w-4" />
                 Баримт шалгах
               </Button>
-              <Button variant="outline">Dispute нээх</Button>
+              <Button variant="outline">Маргаан нээх</Button>
             </div>
           </div>
         </Card>

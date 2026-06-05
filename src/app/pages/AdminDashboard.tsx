@@ -5,6 +5,7 @@ import {
   Eye,
   FileCheck2,
   Flag,
+  ListChecks,
   PackageCheck,
   ShieldCheck,
   TrendingUp,
@@ -93,6 +94,10 @@ export function AdminDashboard() {
             <Button variant="outline" onClick={() => window.location.href = '/admin/verifications'}>
               <ShieldCheck className="h-4 w-4" />
               Баталгаажуулалт
+            </Button>
+            <Button variant="outline" onClick={() => window.location.href = '/admin/logs'}>
+              <ListChecks className="h-4 w-4" />
+              Үйлдлийн түүх
             </Button>
             <Button onClick={() => window.location.href = '/admin/payments'}>
               <CreditCard className="h-4 w-4" />
@@ -325,7 +330,7 @@ export function AdminDashboard() {
                     <p className="font-medium text-foreground">{log.action}</p>
                     <p className="text-sm text-muted-foreground">{log.actor} · {log.time}</p>
                   </div>
-                  <Badge variant={log.tone as 'warning' | 'info' | 'danger'}>{log.tone}</Badge>
+                  <Badge variant={log.tone as 'warning' | 'info' | 'danger'}>{getAuditToneLabel(log.tone)}</Badge>
                 </div>
               ))}
             </div>
@@ -349,6 +354,12 @@ function MiniMetric({ label, value }: { label: string; value: number }) {
 
 function TableHead({ children }: { children: ReactNode }) {
   return <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">{children}</th>;
+}
+
+function getAuditToneLabel(tone: string) {
+  if (tone === 'danger') return 'Анхаарах';
+  if (tone === 'warning') return 'Хянагдаж байна';
+  return 'Мэдээлэл';
 }
 
 function QueueCard({
