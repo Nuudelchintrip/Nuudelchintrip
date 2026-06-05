@@ -243,44 +243,52 @@ export function HomePage() {
 function HeroVisual() {
   return (
     <div className="relative w-full max-w-[358px] min-w-0 sm:max-w-none">
-      <div className="relative overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <div className="relative aspect-[4/3] min-h-[360px] overflow-hidden bg-muted sm:min-h-[520px]">
-          <img
-            src="/hero-road.jpg"
-            alt="Монгол орны хөдөө замаар явж буй машин"
-            className="hero-image-zoom h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/15 to-transparent" />
+      <div className="rounded-lg border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 sm:p-5">
+          <p className="text-sm font-semibold text-primary">Хайлтын жишээ</p>
+          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <LocationMini label="Хаанаас" value="Улаанбаатар" />
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+            <LocationMini label="Хаашаа" value="Дархан" />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <MiniInfo icon={<CalendarDays className="h-4 w-4" />} label="Огноо" value="Маргааш" />
+            <MiniInfo icon={<UsersRound className="h-4 w-4" />} label="Хүн" value="2" />
+          </div>
+        </div>
 
-          <div className="absolute left-4 right-4 top-4 rounded-lg border border-white/20 bg-white/90 p-4 shadow-lg backdrop-blur sm:left-6 sm:right-auto sm:w-[360px]">
-            <p className="text-sm font-semibold text-primary">Хайлтын жишээ</p>
-            <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <LocationMini label="Хаанаас" value="Улаанбаатар" />
-              <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              <LocationMini label="Хаашаа" value="Дархан" />
+        <div className="mt-4 rounded-lg border border-border bg-card p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Жишээ санал</p>
+              <h2 className="mt-1 text-xl font-bold text-foreground">Улаанбаатар → Дархан</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                3 сул суудал · ₮35,000 · дайвар ачаа авч болно
+              </p>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <MiniInfo icon={<CalendarDays className="h-4 w-4" />} label="Огноо" value="Маргааш" />
-              <MiniInfo icon={<UsersRound className="h-4 w-4" />} label="Хүн" value="2" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <Car className="h-5 w-5" />
             </div>
           </div>
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <MiniInfo icon={<Clock3 className="h-4 w-4" />} label="Цаг" value="09:00" />
+            <MiniInfo icon={<ShieldCheck className="h-4 w-4" />} label="Төлөв" value="Баталгаатай" />
+            <MiniInfo icon={<Package className="h-4 w-4" />} label="Ачаа" value="Болно" />
+          </div>
+        </div>
 
-          <div className="floating-panel absolute bottom-4 left-4 right-4 rounded-lg border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-6">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">Жишээ санал</p>
-                <h2 className="mt-1 text-xl font-bold text-foreground">Улаанбаатар → Дархан</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">3 сул суудал · ₮35,000 · дайвар ачаа авч болно</p>
-              </div>
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Car className="h-5 w-5" />
-              </div>
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <MiniInfo icon={<Clock3 className="h-4 w-4" />} label="Цаг" value="09:00" />
-              <MiniInfo icon={<ShieldCheck className="h-4 w-4" />} label="Төлөв" value="Баталгаатай" />
-              <MiniInfo icon={<Package className="h-4 w-4" />} label="Ачаа" value="Болно" />
-            </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border border-border bg-muted/35 p-4">
+            <p className="text-sm font-semibold text-foreground">Нэвтэрсний дараа</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Жинхэнэ хайлт, booking request, payment proof нь хэрэглэгчийн самбар дээр ажиллана.
+            </p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/35 p-4">
+            <p className="text-sm font-semibold text-foreground">Итгэлцэл</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Утас баталгаажуулалт, жолоочийн шалгалт, төлбөрийн баримт, үнэлгээтэй.
+            </p>
           </div>
         </div>
       </div>
