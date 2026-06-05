@@ -15,7 +15,7 @@ function getLoginErrorMessage(error: unknown) {
     return 'И-мэйл эсвэл нууц үг буруу байна. Нууц үгээ мартсан бол сэргээх холбоос авна уу.';
   }
   if (lower.includes('email not confirmed')) {
-    return 'И-мэйл баталгаажаагүй байна. Supabase/Auth email-ээ шалгаарай.';
+    return 'И-мэйл баталгаажаагүй байна. И-мэйл дээр ирсэн баталгаажуулах холбоосоо шалгаарай.';
   }
   if (lower.includes('auth session missing')) {
     return 'Нэвтрэлтийн session олдсонгүй. Дахин нэвтэрнэ үү.';
@@ -134,7 +134,7 @@ export function LoginPage() {
             <div className="mt-6 rounded-lg bg-primary/5 border border-primary/20 p-4 flex gap-3">
               <ShieldCheck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
               <p className="text-sm text-muted-foreground">
-                Supabase Auth-аар нэвтэрсний дараа таны role-д тохирсон dashboard/search руу орно.
+                Нэвтэрсний дараа таны хэрэглэгчийн төрөлд тохирсон самбар болон хайлтын хэсэг нээгдэнэ.
               </p>
             </div>
 

@@ -32,16 +32,13 @@ export function BookingDetailPage() {
   const [realBooking, setRealBooking] = useState<PassengerBookingDetail | null>(null);
   const [loadingBooking, setLoadingBooking] = useState(Boolean(id && UUID_PATTERN.test(id)));
   const [bookingError, setBookingError] = useState('');
-  const booking = useMemo(() => realBooking ? mapRealBooking(realBooking) : getBooking(id), [id, realBooking]);
-  const currentIndex = getStatusIndex(booking.status);
-  const currentStep = bookingStatusSteps[currentIndex] ?? bookingStatusSteps[0];
-  const nextAction = getNextAction(booking.status, booking.id);
-  const progress = Math.max(12, Math.round(((currentIndex + 1) / bookingStatusSteps.length) * 100));
+  const booking = useMemo<ReturnType<typeof getBooking> | null>(() => realBooking ? mapRealBooking(realBooking) : null, [realBooking]);
 
   useEffect(() => {
     let active = true;
     if (!id || !UUID_PATTERN.test(id)) {
       setLoadingBooking(false);
+      setBookingError('Энэ захиалга бодит өгөгдөлтэй холбогдоогүй байна.');
       return;
     }
 
@@ -64,6 +61,48 @@ export function BookingDetailPage() {
       active = false;
     };
   }, [id]);
+
+  if (!booking) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            onClick={() => window.location.href = '/dashboard/traveler'}
+            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Самбар руу буцах
+          </button>
+
+          <Card className="p-8 text-center">
+            <h1 className="text-2xl font-bold text-foreground">
+              {loadingBooking ? 'Захиалгын мэдээлэл уншиж байна...' : 'Захиалга олдсонгүй'}
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl leading-7 text-muted-foreground">
+              Захиалгын дэлгэрэнгүй зөвхөн өгөгдлийн санд хадгалагдсан бодит захиалга дээр харагдана. Эхлээд жолоочийн чиглэл сонгож суудлын хүсэлт илгээнэ үү.
+            </p>
+            {bookingError && (
+              <div className="mt-5 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm font-medium text-destructive">
+                {bookingError}
+              </div>
+            )}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Button onClick={() => window.location.href = '/traveler/find-drivers'}>Жолооч хайх</Button>
+              <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>Самбар руу очих</Button>
+            </div>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const currentIndex = getStatusIndex(booking.status);
+  const currentStep = bookingStatusSteps[currentIndex] ?? bookingStatusSteps[0];
+  const nextAction = getNextAction(booking.status, booking.id);
+  const progress = Math.max(12, Math.round(((currentIndex + 1) / bookingStatusSteps.length) * 100));
 
   return (
     <div className="min-h-screen bg-background">

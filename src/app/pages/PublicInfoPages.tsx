@@ -23,7 +23,7 @@ export function AboutPage() {
           <h1 className="mt-4 text-4xl font-bold leading-tight text-foreground">Орон нутгийн аялагч, жолооч хоёрыг нэг дор холбоно</h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
             NuudelchinTrip-ийн үндсэн зорилго бол нэг чиглэлд явж буй аялагч, жолооч нарыг хурдан, ойлгомжтой, итгэлтэйгээр тааруулах юм.
-            Дайвар ачаа нь MVP-ийн дараагийн хувилбарын нэмэлт боломж байна.
+            Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж байна.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Button onClick={() => window.location.href = '/auth/register'}>
@@ -34,16 +34,17 @@ export function AboutPage() {
           </div>
         </div>
         <Card className="p-6">
-          <div className="grid grid-cols-2 gap-4">
+          <h2 className="text-xl font-semibold text-foreground">Одоогийн бүтээгдэхүүний хүрээ</h2>
+          <div className="mt-5 grid gap-4">
             {[
-              ['120+', 'Идэвхтэй чиглэл'],
-              ['1.8k', 'Баталгаажсан хэрэглэгч'],
-              ['18 мин', 'Дундаж хариу'],
-              ['4.8/5', 'Дундаж үнэлгээ'],
-            ].map(([value, label]) => (
-              <div key={label} className="rounded-lg bg-muted/40 p-5">
-                <p className="text-3xl font-bold text-primary">{value}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{label}</p>
+              ['Аялагч', 'Нэвтэрсний дараа жолоочийн чиглэл хайж, суудлын хүсэлт илгээнэ.'],
+              ['Жолооч', 'Баталгаажсаны дараа чиглэл нийтэлж, ирсэн хүсэлтүүдээ шийднэ.'],
+              ['Дайвар ачаа', 'Зөвхөн ачаа авах боломжтой чиглэл дээр хүсэлт үүснэ.'],
+              ['Админ', 'Баталгаажуулалт, төлбөрийн баримт, гомдлуудыг шалгана.'],
+            ].map(([title, text]) => (
+              <div key={title} className="rounded-lg bg-muted/40 p-4">
+                <p className="font-semibold text-primary">{title}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{text}</p>
               </div>
             ))}
           </div>
@@ -65,7 +66,7 @@ export function AboutPage() {
 export function FaqPage() {
   const faqs = [
     ['Энэ платформ яг юу хийдэг вэ?', 'Нэг чиглэлд явах аялагч, жолоочийг чиглэл, хүсэлт, баталгаажуулалт, үнэлгээгээр холбодог.'],
-    ['Ачаа гол үйлчилгээ мөн үү?', 'Үгүй. MVP-ийн гол нь аялагч болон жолоочийн холбоос. Ачаа бол дараагийн хувилбарын нэмэлт боломж.'],
+    ['Ачаа гол үйлчилгээ мөн үү?', 'Үгүй. Гол урсгал нь аялагч болон жолоочийн холбоос. Ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж.'],
     ['Төлбөр яаж баталгаажих вэ?', 'Эхний хувилбарт банк эсвэл QPay төлбөрийн баримт оруулж, админ баталгаажуулсны дараа дараагийн алхам нээгдэнэ.'],
     ['Аялал дууссаныг яаж мэдэх вэ?', 'Жолооч аяллын төлөв шинэчилж, аялал completed болсны дараа review нээгдэнэ.'],
   ];
@@ -94,7 +95,7 @@ export function SupportPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Input label="Нэр" placeholder="Таны нэр" />
             <Input label="Утас" placeholder="+976 9999 9999" />
-            <Input label="Захиалгын дугаар" placeholder="BK-001" />
+            <Input label="Захиалгын дугаар" placeholder="Захиалгын дугаар" />
             <Input label="Асуудлын төрөл" placeholder="Төлбөр, баримт, чиглэл..." />
           </div>
           <label className="mt-4 block text-sm font-medium text-foreground">Дэлгэрэнгүй</label>
@@ -103,8 +104,8 @@ export function SupportPage() {
         </Card>
         <div className="space-y-4">
           {[
-            [<Phone className="h-5 w-5" />, 'Утас', '+976 9999 0000'],
-            [<Mail className="h-5 w-5" />, 'И-мэйл', 'info@nuudelchintrip.mn'],
+            [<Phone className="h-5 w-5" />, 'Утас', 'Бүртгэлтэй захиалгын дараа харагдана'],
+            [<Mail className="h-5 w-5" />, 'И-мэйл', 'contact@nuudelchintrip.com'],
             [<MapPin className="h-5 w-5" />, 'Ажлын цаг', '09:00-18:00'],
           ].map(([icon, title, text]) => (
             <Card key={String(title)} className="p-5">
@@ -161,7 +162,7 @@ export function ForgotPasswordPage() {
         </div>
         <h1 className="mt-5 text-center text-3xl font-bold text-foreground">Нууц үг сэргээх</h1>
         <p className="mx-auto mt-3 max-w-md text-center leading-7 text-muted-foreground">
-          Бүртгэлтэй и-мэйлээ оруулна. Supabase recovery link ирсний дараа шинэ нууц үг тохируулна.
+          Бүртгэлтэй и-мэйлээ оруулна. Нууц үг сэргээх холбоос ирсний дараа шинэ нууц үг тохируулна.
         </p>
         <div className="mt-7 space-y-4">
           <Input label="И-мэйл" type="email" placeholder="name@example.com" value={email} onChange={(event) => setEmail(event.target.value)} />

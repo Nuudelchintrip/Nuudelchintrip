@@ -7,7 +7,6 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
-import { getBooking } from '../data/mockData';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { uploadPaymentProof } from '../services/paymentService';
 import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
@@ -28,7 +27,6 @@ const statusLabels: Record<string, string> = {
 
 export function PaymentProofPage() {
   const { id } = useParams();
-  const mockBooking = getBooking(id);
   const isRealBooking = Boolean(id && UUID_PATTERN.test(id));
   const [realBooking, setRealBooking] = useState<PassengerBookingDetail | null>(null);
   const [loading, setLoading] = useState(isRealBooking);
@@ -67,17 +65,7 @@ export function PaymentProofPage() {
 
   const payment = useMemo(() => {
     if (!realBooking) {
-      return {
-        bookingId: mockBooking.id,
-        routeLabel: `${mockBooking.route.from} → ${mockBooking.route.to}`,
-        driverName: mockBooking.driver.name,
-        driverBankName: mockBooking.driver.bankName || 'Банк эсвэл QPay',
-        driverBankAccount: mockBooking.driver.bankAccount || 'Жолоочтой тохиролцоно',
-        agreed: mockBooking.price.agreed,
-        serviceFee: mockBooking.price.serviceFee,
-        total: mockBooking.price.total,
-        status: mockBooking.status,
-      };
+      return null;
     }
 
     const agreed = realBooking.totalAmount || realBooking.trip.pricePerSeat * realBooking.seatsRequested;
@@ -94,11 +82,16 @@ export function PaymentProofPage() {
       total: agreed + serviceFee,
       status: realBooking.status,
     };
-  }, [mockBooking, realBooking]);
+  }, [realBooking]);
 
   const handleSubmit = async () => {
     setError('');
     setSuccess('');
+
+    if (!payment) {
+      setError('Бодит захиалга олдсонгүй.');
+      return;
+    }
 
     if (!file) {
       setError('Төлбөрийн зураг эсвэл PDF баримтаа сонгоно уу.');
@@ -106,7 +99,7 @@ export function PaymentProofPage() {
     }
 
     if (!isRealBooking || !id || !isSupabaseConfigured) {
-      setSuccess('Баримт илгээгдсэн гэж тэмдэглэлээ. Жишээ захиалга тул өгөгдлийн санд хадгалахгүй.');
+      setError('Төлбөрийн баримт илгээхийн тулд бодит захиалга шаардлагатай.');
       return;
     }
 
@@ -128,6 +121,43 @@ export function PaymentProofPage() {
       setSubmitting(false);
     }
   };
+
+  if (!payment) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+            onClick={() => window.location.href = '/dashboard'}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Самбар руу буцах
+          </button>
+
+          <Card className="p-8 text-center">
+            <h1 className="text-2xl font-bold text-foreground">
+              {loading ? 'Захиалгын мэдээлэл уншиж байна...' : 'Төлбөрийн баримт оруулах захиалга олдсонгүй'}
+            </h1>
+            <p className="mx-auto mt-3 max-w-xl leading-7 text-muted-foreground">
+              Төлбөрийн баримт зөвхөн өгөгдлийн санд хадгалагдсан бодит захиалга дээр ажиллана. Эхлээд жолоочийн чиглэл сонгож суудлын хүсэлт илгээнэ үү.
+            </p>
+            {error && (
+              <div className="mt-5 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm font-medium text-destructive">
+                {error}
+              </div>
+            )}
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Button onClick={() => window.location.href = '/traveler/find-drivers'}>Жолооч хайх</Button>
+              <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>Самбар руу очих</Button>
+            </div>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   const copyAccount = () => {
     if (payment.driverBankAccount && payment.driverBankAccount !== 'Жолоочтой тохиролцсон данс') {

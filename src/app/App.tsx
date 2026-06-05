@@ -173,12 +173,12 @@ export default function App() {
         <Route path="/traveler/dashboard" element={<Navigate to="/dashboard/traveler" replace />} />
         <Route path="/driver/dashboard" element={<Navigate to="/dashboard/driver" replace />} />
         <Route path="/bookings/:id" element={<RequireAccount><BookingDetailPage /></RequireAccount>} />
-        <Route path="/payment/upload-proof" element={<Navigate to="/dashboard/bookings/BK-001/payment-proof" replace />} />
-        <Route path="/delivery/upload-proof" element={<Navigate to="/dashboard/bookings/BK-001/delivery-proof" replace />} />
+        <Route path="/payment/upload-proof" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/delivery/upload-proof" element={<Navigate to="/dashboard" replace />} />
         <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
         <Route path="/sender/post-cargo" element={<Navigate to="/cargo/new" replace />} />
         <Route path="/traveler/create-trip" element={<Navigate to="/dashboard/traveler/find" replace />} />
-        <Route path="/traveler/delivery-proof" element={<Navigate to="/dashboard/bookings/BK-001/delivery-proof" replace />} />
+        <Route path="/traveler/delivery-proof" element={<Navigate to="/dashboard/traveler/trips" replace />} />
         <Route path="/onboarding/sender" element={<Navigate to="/onboarding/cargo" replace />} />
         <Route path="/onboarding/traveler" element={<ProfileSetupPage role="traveler" />} />
         <Route path="/onboarding/driver" element={<ProfileSetupPage role="driver" />} />

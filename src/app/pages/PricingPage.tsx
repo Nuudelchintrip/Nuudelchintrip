@@ -75,9 +75,9 @@ export function PricingPage() {
                     <p>Төлбөрийн зураг эсвэл гүйлгээний код оруулна.</p>
                     <p>Админ төлбөрийн баримтыг зөвшөөрөх эсвэл буцаасны дараа захиалга баталгаажна.</p>
                   </div>
-                  <Button variant="primary" fullWidth className="mt-6" onClick={() => window.location.href = '/dashboard/bookings/BK-001/payment-proof'}>
+                  <Button variant="primary" fullWidth className="mt-6" onClick={() => window.location.href = '/auth/login?next=/dashboard'}>
                     <ReceiptText className="w-4 h-4" />
-                    Төлбөрийн баримт оруулах
+                    Нэвтэрч захиалгаа шалгах
                   </Button>
                 </CardBody>
               </Card>

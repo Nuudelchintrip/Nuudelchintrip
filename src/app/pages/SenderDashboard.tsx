@@ -1,241 +1,86 @@
-import { Package, Clock, CheckCircle } from 'lucide-react';
-import { Sidebar } from '../components/Sidebar';
-import { Card, CardBody, CardHeader } from '../components/Card';
+import { Clock, CreditCard, Package, ShieldCheck } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
+import { Card, CardBody } from '../components/Card';
 import { AppFooter } from '../components/Footer';
+import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
+import { getStoredUser } from '../utils/auth';
 
 export function SenderDashboard() {
-  const stats = [
-    { label: 'Идэвхтэй', value: '3', color: 'bg-primary', icon: <Clock className="w-5 h-5" /> },
-    { label: 'Хүлээгдэж буй', value: '2', color: 'bg-warning', icon: <Clock className="w-5 h-5" /> },
-    { label: 'Төлөгдсөн', value: '1', color: 'bg-success', icon: <CheckCircle className="w-5 h-5" /> },
-    { label: 'Дууссан', value: '8', color: 'bg-muted-foreground', icon: <CheckCircle className="w-5 h-5" /> },
-  ];
-
-  const cargoList = [
-    {
-      id: 1,
-      name: 'Баримт бичиг',
-      route: 'Улаанбаатар → Дархан',
-      date: '2026-05-25',
-      status: 'pending',
-      statusText: 'Хүсэлт илгээгдсэн',
-      traveler: 'Бат Болд',
-    },
-    {
-      id: 2,
-      name: 'Хувцас',
-      route: 'Улаанбаатар → Эрдэнэт',
-      date: '2026-05-26',
-      status: 'confirmed',
-      statusText: 'Зөвшөөрөгдсөн',
-      traveler: 'Сарангэрэл Цэцэг',
-    },
-    {
-      id: 3,
-      name: 'Электроник',
-      route: 'Улаанбаатар → Сэлэнгэ',
-      date: '2026-05-20',
-      status: 'delivered',
-      statusText: 'Хүргэгдсэн',
-      traveler: 'Ганбат Дорж',
-    },
-  ];
+  const user = getStoredUser();
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('sender')} />
 
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
-        {/* Header */}
         <div className="mb-6 md:mb-8">
-          <h1 className="mb-2 text-3xl font-bold leading-tight text-foreground sm:text-4xl">Дайвар ачааны самбар</h1>
-          <p className="max-w-3xl leading-7 text-muted-foreground">Жолоочийн нийтэлсэн чиглэл дээр суурилсан жижиг дайвар ачааны хүсэлт, төлбөрийн баримт, хүргэлтийн кодоо хянаарай.</p>
+          <Badge variant="warning" className="mb-3">Дайвар ачаа илгээгч</Badge>
+          <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">
+            {user?.full_name ? `${user.full_name}, ачаа авах чиглэл хайгаарай` : 'Ачаа авах чиглэл хайгаарай'}
+          </h1>
+          <p className="mt-2 max-w-3xl text-muted-foreground">
+            Дайвар ачаа нь зөвхөн жолоочийн нийтэлсэн чиглэл дээр суурилна. Ачааны хүсэлт үүссэний дараа төлөв нь энд харагдана.
+          </p>
         </div>
 
-        {/* Stats */}
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:mb-8 xl:grid-cols-4 xl:gap-6">
-          {stats.map((stat, index) => (
-            <Card key={index}>
-              <CardBody className="p-5 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                    <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-                  </div>
-                  <div className={`w-12 h-12 ${stat.color}/10 rounded-xl flex items-center justify-center`}>
-                    <div className={`${stat.color.replace('bg-', 'text-')}`}>
-                      {stat.icon}
-                    </div>
-                  </div>
+        <Card className="mb-8 border-warning/20 bg-warning/5">
+          <CardBody className="p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning text-warning-foreground">
+                  <Package className="h-6 w-6" />
                 </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-
-        {/* My Cargo List */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-xl font-semibold text-foreground">Миний дайвар ачаа</h2>
-              <Button className="w-full sm:w-auto" variant="primary" size="sm" onClick={() => window.location.href = '/cargo/find-routes'}>
-                <Package className="w-4 h-4" />
+                <h2 className="mt-4 text-2xl font-semibold text-foreground">Таны эхний үйлдэл: ачаа авах чиглэл хайх</h2>
+                <p className="mt-2 text-muted-foreground">
+                  Зөвхөн дайвар ачаа авах боломжтой гэж нийтэлсэн жолоочийн чиглэлүүд харагдана.
+                </p>
+              </div>
+              <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/cargo/find-routes'}>
                 Ачаа авах чиглэл хайх
               </Button>
             </div>
-          </CardHeader>
-          <CardBody className="p-4 pt-0 sm:p-0">
-            <div className="grid gap-3 sm:hidden">
-              {cargoList.map((cargo) => (
-                <div key={cargo.id} className="rounded-lg border border-border bg-muted/20 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-foreground">{cargo.name}</p>
-                      <p className="mt-1 text-sm leading-5 text-muted-foreground">{cargo.route}</p>
-                    </div>
-                    <Badge
-                      variant={
-                        cargo.status === 'pending' ? 'warning' :
-                        cargo.status === 'confirmed' ? 'info' :
-                        cargo.status === 'delivered' ? 'success' : 'default'
-                      }
-                    >
-                      {cargo.statusText}
-                    </Badge>
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Огноо</p>
-                      <p className="mt-1 font-medium text-foreground">{cargo.date}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Жолооч / чиглэл</p>
-                      <p className="mt-1 font-medium text-foreground">{cargo.traveler}</p>
-                    </div>
-                  </div>
-                  <Button
-                    className="mt-4"
-                    variant="outline"
-                    size="sm"
-                    fullWidth
-                    onClick={() => window.location.href = `/cargo/${cargo.id}`}
-                  >
-                    Дэлгэрэнгүй
-                  </Button>
-                </div>
-              ))}
-            </div>
-            <div className="hidden overflow-x-auto sm:block">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Ачаа
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Чиглэл
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Огноо
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Жолооч / чиглэл
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Төлөв
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Үйлдэл
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {cargoList.map((cargo) => (
-                    <tr key={cargo.id} className="hover:bg-muted/30">
-                      <td className="px-6 py-4">
-                        <p className="font-medium text-foreground">{cargo.name}</p>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {cargo.route}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {cargo.date}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
-                        {cargo.traveler}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge
-                          variant={
-                            cargo.status === 'pending' ? 'warning' :
-                            cargo.status === 'confirmed' ? 'info' :
-                            cargo.status === 'delivered' ? 'success' : 'default'
-                          }
-                        >
-                          {cargo.statusText}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.location.href = `/cargo/${cargo.id}`}
-                        >
-                          Дэлгэрэнгүй
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </CardBody>
         </Card>
 
-        {/* Recent Activity */}
-        <Card className="mt-8">
-          <CardHeader>
-            <h2 className="text-xl font-semibold text-foreground">Сүүлийн үйлдлүүд</h2>
-          </CardHeader>
-          <CardBody>
-            <div className="space-y-4">
-              {[
-                {
-                  action: 'Хүргэлт дууслаа',
-                  cargo: 'Электроник → Сэлэнгэ',
-                  time: '2 цагийн өмнө',
-                  icon: <CheckCircle className="w-5 h-5 text-success" />,
-                },
-                {
-                  action: 'Хүсэлт зөвшөөрөгдсөн',
-                  cargo: 'Хувцас → Эрдэнэт',
-                  time: '5 цагийн өмнө',
-                  icon: <CheckCircle className="w-5 h-5 text-primary" />,
-                },
-                {
-                  action: 'Хүсэлт илгээгдсэн',
-                  cargo: 'Баримт бичиг → Дархан',
-                  time: '1 өдрийн өмнө',
-                  icon: <Clock className="w-5 h-5 text-warning" />,
-                },
-              ].map((activity, index) => (
-                <div key={index} className="flex items-start gap-4">
-                  <div className="mt-0.5">{activity.icon}</div>
-                  <div className="flex-1">
-                    <p className="font-medium text-foreground">{activity.action}</p>
-                    <p className="text-sm text-muted-foreground">{activity.cargo}</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
-                </div>
-              ))}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <EmptyPanel icon={<Package className="h-6 w-6" />} title="Миний ачаа" text="Ачааны хүсэлт үүссэний дараа төлөв нь энд харагдана." />
+          <EmptyPanel icon={<CreditCard className="h-6 w-6" />} title="Төлбөрийн баримт" text="Жолооч зөвшөөрсний дараа төлбөрийн баримт оруулах алхам нээгдэнэ." />
+          <EmptyPanel icon={<Clock className="h-6 w-6" />} title="Хүргэлтийн код" text="Ачаа хүргэгдэх шатанд 6 оронтой код ашиглах урсгал энд харагдана." />
+        </div>
+
+        <Card className="mt-6 border-primary/20 bg-primary/5 p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-primary">
+                <ShieldCheck className="h-5 w-5" />
+                <h2 className="text-xl font-semibold text-foreground">Ачааны дүрэм</h2>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Хориглосон бараа, эрсдэлтэй ачаа, буруу мэдүүлсэн ачааны дүрмийг зөвшөөрсний дараа хүсэлт илгээнэ.
+              </p>
             </div>
-          </CardBody>
+            <Button variant="outline" onClick={() => window.location.href = '/dashboard/cargo/rules'}>
+              Дүрэм харах
+            </Button>
+          </div>
         </Card>
+
         <AppFooter />
       </main>
     </div>
+  );
+}
+
+function EmptyPanel({ icon, title, text }: { icon: JSX.Element; title: string; text: string }) {
+  return (
+    <Card className="p-6">
+      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10 text-warning">
+        {icon}
+      </div>
+      <h2 className="mt-5 text-xl font-semibold text-foreground">{title}</h2>
+      <p className="mt-2 min-h-16 text-sm leading-6 text-muted-foreground">{text}</p>
+    </Card>
   );
 }

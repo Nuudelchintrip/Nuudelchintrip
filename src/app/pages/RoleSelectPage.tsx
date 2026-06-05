@@ -40,7 +40,7 @@ export function RoleSelectPage() {
       email: `${role}@nuudelchintrip.mn`,
       phone_verified: true,
       onboarding_completed: true,
-      verification_status: role === 'driver' ? 'approved' : undefined,
+      verification_status: role === 'driver' ? 'pending' : undefined,
       cargo_policy_accepted: role === 'cargo_sender' ? true : undefined,
     });
     window.location.href = getDashboardPath(role);

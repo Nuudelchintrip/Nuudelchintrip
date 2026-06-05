@@ -362,7 +362,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
 
     if (role !== 'driver') return;
     if (driverBlocked) {
-      setError('Жолоочийн verification approved болсны дараа чиглэл нийтлэх боломжтой.');
+      setError('Жолоочийн баталгаажуулалт зөвшөөрөгдсөний дараа чиглэл нийтлэх боломжтой.');
       return;
     }
     if (!fromAimag || !toAimag) {
@@ -441,7 +441,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
                     Дахин шалгах
                   </Button>
                   <Button variant="ghost" onClick={() => { window.location.href = '/dashboard/driver/verification'; }}>
-                    Verification
+                    Баталгаажуулалт
                   </Button>
                 </div>
               </div>
@@ -605,7 +605,7 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
       )}
       {loadingRequests && (
         <Card className="mb-5 p-4">
-          <p className="text-sm text-muted-foreground">Ирсэн суудлын хүсэлтүүдийг Supabase-аас уншиж байна...</p>
+          <p className="text-sm text-muted-foreground">Ирсэн суудлын хүсэлтүүдийг өгөгдлийн сангаас уншиж байна...</p>
         </Card>
       )}
       {requestError && (
@@ -690,7 +690,7 @@ export function FindDriversPage() {
   const [date, setDate] = useState('');
   const [passengers, setPassengers] = useState('1');
   const [cargoOnly, setCargoOnly] = useState(false);
-  const [offers, setOffers] = useState<DriverOffer[]>(isSupabaseConfigured ? [] : driverOffers);
+  const [offers, setOffers] = useState<DriverOffer[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(isSupabaseConfigured);
   const [loadError, setLoadError] = useState('');
 
@@ -698,7 +698,8 @@ export function FindDriversPage() {
     let active = true;
 
     if (!isSupabaseConfigured) {
-      setOffers(driverOffers);
+      setOffers([]);
+      setLoadError('Өгөгдлийн сангийн холболт тохируулагдаагүй тул бодит чиглэл унших боломжгүй байна.');
       setLoadingTrips(false);
       return;
     }
@@ -847,33 +848,20 @@ export function DriverOffersPage() {
       <PageTop
         badge="Аялагчийн самбар"
         title="Жолоочийн саналууд"
-        description="Баталгаажсан жолоочийн чиглэл, сул суудал, үнэ, үнэлгээ, дайвар ачааны боломжийг харьцуулна."
+        description="Энэ хэсэгт хайлтаас олдсон бодит жолоочийн чиглэлүүд харагдана."
         backHref="/dashboard/traveler"
       />
 
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
-        <Card className="p-5">
-          <Badge variant="success">Нээлттэй</Badge>
-          <p className="mt-3 text-3xl font-bold text-foreground">{driverOffers.length}</p>
-          <p className="text-sm text-muted-foreground">жолоочийн санал</p>
-        </Card>
-        <Card className="p-5">
-          <Badge variant="info">Дундаж үнэ</Badge>
-          <p className="mt-3 text-3xl font-bold text-foreground">₮35k</p>
-          <p className="text-sm text-muted-foreground">нэг суудал</p>
-        </Card>
-        <Card className="p-5">
-          <Badge variant="warning">Дайвар ачаа</Badge>
-          <p className="mt-3 text-3xl font-bold text-foreground">{driverOffers.filter((offer) => offer.allowsCargo).length}</p>
-          <p className="text-sm text-muted-foreground">чиглэл боломжтой</p>
-        </Card>
-      </div>
-
-      <div className="grid gap-5">
-        {driverOffers.map((offer) => (
-          <DriverOfferCard key={offer.id} offer={offer} featured={offer.id === 1} />
-        ))}
-      </div>
+      <Card className="p-10 text-center">
+        <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+        <h2 className="text-xl font-semibold text-foreground">Одоогоор тусдаа саналын жагсаалт байхгүй</h2>
+        <p className="mx-auto mt-2 max-w-xl text-muted-foreground">
+          Жолоочийн саналууд “Унаа хайх” хэсэгт өгөгдлийн сангаас уншигдсан бодит чиглэлүүдээр бүрдэнэ.
+        </p>
+        <Button className="mt-5" onClick={() => window.location.href = '/traveler/find-drivers'}>
+          Унаа хайх
+        </Button>
+      </Card>
     </DashboardFrame>
   );
 }
@@ -883,13 +871,18 @@ export function CargoFindRoutesPage() {
   const [fromSoum, setFromSoum] = useState('');
   const [toAimag, setToAimag] = useState('');
   const [toSoum, setToSoum] = useState('');
-  const [cargoOffers, setCargoOffers] = useState<DriverOffer[]>(isSupabaseConfigured ? [] : driverOffers.filter((offer) => offer.allowsCargo));
+  const [cargoOffers, setCargoOffers] = useState<DriverOffer[]>([]);
   const [loadingCargoRoutes, setLoadingCargoRoutes] = useState(isSupabaseConfigured);
   const [cargoRouteError, setCargoRouteError] = useState('');
 
   useEffect(() => {
     let active = true;
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setCargoOffers([]);
+      setCargoRouteError('Өгөгдлийн сангийн холболт тохируулагдаагүй тул бодит чиглэл унших боломжгүй байна.');
+      setLoadingCargoRoutes(false);
+      return;
+    }
 
     setLoadingCargoRoutes(true);
     fetchCargoEnabledTrips()
@@ -968,21 +961,11 @@ export function CargoFindRoutesPage() {
         </Card>
       )}
 
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 md:grid-cols-1">
         <Card className="p-5">
           <Badge variant="warning">Дайвар ачаа авч болно</Badge>
           <p className="mt-3 text-3xl font-bold text-foreground">{cargoRoutes.length}</p>
           <p className="text-sm text-muted-foreground">чиглэл боломжтой</p>
-        </Card>
-        <Card className="p-5">
-          <Badge variant="info">Ачаа авах боломжит цаг</Badge>
-          <p className="mt-3 text-3xl font-bold text-foreground">08:00+</p>
-          <p className="text-sm text-muted-foreground">хамгийн ойрын боломж</p>
-        </Card>
-        <Card className="p-5">
-          <Badge variant="success">Баталгаажсан</Badge>
-          <p className="mt-3 text-3xl font-bold text-foreground">100%</p>
-          <p className="text-sm text-muted-foreground">баталгаажсан жолооч</p>
         </Card>
       </div>
 
@@ -1074,18 +1057,14 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
               ))}
             </div>
           ) : (
-          <div className="space-y-4">
-            {routeRows.map((row) => (
-              <div key={row.route} className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-[1fr_160px_140px_160px] md:items-center">
-                <div>
-                  <p className="font-semibold text-foreground">{row.route}</p>
-                  <p className="text-sm text-muted-foreground">{row.date} - {row.proof}</p>
-                </div>
-                <Badge variant={row.status === 'Идэвхтэй' ? 'success' : row.status === 'Хүлээгдэж буй' ? 'warning' : 'default'}>{row.status}</Badge>
-                <p className="text-sm text-muted-foreground">{row.matches} match</p>
-                <Button variant="outline" size="sm" onClick={() => window.location.href = '/dashboard/bookings/BK-001'}>Дэлгэрэнгүй</Button>
-              </div>
-            ))}
+          <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
+            <Route className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-foreground">Чиглэл хараахан алга</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {role === 'driver'
+                ? 'Шинэ чиглэл нийтэлсний дараа энд харагдана.'
+                : 'Захиалга үүссэний дараа таны аяллын жагсаалт энд харагдана.'}
+            </p>
           </div>
           )}
         </CardBody>
@@ -1169,7 +1148,7 @@ export function DriverCargoRequestsPage() {
 
       {loadingCargoRequests && (
         <Card className="mb-5 p-4">
-          <p className="text-sm text-muted-foreground">Дайвар ачааны хүсэлтүүдийг Supabase-аас уншиж байна...</p>
+          <p className="text-sm text-muted-foreground">Дайвар ачааны хүсэлтүүдийг өгөгдлийн сангаас уншиж байна...</p>
         </Card>
       )}
 
@@ -1186,11 +1165,7 @@ export function DriverCargoRequestsPage() {
       )}
 
       <div className="grid gap-5">
-        {(cargoRequests.length > 0 ? cargoRequests : driverCargoRequests).map((request) => {
-          const isLiveRequest = 'cargoName' in request;
-          const live = isLiveRequest ? request as DriverCargoRequest : null;
-
-          return (
+        {cargoRequests.map((request) => (
           <Card key={request.id} className="p-6">
             <div className="grid gap-5 xl:grid-cols-[1fr_220px] xl:items-center">
               <div>
@@ -1200,34 +1175,32 @@ export function DriverCargoRequestsPage() {
                 </div>
                 <h2 className="text-2xl font-semibold text-foreground">{request.route}</h2>
                 <p className="mt-2 text-muted-foreground">
-                  {live
-                    ? `${live.senderName} илгээгчээс ${live.cargoName.toLowerCase()} дайх хүсэлт ирсэн.`
-                    : `${request.sender} илгээгчээс ${request.cargo.toLowerCase()} дайх хүсэлт ирсэн.`}
+                  {request.senderName} илгээгчээс {request.cargoName.toLowerCase()} дайх хүсэлт ирсэн.
                 </p>
                 <div className="mt-4 grid gap-3 md:grid-cols-4">
-                  <InfoPill icon={<Box className="h-4 w-4" />} label="Ачаа" value={live?.cargoName || request.cargo} />
-                  <InfoPill icon={<PackageCheck className="h-4 w-4" />} label="Хэмжээ" value={live ? `${live.weightKg || '-'} кг · ${live.sizeNote || live.cargoType || 'төрөл ороогүй'}` : request.size} />
-                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Авах цэг" value={live?.pickupNote || request.pickup} />
-                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Хүлээн авагч" value={live ? `${live.receiverName} · ${live.receiverPhone}` : request.dropoff} />
+                  <InfoPill icon={<Box className="h-4 w-4" />} label="Ачаа" value={request.cargoName} />
+                  <InfoPill icon={<PackageCheck className="h-4 w-4" />} label="Хэмжээ" value={`${request.weightKg || '-'} кг · ${request.sizeNote || request.cargoType || 'төрөл ороогүй'}`} />
+                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Авах цэг" value={request.pickupNote || 'Тохиролцоно'} />
+                  <InfoPill icon={<MapPin className="h-4 w-4" />} label="Хүлээн авагч" value={`${request.receiverName} · ${request.receiverPhone}`} />
                 </div>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-sm text-muted-foreground">{live ? 'Хүргэлтийн код' : 'Санал болгосон үнэ'}</p>
-                <p className="mt-1 text-3xl font-bold text-primary">{live ? live.deliveryCode : request.offer}</p>
+                <p className="text-sm text-muted-foreground">Хүргэлтийн код</p>
+                <p className="mt-1 text-3xl font-bold text-primary">{request.deliveryCode}</p>
                 <div className="mt-5 grid gap-2">
                   <Button
                     fullWidth
-                    disabled={!live || live.status === 'cargo_accepted'}
-                    onClick={() => live ? changeCargoStatus(live.id, 'cargo_accepted') : undefined}
+                    disabled={request.status === 'cargo_accepted'}
+                    onClick={() => changeCargoStatus(request.id, 'cargo_accepted')}
                   >
                     Зөвшөөрөх
                   </Button>
                   <Button
                     variant="outline"
                     fullWidth
-                    disabled={!live || live.status === 'rejected'}
-                    onClick={() => live ? changeCargoStatus(live.id, 'rejected') : undefined}
+                    disabled={request.status === 'rejected'}
+                    onClick={() => changeCargoStatus(request.id, 'rejected')}
                   >
                     Татгалзах
                   </Button>
@@ -1235,9 +1208,16 @@ export function DriverCargoRequestsPage() {
               </div>
             </div>
           </Card>
-        );
-        })}
+        ))}
       </div>
+
+      {!loadingCargoRequests && cargoRequests.length === 0 && (
+        <Card className="mt-6 p-10 text-center">
+          <PackageCheck className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <h2 className="text-xl font-semibold text-foreground">Дайвар ачааны хүсэлт ирээгүй байна</h2>
+          <p className="mt-2 text-muted-foreground">Allows-cargo чиглэл нийтэлсний дараа ачааны хүсэлтүүд энд харагдана.</p>
+        </Card>
+      )}
     </DashboardFrame>
   );
 }
@@ -1321,6 +1301,19 @@ export function EarningsPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
   return (
     <DashboardFrame role={role} active="earnings">
+      <PageTop badge={copy.badge} title={copy.earnings} description="Орлого зөвхөн бодит захиалга, бодит төлбөр баталгаажсаны дараа харагдана." backHref={copy.base} />
+      <Card className="p-8 text-center">
+        <Banknote className="mx-auto mb-4 h-12 w-12 text-primary" />
+        <h2 className="text-xl font-semibold text-foreground">Одоогоор орлогын бодит мэдээлэл алга</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+          Зохиомол дүн, зохиомол гүйлгээ харуулахгүй. Жолоочийн аялал эсвэл дайвар ачааны захиалга төлбөртэй баталгаажсаны дараа энд орлого бүртгэгдэнэ.
+        </p>
+      </Card>
+    </DashboardFrame>
+  );
+
+  return (
+    <DashboardFrame role={role} active="earnings">
       <PageTop badge={copy.badge} title={copy.earnings} description="Хүлээгдэж буй, баталгаажсан, дууссан орлогын тойм." backHref={copy.base} />
       <div className="grid gap-5 md:grid-cols-3">
         {[
@@ -1357,6 +1350,19 @@ export function ReviewsPage({ role }: { role: WorkRole | 'sender' }) {
   const base = role === 'sender' ? '/dashboard/sender' : roleCopy[role].base;
   return (
     <DashboardFrame role={role === 'sender' ? undefined : role} sender={role === 'sender'} active="reviews">
+      <PageTop badge={role === 'sender' ? 'Дайвар ачааны самбар' : roleCopy[role].badge} title={title} description="Үнэлгээ зөвхөн бодит дууссан аялал, бодит захиалга дээр нээгдэнэ." backHref={base} />
+      <Card className="p-8 text-center">
+        <Star className="mx-auto mb-4 h-12 w-12 text-warning" />
+        <h2 className="text-xl font-semibold text-foreground">Одоогоор үнэлгээ алга</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+          Зохиомол оноо, зохиомол сэтгэгдэл харуулахгүй. Аялал дууссаны дараа хэрэглэгчид бие биедээ үнэлгээ өгвөл энд харагдана.
+        </p>
+      </Card>
+    </DashboardFrame>
+  );
+
+  return (
+    <DashboardFrame role={role === 'sender' ? undefined : role} sender={role === 'sender'} active="reviews">
       <PageTop badge={role === 'sender' ? 'Дайвар ачааны самбар' : roleCopy[role].badge} title={title} description="Итгэлцэл үүсгэдэг үнэлгээ, сэтгэгдэл, дууссан захиалгын тойм." backHref={base} />
       <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
         <Card className="p-6 text-center">
@@ -1389,6 +1395,22 @@ export function SenderCargoPage({ view }: { view: SenderView }) {
     : isStatus
       ? 'Хүлээн авагчийн 6 оронтой код болон хүргэлтийн төлөвөө нэг дор хянана.'
       : 'Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж.';
+  return (
+    <DashboardFrame sender active={view}>
+      <PageTop badge="Дайвар ачааны нэмэлт боломж" title={title} description={description} backHref="/dashboard/cargo" />
+      <Card className="p-8 text-center">
+        <PackageCheck className="mx-auto mb-4 h-12 w-12 text-primary" />
+        <h2 className="text-xl font-semibold text-foreground">Одоогоор бодит ачааны хүсэлт алга</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+          Зохиомол захиалга, зохиомол хүргэлтийн код, зохиомол төлбөрийн баримт харуулахгүй. Ачаа авах боломжтой чиглэл сонгож хүсэлт үүсгэсний дараа энэ хэсэг дүүрнэ.
+        </p>
+        <Button className="mt-5" onClick={() => window.location.href = '/cargo/find-routes'}>
+          Ачаа авах чиглэл хайх
+        </Button>
+      </Card>
+    </DashboardFrame>
+  );
+
   return (
     <DashboardFrame sender active={view}>
       <PageTop badge="Дайвар ачааны нэмэлт боломж" title={title} description={description} backHref="/dashboard/cargo" />
@@ -1445,15 +1467,17 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
   return (
     <DashboardFrame admin active={view}>
       <PageTop badge="Админ самбар" title={titles[view]} description={descriptions[view]} backHref="/admin" />
-
-      {view === 'payments' && <AdminPaymentsTable />}
-      {view === 'users' && <AdminUsersTable />}
-      {view === 'reports' && <AdminReportsList />}
-      {view === 'verifications' && <AdminVerificationList />}
-      {view === 'cargo' && <AdminCargoList />}
-      {view === 'routes' && <AdminRoutesList />}
-      {view === 'bookings' && <AdminBookingsList />}
-      {view === 'logs' && <AdminActionLogsList />}
+      <Card className="p-8 text-center">
+        <ShieldCheck className="mx-auto mb-4 h-12 w-12 text-primary" />
+        <h2 className="text-xl font-semibold text-foreground">Одоогоор хүлээгдэж буй бодит мэдээлэл алга</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+          Энэ жагсаалт өгөгдлийн санд бодит төлбөрийн баримт, баталгаажуулалтын хүсэлт, гомдол, чиглэл, захиалга үүссэний дараа дүүрнэ.
+          Зохиомол хэрэглэгч, захиалга, төлбөр харуулахгүй.
+        </p>
+        <Button className="mt-5" variant="outline" onClick={() => window.location.href = '/admin'}>
+          Админ самбар руу буцах
+        </Button>
+      </Card>
     </DashboardFrame>
   );
 }

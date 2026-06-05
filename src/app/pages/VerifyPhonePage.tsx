@@ -46,7 +46,7 @@ export function VerifyPhonePage() {
       user: user?.full_name || phone,
       actionType: 'OTP код хүссэн',
       status: 'Амжилттай',
-      details: `${formatMongoliaPhone(phone)} дугаар руу туршилтын код илгээсэн төлөв үүсэв.`,
+      details: `${formatMongoliaPhone(phone)} дугаар дээр хөгжүүлэлтийн баталгаажуулалтын төлөв үүсэв.`,
     });
   };
 
@@ -120,7 +120,7 @@ export function VerifyPhonePage() {
               </div>
               <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Утас баталгаажуулах</h1>
               <p className="mx-auto mt-3 max-w-[30ch] break-words text-sm leading-7 text-muted-foreground sm:max-w-sm sm:text-base">
-                Таны дугаар руу илгээсэн 6 оронтой кодыг оруулна уу. Бодит SMS дараагийн шатанд холбогдоно.
+                Мессежийн үйлчилгээ холбогдох хүртэл хөгжүүлэлтийн 6 оронтой кодоор баталгаажуулна.
               </p>
             </div>
 
@@ -154,7 +154,7 @@ export function VerifyPhonePage() {
                     <span>{otpSent ? `Код дахин авах: ${Math.max(secondsLeft, 0)} сек` : 'Код авахад 60 секундийн хугацаа эхэлнэ'}</span>
                   </div>
                   <span className="rounded-lg bg-card px-3 py-2 font-mono text-sm font-semibold text-foreground">
-                    Туршилтын код: {DEMO_OTP_CODE}
+                    Хөгжүүлэлтийн код: {DEMO_OTP_CODE}
                   </span>
                 </div>
               </div>

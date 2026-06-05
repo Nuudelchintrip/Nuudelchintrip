@@ -4,7 +4,7 @@ const footerGroups = [
     links: [
       { href: '/how-it-works', label: 'Хэрхэн ажилладаг' },
       { href: '/pricing', label: 'Үнэ ба үйлчилгээний шимтгэл' },
-      { href: '/routes', label: 'Чиглэлийн жишээ' },
+      { href: '/routes', label: 'Чиглэл хайх' },
     ],
   },
   {

@@ -188,9 +188,9 @@ function LegacyAccountProfilePage({ role }: { role: AccountRole }) {
           <Card className="border-primary/20 bg-primary/5 p-5">
             <h2 className="text-xl font-semibold text-foreground">Итгэлцлийн хураангуй</h2>
             <div className="mt-5 grid gap-3">
-              <Metric label="Үнэлгээ" value={role === 'driver' ? '4.8' : role === 'traveler' ? '5.0' : '-'} />
-              <Metric label="Дууссан" value={role === 'driver' ? '42 аялал' : role === 'sender' ? '8 ачаа' : '12 аялал'} />
-              <Metric label="Гомдол" value="Идэвхтэй гомдолгүй" />
+              <Metric label="Үнэлгээ" value="Одоогоор алга" />
+              <Metric label="Дууссан" value="Одоогоор алга" />
+              <Metric label="Гомдол" value="Идэвхтэй гомдол алга" />
             </div>
           </Card>
 
@@ -212,6 +212,12 @@ function LegacyAccountProfilePage({ role }: { role: AccountRole }) {
 function ProfileExperiencePage({ role }: { role: AccountRole }) {
   const profile = profiles[role];
   const details = getProfileExperience(role);
+  const storedUser = getStoredUser();
+  const displayName = storedUser?.full_name || 'Нэр оруулаагүй';
+  const displayPhone = storedUser?.phone || '';
+  const displayEmail = storedUser?.email || '';
+  const phoneVerified = Boolean(storedUser?.phone_verified);
+  const completion = Math.round(([displayName !== 'Нэр оруулаагүй', displayPhone, displayEmail].filter(Boolean).length / 3) * 100);
 
   return (
     <AccountFrame role={role}>
@@ -224,7 +230,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
           Самбар руу буцах
         </button>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="success">Утас баталгаажсан</Badge>
+          <Badge variant={phoneVerified ? 'success' : 'warning'}>{phoneVerified ? 'Утас баталгаажсан' : 'Утас баталгаажаагүй'}</Badge>
           <Badge variant={role === 'driver' ? 'warning' : 'info'}>{details.status}</Badge>
         </div>
       </div>
@@ -240,7 +246,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </div>
 
             <div className="mt-5 text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">{profile.name}</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">{displayName}</h1>
               <p className="mt-1 text-sm font-medium text-muted-foreground">{details.roleLabel}</p>
             </div>
 
@@ -279,11 +285,11 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             <div className="flex items-center gap-4">
               <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-card">
                 <div className="absolute inset-1 rounded-full border-4 border-primary border-r-warning" />
-                <span className="z-10 text-sm font-bold text-foreground">{details.completion}%</span>
+                <span className="z-10 text-sm font-bold text-foreground">{completion}%</span>
               </div>
               <div>
                 <p className="font-semibold text-foreground">Профайлын бүрдэлт</p>
-                <p className="mt-1 text-sm text-muted-foreground">{details.nextStep}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{completion === 100 ? 'Үндсэн мэдээлэл бүрдсэн' : details.nextStep}</p>
               </div>
             </div>
           </Card>
@@ -320,9 +326,9 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
               <Button variant="outline" size="sm">Засвар хадгалах</Button>
             </div>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <Input label="Нэр" defaultValue={profile.name} />
-              <Input label="Утас" defaultValue={profile.phone} />
-              <Input label="И-мэйл" defaultValue={profile.email} />
+              <Input label="Нэр" defaultValue={displayName === 'Нэр оруулаагүй' ? '' : displayName} />
+              <Input label="Утас" defaultValue={displayPhone} />
+              <Input label="И-мэйл" defaultValue={displayEmail} />
               <Select
                 label="Хэрэглэгчийн төрөл"
                 value={role}
@@ -364,9 +370,15 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
           <Card className="p-6">
             <h2 className="text-2xl font-semibold text-foreground">Сүүлийн үйлдлүүд</h2>
             <div className="mt-5 grid gap-3">
-              {details.activity.map((item) => (
-                <TimelineRow key={`${item.title}-${item.meta}`} title={item.title} meta={item.meta} right={item.right} />
-              ))}
+              {details.activity.length > 0 ? (
+                details.activity.map((item) => (
+                  <TimelineRow key={`${item.title}-${item.meta}`} title={item.title} meta={item.meta} right={item.right} />
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+                  Бодит захиалга, чиглэл эсвэл ачааны хүсэлт үүссэний дараа үйлдлийн түүх энд харагдана.
+                </div>
+              )}
             </div>
           </Card>
         </section>
@@ -382,28 +394,28 @@ function getProfileExperience(role: AccountRole) {
       status: 'Жолоочийн баталгаажуулалт хүлээгдэж байна',
       availability: 'Админы зөвшөөрөл хүлээж байна',
       headline: 'Найдвартай жолоочийн мэдээлэл, машин, чиглэлийн түүх нэг дор',
-      about: 'Орон нутаг руу тогтмол явдаг, суудал болон авах цэгийн нөхцлөө тодорхой бичдэг жолоочийн профайл.',
-      location: 'Улаанбаатар, Монгол',
-      completion: 78,
-      nextStep: 'Машины гэрчилгээний зураг нэмэх',
-      badges: ['Утас баталгаажсан', 'Үнэмлэх шалгаж байна', 'Toyota Prius 30', 'Дайвар ачаа авч болно'],
+      about: 'Жолоочийн баталгаажуулалт, машины мэдээлэл, нийтэлсэн чиглэл, ирсэн хүсэлтүүд бодит өгөгдлөөр бүрдэнэ.',
+      location: 'Монгол',
+      completion: 0,
+      nextStep: 'Машины мэдээлэл болон бичиг баримтаа оруулах',
+      badges: ['Утасны төлөв', 'Жолоочийн шалгалт', 'Машины мэдээлэл', 'Дайвар ачааны эрх'],
       privateFields: [
-        { label: 'Машины загвар', value: 'Toyota Prius 30' },
-        { label: 'Улсын дугаар', value: 'УБА 1234' },
-        { label: 'Суудлын тоо', value: '4' },
-        { label: 'Жолооны үнэмлэх', value: 'Админ шалгаж байна' },
+        { label: 'Машины загвар', value: '' },
+        { label: 'Улсын дугаар', value: '' },
+        { label: 'Суудлын тоо', value: '' },
+        { label: 'Жолооны үнэмлэх', value: 'Оруулаагүй' },
       ],
       primaryCardTitle: 'Жолоочийн мэдээлэл',
       primaryCardText: 'Нийтийн карт дээр зөвхөн баталгаажсан тэмдэг, үнэлгээ, дууссан аялал, машины үндсэн мэдээлэл харагдана.',
       infoCards: [
-        { title: 'Чиглэлийн түүх', text: '42 аялал дууссан' },
-        { title: 'Дундаж хариу', text: '18 минут' },
-        { title: 'Ачаа авах эрх', text: 'Дайвар ачаа авч болно' },
-        { title: 'Орлого', text: 'Орлогын тойм' },
+        { title: 'Чиглэлийн түүх', text: 'Нийтэлсэн чиглэл үүсвэл энд харагдана' },
+        { title: 'Хүсэлтүүд', text: 'Аялагчийн хүсэлт ирвэл энд харагдана' },
+        { title: 'Ачаа авах эрх', text: 'Route нийтлэх үед сонгоно' },
+        { title: 'Төлбөр', text: 'Баталгаажсан booking дээр бүртгэгдэнэ' },
       ],
-      rating: '4.8/5',
-      completed: '42 аялал',
-      activity: driverRoutes.map((route) => ({ title: route.route, meta: `${route.trips} аялал`, right: route.income })),
+      rating: 'Одоогоор алга',
+      completed: 'Одоогоор алга',
+      activity: [],
     };
   }
 
@@ -414,27 +426,27 @@ function getProfileExperience(role: AccountRole) {
       availability: 'Ачаа илгээхэд бэлэн',
       headline: 'Хүлээн авагч, ачааны дүрэм, хүргэлтийн кодоо нэг дор хянах профайл',
       about: 'Жолоочийн чиглэл дээр суурилсан жижиг дайвар ачааны хүсэлт илгээдэг хэрэглэгч.',
-      location: 'Дархан-Уул, Монгол',
-      completion: 82,
-      nextStep: 'Байнгын хүлээн авагч нэмэх',
-      badges: ['Утас баталгаажсан', 'Дүрэм зөвшөөрсөн', '8 ачаа хүргэгдсэн'],
+      location: 'Монгол',
+      completion: 0,
+      nextStep: 'Хүлээн авагчийн мэдээлэл болон ачааны дүрмээ шалгах',
+      badges: ['Утасны төлөв', 'Ачааны дүрэм', 'Төлбөрийн баримт', 'Хүргэлтийн код'],
       privateFields: [
-        { label: 'Байнгын хүлээн авагч', value: 'Дорж Мөнх · +976 7777 8888' },
-        { label: 'Ачааны дүрэм', value: 'Зөвшөөрсөн' },
-        { label: 'Төлбөрийн баримтын түүх', value: '5 баримт' },
-        { label: 'Маргааны түүх', value: 'Идэвхтэй маргаангүй' },
+        { label: 'Байнгын хүлээн авагч', value: '' },
+        { label: 'Ачааны дүрэм', value: 'Профайл setup дээр зөвшөөрнө' },
+        { label: 'Төлбөрийн баримтын түүх', value: 'Одоогоор алга' },
+        { label: 'Маргааны түүх', value: 'Одоогоор алга' },
       ],
       primaryCardTitle: 'Ачаа илгээгчийн мэдээлэл',
       primaryCardText: 'Ачааны нэр, хүлээн авагч, хүргэлтийн код, төлбөрийн баримт нь хувийн хэсэгт хадгалагдана.',
       infoCards: [
-        { title: 'Идэвхтэй ачаа', text: '1 замдаа' },
-        { title: 'Хүргэлтийн код', text: '482913' },
-        { title: 'Хүргэгдсэн ачаа', text: '8 ачаа' },
-        { title: 'Дүрмийн төлөв', text: 'Зөвшөөрсөн' },
+        { title: 'Идэвхтэй ачаа', text: 'Хүсэлт үүсвэл энд харагдана' },
+        { title: 'Хүргэлтийн код', text: 'Accepted cargo дээр үүснэ' },
+        { title: 'Хүргэгдсэн ачаа', text: 'Одоогоор алга' },
+        { title: 'Дүрмийн төлөв', text: 'Профайл setup-аас удирдана' },
       ],
       rating: '-',
-      completed: '8 ачаа',
-      activity: cargoHistory.map((item) => ({ title: `${item.item} · ${item.route}`, meta: item.status, right: item.code })),
+      completed: 'Одоогоор алга',
+      activity: [],
     };
   }
 
@@ -445,31 +457,27 @@ function getProfileExperience(role: AccountRole) {
       availability: 'Хяналтын жагсаалт идэвхтэй',
       headline: 'Баталгаажуулалт, төлбөрийн баримт, гомдлын хяналт нэг дор',
       about: 'Платформын итгэлцлийн давхарга буюу төлбөр, баталгаажуулалт, гомдлын жагсаалтыг хянах эрхтэй админ.',
-      location: 'Улаанбаатар, Монгол',
-      completion: 95,
-      nextStep: 'Нээлттэй гомдлууд шалгах',
+      location: 'Монгол',
+      completion: 0,
+      nextStep: 'Админ queue-г бодит өгөгдлөөр холбох',
       badges: ['Админ', 'Төлбөр', 'Гомдол', 'Баталгаажуулалт'],
       privateFields: [
         { label: 'Админы эрх', value: 'Төлбөр, баталгаажуулалт, гомдол' },
         { label: 'Хандалтын түвшин', value: 'Админ эрх' },
-        { label: 'Сүүлд шалгасан', value: '2026.05.26' },
-        { label: 'Нээлттэй гомдол', value: '3' },
+        { label: 'Сүүлд шалгасан', value: 'Одоогоор алга' },
+        { label: 'Нээлттэй гомдол', value: 'Бодит report үүсвэл харагдана' },
       ],
       primaryCardTitle: 'Админы эрх',
       primaryCardText: 'Нийтийн профайл биш, зөвхөн платформын хяналтад зориулсан дотоод бүртгэл.',
       infoCards: [
-        { title: 'Хүлээгдэж буй төлбөр', text: '4' },
-        { title: 'Жолоочийн шалгалт', text: '2' },
-        { title: 'Нээлттэй гомдол', text: '3' },
-        { title: 'Идэвхтэй чиглэл', text: '18' },
+        { title: 'Хүлээгдэж буй төлбөр', text: 'Бодит төлбөрийн баримт үүсвэл харагдана' },
+        { title: 'Жолоочийн шалгалт', text: 'Driver verification request үүсвэл харагдана' },
+        { title: 'Нээлттэй гомдол', text: 'Report үүсвэл харагдана' },
+        { title: 'Идэвхтэй чиглэл', text: 'Өгөгдлийн сангаас уншина' },
       ],
       rating: '-',
       completed: 'Админ',
-      activity: [
-        { title: 'Төлбөрийн баримт зөвшөөрсөн', meta: 'BK-001', right: 'Өнөөдөр' },
-        { title: 'Жолоочийн баталгаажуулалт шалгасан', meta: 'DRV-204', right: '09:48' },
-        { title: 'Гомдол шийдвэрлэсэн', meta: 'RP-001', right: 'Өчигдөр' },
-      ],
+      activity: [],
     };
   }
 
@@ -479,35 +487,39 @@ function getProfileExperience(role: AccountRole) {
     availability: 'Жолооч хайхад бэлэн',
     headline: 'Аяллын түүх, яаралтай холбоо барих хүн, суудлын сонголтоо нэг дор хадгална',
     about: 'Орон нутаг руу явах жолооч хайж, суудал захиалдаг аялагчийн профайл.',
-    location: 'Улаанбаатар, Монгол',
-    completion: 86,
+    location: 'Монгол',
+    completion: 0,
     nextStep: 'Яаралтай холбоо барих хүн баталгаажуулах',
-    badges: ['Утас баталгаажсан', '5.0 үнэлгээ', '12 аялал', 'Төлбөрийн баримт бэлэн'],
+    badges: ['Утасны төлөв', 'Яаралтай холбоо барих хүн', 'Төлбөрийн баримт', 'Аяллын түүх'],
     privateFields: [
-      { label: 'Яаралтай холбоо барих хүн', value: 'Дорж Цэцэг' },
-      { label: 'Яаралтай холбоо барих утас', value: '+976 9911 2233' },
-      { label: 'Суудлын сонголт', value: 'Урд суудал' },
-      { label: 'Ачаатай явах эсэх', value: 'Жижиг гар тээштэй' },
+      { label: 'Яаралтай холбоо барих хүн', value: '' },
+      { label: 'Яаралтай холбоо барих утас', value: '' },
+      { label: 'Суудлын сонголт', value: '' },
+      { label: 'Ачаатай явах эсэх', value: '' },
     ],
     primaryCardTitle: 'Аялагчийн мэдээлэл',
     primaryCardText: 'Жолооч таны захиалгын хүсэлтийг харах үед нэр, үнэлгээ, утас баталгаажсан тэмдэг зэрэг үндсэн итгэлцлийн мэдээлэл л харна.',
     infoCards: [
-      { title: 'Дараагийн аялал', text: 'УБ → Эрдэнэт · 2026.05.28' },
-      { title: 'Төлбөрийн баримт', text: '1 баримт шалгагдаж байна' },
-      { title: 'Дууссан аялал', text: '12 аялал' },
-      { title: 'Үнэлгээ', text: 'Дундаж 5.0' },
+      { title: 'Дараагийн аялал', text: 'Booking үүсвэл энд харагдана' },
+      { title: 'Төлбөрийн баримт', text: 'Accepted booking дээр нээгдэнэ' },
+      { title: 'Дууссан аялал', text: 'Одоогоор алга' },
+      { title: 'Үнэлгээ', text: 'Одоогоор алга' },
     ],
-    rating: '5.0/5',
-    completed: '12 аялал',
-    activity: travelerTrips.map((trip) => ({ title: trip.route, meta: `${trip.date} · ${trip.status}`, right: trip.rating === '-' ? 'Үнэлгээ өгөөгүй' : `★ ${trip.rating}` })),
+    rating: 'Одоогоор алга',
+    completed: 'Одоогоор алга',
+    activity: [],
   };
 }
 
 export function AccountSettingsPage({ role }: { role: AccountRole }) {
   const profile = profiles[role];
+  const storedUser = getStoredUser();
   const isDriver = role === 'driver';
   const isSender = role === 'sender';
   const roleLabel = role === 'traveler' ? 'Аялагч' : role === 'driver' ? 'Жолооч' : role === 'sender' ? 'Дайвар ачаа илгээгч' : 'Админ';
+  const displayName = storedUser?.full_name || '';
+  const displayPhone = storedUser?.phone || '';
+  const displayEmail = storedUser?.email || '';
   const settingsTabs = [
     { href: '#details', label: 'Миний мэдээлэл' },
     { href: '#password', label: 'Нууц үг' },
@@ -552,9 +564,9 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
               description="NuudelchinTrip дээр ашиглагдах үндсэн мэдээлэл."
             >
               <div className="grid gap-5 md:grid-cols-2">
-                <Input label="Нэр" defaultValue={profile.name} />
-                <Input label="Утасны дугаар" defaultValue={profile.phone} />
-                <Input label="И-мэйл" defaultValue={profile.email} />
+                <Input label="Нэр" defaultValue={displayName} />
+                <Input label="Утасны дугаар" defaultValue={displayPhone} />
+                <Input label="И-мэйл" defaultValue={displayEmail} />
                 <Select label="Хэрэглэгчийн төрөл" defaultValue={role} options={[{ value: role, label: roleLabel }]} />
               </div>
             </SettingsSection>
@@ -715,7 +727,7 @@ function LegacyAccountSettingsPage({ role }: { role: AccountRole }) {
             </div>
             <h2 className="mt-4 text-xl font-semibold text-foreground">Бүртгэл идэвхгүй болгох</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              MVP дээр бүртгэл устгах хүсэлтийг админ шалгаж шийдвэрлэнэ. Идэвхтэй захиалга байвал шууд устгахгүй.
+              Бүртгэл устгах хүсэлтийг админ шалгаж шийдвэрлэнэ. Идэвхтэй захиалга байвал шууд устгахгүй.
             </p>
             <Button className="mt-5" variant="outline" fullWidth>Идэвхгүй болгох хүсэлт</Button>
           </Card>
@@ -862,7 +874,7 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
               <div className="flex gap-3">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                 <p>
-                  Туршилтын хувилбар дээр файл бодитоор хадгалахгүй, зөвхөн файлын нэр хадгалж админы шалгалтын урсгалыг харуулна. Бодит хувилбар дээр Supabase Storage ашиглана.
+                  Файл бодитоор хадгалах холболт бүрэн идэвхжих хүртэл зөвхөн файлын нэр хадгалж админы шалгалтын урсгалыг харуулна. Бодит хувилбар дээр хамгаалалттай хадгалалт ашиглана.
                 </p>
               </div>
             </div>
@@ -907,7 +919,7 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
             <Card className="p-5 sm:p-6">
               <h2 className="text-xl font-semibold text-foreground">Дайвар ачааны эрх</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Дайвар ачаа нь жолоочийн route дээр суурилсан нэмэлт боломж тул дүрэм зөвшөөрсөн хэрэглэгчид л харагдана.
+                Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж тул дүрэм зөвшөөрсөн хэрэглэгчид л харагдана.
               </p>
               <div className="mt-5 grid gap-4 md:grid-cols-3">
                 <VerificationItem title="Ачааны дүрэм зөвшөөрөх" status="approved" icon={<PackageCheck />} />
@@ -1085,75 +1097,26 @@ export function PublicDriverProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <button className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary" onClick={() => window.location.href = '/routes'}>
           <ArrowLeft className="h-4 w-4" />
           Чиглэл рүү буцах
         </button>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <Card className="p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-4xl font-bold text-primary">Б</div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-3xl font-bold text-foreground">Бат-Эрдэнэ</h1>
-                  <Badge variant="success">Баталгаажсан жолооч</Badge>
-                </div>
-                <div className="mt-3 flex flex-wrap items-center gap-4 text-muted-foreground">
-                  <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-warning text-warning" /> 4.8</span>
-                  <span>42 аялал</span>
-                  <span>Toyota Prius 30</span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Badge variant="success">Утас баталгаажсан</Badge>
-                  <Badge variant="success">Жолооч баталгаажсан</Badge>
-                  <Badge variant="success">Машин баталгаажсан</Badge>
-                  <Badge variant="warning">Дайвар ачаа авч болно</Badge>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-3">
-              <PublicStat label="Дууссан аялал" value="42" />
-              <PublicStat label="Хариу өгөх хугацаа" value="18 мин" />
-              <PublicStat label="Дайвар ачааны эрх" value="Идэвхтэй" />
-            </div>
-
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold text-foreground">Машины мэдээлэл</h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-3">
-                <InfoCard title="Загвар" text="Toyota Prius 30" />
-                <InfoCard title="Улсын дугаар" text="УБА 1234" />
-                <InfoCard title="Сул суудал" text="3 хүртэл" />
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold text-foreground">Сэтгэгдэл</h2>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <ReviewCard text="Цагтаа ирсэн, машин цэвэрхэн, чиглэл ойлгомжтой байсан." author="Сарангэрэл" />
-                <ReviewCard text="Ачаа авах дүрэм тодорхой, авах цагийн цонхоо сайн барьсан." author="Мөнх-Эрдэнэ" />
-              </div>
-            </div>
-          </Card>
-
-          <aside className="space-y-6">
-            <Card className="p-5">
-              <h2 className="text-xl font-semibold text-foreground">Нийтийн профайл дээр харагдах</h2>
-              <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                <p>Нэр, зураг, үнэлгээ, дууссан аялал, баталгаажуулалтын тэмдэг, машины үндсэн мэдээлэл, сэтгэгдэл.</p>
-                <p className="font-medium text-foreground">Утас, имэйл, бичиг баримт, орлого нийтэд харагдахгүй.</p>
-              </div>
-            </Card>
-            <Button size="lg" fullWidth onClick={() => window.location.href = '/dashboard/bookings/BK-001'}>
-              Суудал захиалах
-            </Button>
-            <Button variant="outline" size="lg" fullWidth onClick={() => window.location.href = '/cargo/new'}>
-              Ачаа илгээх
-            </Button>
-          </aside>
-        </div>
+        <Card className="p-8 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <UserCircle className="h-9 w-9" />
+          </div>
+          <Badge variant="info" className="mt-5">Жолоочийн нийтийн профайл</Badge>
+          <h1 className="mt-4 text-3xl font-bold text-foreground">Бодит жолоочийн мэдээлэл чиглэлийн дэлгэрэнгүй дээр харагдана</h1>
+          <p className="mx-auto mt-3 max-w-xl leading-7 text-muted-foreground">
+            Нийтийн профайл дээр зөвхөн тухайн жолоочийн өгөгдлийн санд хадгалагдсан баталгаажуулалт, машины үндсэн мэдээлэл, бодит үнэлгээ харагдана. Одоогоор зохиомол жолоочийн профайл харуулахгүй.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button onClick={() => window.location.href = '/traveler/find-drivers'}>Жолооч хайх</Button>
+            <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>Самбар руу очих</Button>
+          </div>
+        </Card>
       </main>
       <Footer />
     </div>

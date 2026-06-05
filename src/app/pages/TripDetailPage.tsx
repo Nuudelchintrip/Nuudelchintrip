@@ -23,34 +23,13 @@ type RouteDetailView = {
   dropoff: string;
   allowsCargo: boolean;
   cargoNote: string;
-  source?: 'mock' | 'supabase';
+  source: 'supabase';
   driver: {
     name: string;
     rating: number;
     trips: number;
     phone: string;
   };
-};
-
-const fallbackRoute: RouteDetailView = {
-  id: 1,
-  from: 'Улаанбаатар',
-  to: 'Дархан',
-  date: '2026-05-27',
-  time: '09:00',
-  seats: 3,
-  price: 35000,
-  vehicle: 'Toyota Prius 30',
-  pickup: 'Баянзүрх / Сансар орчим',
-  dropoff: 'Дархан төв зам дагуу',
-  allowsCargo: true,
-  cargoNote: '5 кг хүртэл жижиг хайрцаг, бичиг баримт, хувцас',
-  driver: {
-    name: 'Бат Болд',
-    rating: 4.8,
-    trips: 42,
-    phone: '+976 88•• ••••',
-  },
 };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -60,8 +39,8 @@ export function TripDetailPage() {
   const [modal, setModal] = useState<'booking' | 'cargo' | null>(null);
   const [success, setSuccess] = useState('');
   const [createdBookingId, setCreatedBookingId] = useState('');
-  const [route, setRoute] = useState<RouteDetailView>(fallbackRoute);
-  const [loadingRoute, setLoadingRoute] = useState(false);
+  const [route, setRoute] = useState<RouteDetailView | null>(null);
+  const [loadingRoute, setLoadingRoute] = useState(Boolean(id && UUID_PATTERN.test(id)));
   const [routeError, setRouteError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [bookingSeats, setBookingSeats] = useState('1');
@@ -69,12 +48,22 @@ export function TripDetailPage() {
 
   useEffect(() => {
     let active = true;
-    if (!id || !UUID_PATTERN.test(id)) return;
+    if (!id || !UUID_PATTERN.test(id)) {
+      setRoute(null);
+      setLoadingRoute(false);
+      setRouteError('Энэ чиглэл бодит өгөгдөлтэй холбогдоогүй байна.');
+      return;
+    }
 
     setLoadingRoute(true);
     fetchTripById(id)
       .then((trip) => {
-        if (!active || !trip) return;
+        if (!active) return;
+        if (!trip) {
+          setRoute(null);
+          setRouteError('Чиглэл олдсонгүй.');
+          return;
+        }
         const departure = new Date(trip.departureAt);
         setRoute({
           id: trip.id,
@@ -154,6 +143,20 @@ export function TripDetailPage() {
           </div>
         )}
 
+        {!route && !loadingRoute && (
+          <Card className="p-8 text-center">
+            <h1 className="text-2xl font-bold text-foreground">Чиглэлийн мэдээлэл олдсонгүй</h1>
+            <p className="mx-auto mt-3 max-w-xl leading-7 text-muted-foreground">
+              Энэ хуудас зөвхөн өгөгдлийн санд хадгалагдсан бодит чиглэл дээр ажиллана. Жолооч хайх хэсгээс байгаа чиглэл сонгох эсвэл жолоочоор нэвтэрч шинэ чиглэл нийтлээрэй.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Button onClick={() => window.location.href = '/traveler/find-drivers'}>Жолооч хайх</Button>
+              <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>Самбар руу очих</Button>
+            </div>
+          </Card>
+        )}
+
+        {route && (
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
             <Card className="overflow-hidden">
@@ -191,15 +194,16 @@ export function TripDetailPage() {
                 <h2 className="text-xl font-semibold text-foreground">Сэтгэгдлийн тойм</h2>
               </CardHeader>
               <CardBody>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {['Цагтаа хөдөлсөн, мэдээлэл тодорхой байсан.', 'Машин цэвэрхэн, pickup тохирол ойлгомжтой.'].map((text) => (
-                    <div key={text} className="rounded-lg border border-border p-4">
-                      <div className="mb-2 flex text-warning">
-                        {Array.from({ length: 5 }).map((_, index) => <Star key={index} className="h-4 w-4 fill-warning" />)}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{text}</p>
-                    </div>
-                  ))}
+                <div className="rounded-lg border border-border bg-muted/30 p-5">
+                  <div className="mb-2 flex items-center gap-2 text-warning">
+                    <Star className="h-4 w-4" />
+                    <span className="font-medium text-foreground">
+                      {route.driver.rating > 0 ? `${route.driver.rating}/5 үнэлгээ` : 'Үнэлгээ хараахан алга'}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Бодит аялал дууссаны дараа аялагчийн өгсөн сэтгэгдэл энд харагдана.
+                  </p>
                 </div>
               </CardBody>
             </Card>
@@ -215,7 +219,11 @@ export function TripDetailPage() {
                 <div>
                   <p className="font-semibold text-foreground">{route.driver.name}</p>
                   <p className="text-sm text-muted-foreground">{route.vehicle}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">⭐ {route.driver.rating} · {route.driver.trips} аялал</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {route.driver.rating > 0 || route.driver.trips > 0
+                      ? `Үнэлгээ ${route.driver.rating}/5 · ${route.driver.trips} аялал`
+                      : 'Үнэлгээ хараахан алга'}
+                  </p>
                 </div>
               </div>
               <div className="mt-5 space-y-2 text-sm text-muted-foreground">
@@ -237,13 +245,7 @@ export function TripDetailPage() {
                     size="lg"
                     variant="outline"
                     fullWidth
-                    onClick={() => {
-                      if (route.source === 'supabase') {
-                        window.location.href = `/cargo/new?tripId=${route.id}`;
-                        return;
-                      }
-                      setModal('cargo');
-                    }}
+                    onClick={() => { window.location.href = `/cargo/new?tripId=${route.id}`; }}
                   >
                     Дайвар ачаа илгээх
                   </Button>
@@ -252,9 +254,10 @@ export function TripDetailPage() {
             </Card>
           </aside>
         </div>
+        )}
       </main>
 
-      {modal && (
+      {modal && route && (
         <RequestModal
           type={modal}
           onClose={() => setModal(null)}
@@ -292,7 +295,8 @@ export function TripDetailPage() {
               return;
             }
             setCreatedBookingId('');
-            setSuccess(modal === 'booking' ? 'Захиалгын хүсэлт амжилттай илгээгдлээ.' : 'Дайвар ачааны хүсэлт амжилттай илгээгдлээ.');
+            setSuccess('');
+            setRouteError('Энэ үйлдэл зөвхөн бодит чиглэл дээр ажиллана.');
             setModal(null);
           }}
           seats={bookingSeats}
