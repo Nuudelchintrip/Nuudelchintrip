@@ -3,6 +3,7 @@ import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Clock3, MessageSquare
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
+import { Logo } from '../components/Logo';
 import { markPhoneVerified } from '../services/supabaseAuth';
 import { addActionLog, formatMongoliaPhone, getOnboardingPath, getStoredUser, isValidMongoliaPhone } from '../utils/auth';
 
@@ -105,11 +106,8 @@ export function VerifyPhonePage() {
           Бүртгэл рүү буцах
         </a>
 
-        <a href="/" className="mb-8 flex min-w-0 items-center justify-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary">
-            <span className="text-xl font-bold text-primary-foreground">N</span>
-          </div>
-          <span className="min-w-0 text-2xl font-bold text-foreground">NuudelchinTrip</span>
+        <a href="/" className="mb-8 flex min-w-0 justify-center" aria-label="NuudelchinTrip нүүр">
+          <Logo size="lg" />
         </a>
 
         <Card className="box-border w-full max-w-full overflow-hidden">

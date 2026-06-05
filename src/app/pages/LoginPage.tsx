@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router';
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
+import { Logo } from '../components/Logo';
 import { loginWithSupabase } from '../services/supabaseAuth';
 import { addActionLog, getDashboardPath } from '../utils/auth';
 
@@ -41,11 +42,8 @@ export function LoginPage() {
           Буцах
         </a>
 
-        <a href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-xl font-bold text-primary-foreground">N</span>
-          </div>
-          <span className="text-2xl font-bold text-foreground">NuudelchinTrip</span>
+        <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
+          <Logo size="lg" />
         </a>
 
         <Card>

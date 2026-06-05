@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, Car, CheckCircle2, Package, UserRound } from 'lu
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
+import { Logo } from '../components/Logo';
 import { getDashboardPath, saveStoredUser, type MarketplaceRole } from '../utils/auth';
 
 const roles = [
@@ -54,11 +55,8 @@ export function RoleSelectPage() {
           Буцах
         </a>
 
-        <a href="/" className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-xl font-bold text-primary-foreground">N</span>
-          </div>
-          <span className="text-2xl font-bold text-foreground">NuudelchinTrip</span>
+        <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
+          <Logo size="lg" />
         </a>
 
         <div className="text-center mb-10">

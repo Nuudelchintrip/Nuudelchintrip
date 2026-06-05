@@ -1,3 +1,5 @@
+import { Logo } from './Logo';
+
 const footerGroups = [
   {
     title: 'Платформ',
@@ -30,12 +32,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr_1fr]">
           <div>
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <span className="text-xl font-bold text-primary-foreground">N</span>
-              </div>
-              <span className="text-xl font-bold text-foreground">NuudelchinTrip</span>
-            </div>
+            <Logo size="md" className="mb-4" />
             <p className="max-w-sm text-sm leading-6 text-muted-foreground">
               Орон нутгийн аялагчийг сул суудалтай жолоочтой холбох унаа хуваалцах платформ.
             </p>

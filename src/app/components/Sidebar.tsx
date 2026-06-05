@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { CircleHelp, LogOut, Menu, ShieldCheck, UserCircle, X } from 'lucide-react';
 import { useLocation } from 'react-router';
 import type { DashboardRole } from '../navigation/dashboardMenus';
+import { Logo } from './Logo';
 
 interface SidebarProps {
   menuItems: {
@@ -22,11 +23,8 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
   return (
     <>
       <div className="sticky top-0 z-40 flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
-        <a href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">N</span>
-          </div>
-          <span className="text-[15px] font-bold text-foreground">NuudelchinTrip</span>
+        <a href="/" aria-label="NuudelchinTrip нүүр">
+          <Logo size="sm" />
         </a>
         <button
           type="button"
@@ -48,11 +46,8 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
           />
           <aside className="relative flex h-full w-[82vw] max-w-80 flex-col bg-sidebar shadow-2xl">
             <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-4">
-              <a href="/" className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                  <span className="text-lg font-bold text-primary-foreground">N</span>
-                </div>
-                <span className="text-[15px] font-bold text-foreground">NuudelchinTrip</span>
+              <a href="/" aria-label="NuudelchinTrip нүүр">
+                <Logo size="sm" />
               </a>
               <button
                 type="button"
@@ -103,11 +98,8 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
       <aside className="hidden w-60 shrink-0 bg-sidebar border-r border-sidebar-border md:flex flex-col h-screen sticky top-0">
       {/* Logo */}
       <div className="px-4 py-4 border-b border-sidebar-border">
-        <a href="/" className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-lg font-bold text-primary-foreground">N</span>
-          </div>
-          <span className="text-[15px] font-bold text-foreground">NuudelchinTrip</span>
+        <a href="/" aria-label="NuudelchinTrip нүүр">
+          <Logo size="sm" />
         </a>
         <div className="mt-3 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5">
           <div className="flex items-center gap-2.5">

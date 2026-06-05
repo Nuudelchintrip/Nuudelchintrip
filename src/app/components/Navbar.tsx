@@ -1,6 +1,7 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './Button';
+import { Logo } from './Logo';
 
 const publicLinks = [
   { href: '/how-it-works', label: 'Хэрхэн ажилладаг' },
@@ -17,11 +18,8 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-8">
-            <a href="/" className="flex min-w-0 items-center gap-3" aria-label="NuudelchinTrip нүүр">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary">
-                <span className="text-xl font-bold text-primary-foreground">N</span>
-              </div>
-              <span className="truncate text-xl font-bold text-foreground">NuudelchinTrip</span>
+            <a href="/" aria-label="NuudelchinTrip нүүр">
+              <Logo size="md" />
             </a>
 
             <div className="hidden items-center gap-6 lg:flex">
