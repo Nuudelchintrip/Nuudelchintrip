@@ -97,7 +97,10 @@ export async function loginWithSupabase(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 
-  await supabase.rpc('ensure_current_profile');
+  const { error: ensureProfileError } = await supabase.rpc('ensure_current_profile');
+  if (ensureProfileError) {
+    throw toError(ensureProfileError, 'Profile мөр автоматаар үүсгэхэд алдаа гарлаа.');
+  }
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -107,7 +110,7 @@ export async function loginWithSupabase(email: string, password: string) {
 
   if (profileError) throw toError(profileError, 'Profile мэдээлэл уншихад алдаа гарлаа.');
   if (!profile) {
-    throw new Error('Auth login амжилттай боловч profiles мөр олдсонгүй. Supabase SQL дээр ensure_current_profile migration ажиллуулна уу.');
+    throw new Error('Auth login амжилттай боловч profiles мөр олдсонгүй. Supabase Authentication user болон public.profiles id таарч байгаа эсэхийг шалгана уу.');
   }
 
   let verificationStatus: ProfileRow['verification_status'];
