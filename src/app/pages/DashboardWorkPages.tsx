@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { ArrowLeft, Banknote, Box, Calendar, Car, CheckCircle2, Clock3, Eye, FileCheck2, Filter, ListChecks, MapPin, PackageCheck, Plus, Route, Search, ShieldCheck, Star, UsersRound, X } from 'lucide-react';
+import { ArrowLeft, Banknote, Box, Bus, Calendar, Car, CheckCircle2, Clock3, Eye, FileCheck2, Filter, ListChecks, MapPin, PackageCheck, Plus, Route, Search, ShieldCheck, Star, UsersRound, X } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
@@ -23,11 +23,13 @@ import {
   fetchCurrentDriverCargoRequests,
   fetchCurrentDriverPassengerRequests,
   fetchCurrentDriverTrips,
+  fetchCurrentTravelerBookings,
   updateCargoRequestStatus,
   updatePassengerBookingStatus,
   type DriverCargoRequest,
   type DriverPassengerRequest,
   type MarketplaceTrip,
+  type TravelerBookingSummary,
 } from '../services/tripService';
 import {
   addActionLog,
@@ -867,8 +869,21 @@ function getRequestStatusLabel(status: string) {
   if (status === 'accepted') return 'Зөвшөөрсөн';
   if (status === 'rejected') return 'Татгалзсан';
   if (status === 'waiting_payment') return 'Төлбөр хүлээгдэж байна';
+  if (status === 'payment_review') return 'Төлбөр шалгаж байна';
   if (status === 'confirmed') return 'Баталгаажсан';
+  if (status === 'on_trip') return 'Аялал эхэлсэн';
+  if (status === 'completed') return 'Дууссан';
+  if (status === 'cancelled') return 'Цуцлагдсан';
+  if (status === 'disputed') return 'Маргаан шалгаж байна';
   return 'Хүлээгдэж байна';
+}
+
+function getBookingBadgeVariant(status: string): 'success' | 'warning' | 'danger' | 'info' | 'default' {
+  if (status === 'confirmed' || status === 'on_trip' || status === 'completed') return 'success';
+  if (status === 'rejected' || status === 'cancelled' || status === 'disputed') return 'danger';
+  if (status === 'waiting_payment' || status === 'payment_review') return 'warning';
+  if (status === 'accepted') return 'info';
+  return 'default';
 }
 
 export function DriverOffersPage() {
@@ -1018,18 +1033,30 @@ export function CargoFindRoutesPage() {
 export function MyRoutesPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
   const [driverTrips, setDriverTrips] = useState<MarketplaceTrip[]>([]);
-  const [loadingRoutes, setLoadingRoutes] = useState(role === 'driver' && isSupabaseConfigured);
+  const [travelerBookings, setTravelerBookings] = useState<TravelerBookingSummary[]>([]);
+  const [loadingRoutes, setLoadingRoutes] = useState(isSupabaseConfigured);
   const [routesError, setRoutesError] = useState('');
 
   useEffect(() => {
     let active = true;
-    if (role !== 'driver' || !isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setLoadingRoutes(false);
+      return;
+    }
 
     setLoadingRoutes(true);
-    fetchCurrentDriverTrips()
-      .then((trips) => {
+    const request = role === 'driver'
+      ? fetchCurrentDriverTrips()
+      : fetchCurrentTravelerBookings();
+
+    request
+      .then((items) => {
         if (!active) return;
-        setDriverTrips(trips);
+        if (role === 'driver') {
+          setDriverTrips(items as MarketplaceTrip[]);
+        } else {
+          setTravelerBookings(items as TravelerBookingSummary[]);
+        }
         setRoutesError('');
       })
       .catch((error) => {
@@ -1047,7 +1074,14 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
 
   return (
     <DashboardFrame role={role} active="routes">
-      <PageTop badge={copy.badge} title={copy.routes} description="Өөрийн нийтэлсэн чиглэлүүд, таарсан хүмүүс, захиалгын урсгалыг нэг дор харна." backHref={copy.base} />
+      <PageTop
+        badge={copy.badge}
+        title={copy.routes}
+        description={role === 'driver'
+          ? 'Өөрийн нийтэлсэн чиглэлүүд болон суудлын хүсэлтүүдээ нэг дор хянана.'
+          : 'Захиалсан аяллын чиглэл, жолооч, суудал, төлбөр болон явцын төлөвөө хянана.'}
+        backHref={copy.base}
+      />
       {loadingRoutes && (
         <Card className="mb-5 p-4">
           <p className="text-sm text-muted-foreground">Таны чиглэлүүдийг уншиж байна...</p>
@@ -1061,10 +1095,12 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-semibold text-foreground">Чиглэлийн жагсаалт</h2>
-            <Button className="w-full sm:w-auto" size="sm" onClick={() => window.location.href = role === 'driver' ? '/dashboard/driver/routes/new' : '/dashboard/traveler/trips/new'}>
-              <Plus className="h-4 w-4" />
-              Нэмэх
+            <h2 className="text-xl font-semibold text-foreground">
+              {role === 'driver' ? 'Чиглэлийн жагсаалт' : 'Аяллын захиалгууд'}
+            </h2>
+            <Button className="w-full sm:w-auto" size="sm" onClick={() => window.location.href = role === 'driver' ? '/dashboard/driver/routes/new' : '/traveler/find-drivers'}>
+              {role === 'driver' ? <Plus className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+              {role === 'driver' ? 'Чиглэл нэмэх' : 'Жолооч хайх'}
             </Button>
           </div>
         </CardHeader>
@@ -1085,14 +1121,52 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
                 </div>
               ))}
             </div>
+          ) : role === 'traveler' && travelerBookings.length > 0 ? (
+            <div className="space-y-4">
+              {travelerBookings.map((booking) => (
+                <div key={booking.id} className="grid gap-4 rounded-lg border border-border p-4 lg:grid-cols-[minmax(0,1fr)_180px_170px] lg:items-center">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground">{booking.route}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {new Date(booking.departureAt).toLocaleString('mn-MN')} · {booking.driverName}
+                      {booking.carModel ? ` · ${booking.carModel}` : ''}
+                    </p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {booking.selectedSeats.length > 0
+                        ? `Суудал: ${booking.selectedSeats.join(', ')}`
+                        : `${booking.seatsRequested} суудал`}
+                      {' · '}₮{booking.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                  <Badge variant={getBookingBadgeVariant(booking.status)}>
+                    {getRequestStatusLabel(booking.status)}
+                  </Badge>
+                  <Button
+                    variant={booking.status === 'waiting_payment' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => {
+                      window.location.href = booking.status === 'waiting_payment'
+                        ? `/dashboard/bookings/${booking.id}/payment-proof`
+                        : `/dashboard/bookings/${booking.id}`;
+                    }}
+                  >
+                    {booking.status === 'waiting_payment' ? 'Баримт оруулах' : 'Дэлгэрэнгүй'}
+                  </Button>
+                </div>
+              ))}
+            </div>
           ) : (
           <div className="rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
-            <Route className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-            <h3 className="text-lg font-semibold text-foreground">Чиглэл хараахан алга</h3>
+            {role === 'driver'
+              ? <Route className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+              : <Bus className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />}
+            <h3 className="text-lg font-semibold text-foreground">
+              {role === 'driver' ? 'Чиглэл хараахан алга' : 'Аяллын захиалга хараахан алга'}
+            </h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               {role === 'driver'
                 ? 'Шинэ чиглэл нийтэлсний дараа энд харагдана.'
-                : 'Захиалга үүссэний дараа таны аяллын жагсаалт энд харагдана.'}
+                : 'Жолооч хайж, суудлын хүсэлт илгээсний дараа таны аялал энд харагдана.'}
             </p>
           </div>
           )}

@@ -70,6 +70,20 @@ export interface DriverPassengerRequest {
   createdAt: string;
 }
 
+export interface TravelerBookingSummary {
+  id: string;
+  tripId: string;
+  route: string;
+  departureAt: string;
+  driverName: string;
+  carModel?: string;
+  seatsRequested: number;
+  selectedSeats: string[];
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+}
+
 export interface DriverCargoRequest {
   id: string;
   tripId: string;
@@ -651,6 +665,79 @@ export async function fetchCurrentDriverPassengerRequests() {
       status: booking.status,
       createdAt: booking.created_at,
     } satisfies DriverPassengerRequest;
+  });
+}
+
+export async function fetchCurrentTravelerBookings(): Promise<TravelerBookingSummary[]> {
+  if (!supabase) return [];
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw toError(userError, 'Нэвтрэлтийн мэдээллийг шалгахад алдаа гарлаа.');
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('Аяллын жагсаалтаа харахын тулд дахин нэвтэрнэ үү.');
+
+  let { data: bookingRows, error: bookingError } = await supabase
+    .from('passenger_bookings')
+    .select('id, trip_id, traveler_id, seats_requested, selected_seats, status, total_amount, note, created_at')
+    .eq('traveler_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (bookingError && toError(bookingError, '').message.includes('selected_seats')) {
+    const retry = await supabase
+      .from('passenger_bookings')
+      .select('id, trip_id, traveler_id, seats_requested, status, total_amount, note, created_at')
+      .eq('traveler_id', userId)
+      .order('created_at', { ascending: false });
+    bookingRows = retry.data;
+    bookingError = retry.error;
+  }
+
+  if (bookingError) throw toError(bookingError, 'Аяллын захиалгуудыг уншихад алдаа гарлаа.');
+  if (!bookingRows?.length) return [];
+
+  const tripIds = Array.from(new Set(bookingRows.map((booking) => booking.trip_id)));
+  const { data: tripRows, error: tripError } = await supabase
+    .from('trips')
+    .select('id, driver_id, from_location, to_location, departure_at')
+    .in('id', tripIds);
+
+  if (tripError) throw toError(tripError, 'Захиалгын чиглэлүүдийг уншихад алдаа гарлаа.');
+
+  const driverIds = Array.from(new Set((tripRows || []).map((trip) => trip.driver_id)));
+  const [{ data: driverRows, error: driverError }, { data: driverProfileRows, error: driverProfileError }] = await Promise.all([
+    driverIds.length
+      ? supabase.from('profiles').select('id, full_name').in('id', driverIds)
+      : Promise.resolve({ data: [], error: null }),
+    driverIds.length
+      ? supabase.from('driver_profiles').select('user_id, car_model').in('user_id', driverIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (driverError) throw toError(driverError, 'Жолоочийн мэдээллийг уншихад алдаа гарлаа.');
+  if (driverProfileError) throw toError(driverProfileError, 'Машины мэдээллийг уншихад алдаа гарлаа.');
+
+  const tripsById = new Map((tripRows || []).map((trip) => [trip.id, trip]));
+  const driversById = new Map((driverRows || []).map((driver) => [driver.id, driver]));
+  const driverProfilesById = new Map((driverProfileRows || []).map((driver) => [driver.user_id, driver]));
+
+  return (bookingRows as BookingRow[]).map((booking) => {
+    const trip = tripsById.get(booking.trip_id);
+    const driver = trip ? driversById.get(trip.driver_id) : undefined;
+    const driverProfile = trip ? driverProfilesById.get(trip.driver_id) : undefined;
+
+    return {
+      id: booking.id,
+      tripId: booking.trip_id,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Чиглэлийн мэдээлэл олдсонгүй',
+      departureAt: trip?.departure_at || booking.created_at,
+      driverName: driver?.full_name || 'Жолооч',
+      carModel: driverProfile?.car_model || undefined,
+      seatsRequested: booking.seats_requested,
+      selectedSeats: normalizeSeatIds(booking.selected_seats, booking.seats_requested),
+      totalAmount: Number(booking.total_amount || 0),
+      status: booking.status,
+      createdAt: booking.created_at,
+    };
   });
 }
 
