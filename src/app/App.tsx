@@ -3,6 +3,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { AccountPasswordPage, AccountProfilePage, AccountSettingsPage, AccountVerificationPage, PublicDriverProfilePage } from './pages/AccountPages';
 import { ProfileRouterPage, SettingsRouterPage } from './pages/AccountRouterPages';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 import { CargoFindRoutesPage, DriverCargoRequestsPage, DriverOffersPage, EarningsPage, FindDriversPage, MyRoutesPage, ReviewsPage, RoleRequestsPage, SenderCargoPage, TripFormPage } from './pages/DashboardWorkPages';
 import { AdminQueuePage } from './pages/AdminQueueRealPage';
 import { BookingDetailPage } from './pages/BookingDetailPage';
@@ -30,7 +31,15 @@ import { VerifyPhonePage } from './pages/VerifyPhonePage';
 import { refreshLocalProfileFromSupabase } from './services/supabaseAuth';
 import { getDashboardPath, getOnboardingPath, type MarketplaceRole, type MockUserProfile } from './utils/auth';
 
-function AccountGate({ children, roles }: { children: ReactNode; roles?: MarketplaceRole[] }) {
+function AccountGate({
+  children,
+  roles,
+  loginPath = '/auth/login',
+}: {
+  children: ReactNode;
+  roles?: MarketplaceRole[];
+  loginPath?: string;
+}) {
   const [user, setUser] = useState<MockUserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -70,7 +79,7 @@ function AccountGate({ children, roles }: { children: ReactNode; roles?: Marketp
     const reason = loadError
       ? `Бүртгэлийг баталгаажуулж чадсангүй: ${loadError}`
       : 'Энэ хэсэгт орохын тулд нэвтэрнэ үү.';
-    return <Navigate to={`/auth/login?reason=${encodeURIComponent(reason)}&next=${encodeURIComponent(next)}`} replace />;
+    return <Navigate to={`${loginPath}?reason=${encodeURIComponent(reason)}&next=${encodeURIComponent(next)}`} replace />;
   }
 
   if (user.role !== 'admin' && !user.phone_verified) {
@@ -82,6 +91,9 @@ function AccountGate({ children, roles }: { children: ReactNode; roles?: Marketp
   }
 
   if (roles && !roles.includes(user.role)) {
+    if (roles.length === 1 && roles[0] === 'admin') {
+      return <Navigate to="/admin/login?reason=Энэ бүртгэл админ эрхгүй байна." replace />;
+    }
     return <Navigate to={getDashboardPath(user.role)} replace />;
   }
 
@@ -89,7 +101,7 @@ function AccountGate({ children, roles }: { children: ReactNode; roles?: Marketp
 }
 
 function AdminOnly({ children }: { children: ReactNode }) {
-  return <AccountGate roles={['admin']}>{children}</AccountGate>;
+  return <AccountGate roles={['admin']} loginPath="/admin/login">{children}</AccountGate>;
 }
 
 function RequireAccount({ children, roles }: { children: ReactNode; roles?: MarketplaceRole[] }) {
@@ -186,6 +198,7 @@ export default function App() {
         <Route path="/dashboard/bookings/:id/delivery-proof" element={<RequireAccount><DeliveryProofPage /></RequireAccount>} />
 
         <Route path="/admin" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin/profile" element={<AdminOnly><AccountProfilePage role="admin" /></AdminOnly>} />
         <Route path="/admin/settings" element={<AdminOnly><AccountSettingsPage role="admin" /></AdminOnly>} />
         <Route path="/admin/settings/password" element={<AdminOnly><AccountPasswordPage role="admin" /></AdminOnly>} />
