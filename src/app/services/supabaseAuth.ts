@@ -183,19 +183,39 @@ export async function completeTravelerOnboarding(input: {
   emergencyContactPhone?: string;
 }) {
   if (supabase) {
-    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      throw toError(sessionError, 'Нэвтрэлтийн мэдээллийг шалгахад алдаа гарлаа.');
+    }
     const userId = sessionData.session?.user.id;
-    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна.');
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        emergency_contact_name: input.emergencyContactName,
-        emergency_contact_phone: input.emergencyContactPhone,
-        onboarding_completed: true,
-      })
-      .eq('id', userId);
-    if (error) throw error;
-    return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
+    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
+
+    const { data, error } = await supabase.rpc('complete_traveler_onboarding', {
+      p_emergency_contact_name: input.emergencyContactName?.trim() || null,
+      p_emergency_contact_phone: input.emergencyContactPhone?.trim() || null,
+    });
+    if (error) {
+      const messageByCode: Record<string, string> = {
+        not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
+        auth_user_not_found: 'Нэвтэрсэн хэрэглэгчийн бүртгэл олдсонгүй.',
+        traveler_role_required: 'Энэ бүртгэл аялагчийн эрхгүй байна.',
+        account_suspended: 'Таны бүртгэл түр түдгэлзсэн байна.',
+      };
+      const knownMessage = Object.entries(messageByCode).find(([code]) =>
+        error.message?.includes(code),
+      )?.[1];
+      throw knownMessage
+        ? new Error(knownMessage)
+        : toError(error, 'Аялагчийн мэдээллийг хадгалахад алдаа гарлаа.');
+    }
+
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      throw new Error('Аялагчийн мэдээлэл хадгалсан хариу буруу байна.');
+    }
+
+    const profile = toLocalProfile(data as ProfileRow, sessionData.session?.user.email || '');
+    saveStoredUser(profile);
+    return profile;
   }
 
   return updateStoredUser({ role: 'traveler', onboarding_completed: true });
