@@ -71,6 +71,10 @@ async function syncCurrentProfileFromSupabase(fallbackEmail = '') {
 export async function registerWithSupabase(input: RegisterInput) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
+  clearStoredUser();
+  const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
+  if (signOutError) throw signOutError;
+
   const { data, error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -85,32 +89,18 @@ export async function registerWithSupabase(input: RegisterInput) {
   });
 
   if (error) throw error;
+  if (!data.user || data.user.identities?.length === 0) {
+    throw new Error('Энэ и-мэйл хаяг өмнө нь бүртгэгдсэн байна. Нэвтрэх хэсгийг ашиглана уу.');
+  }
+  if (!data.session) {
+    throw new Error(
+      'Supabase дээр и-мэйл баталгаажуулалт асаалттай байна. Шинэ бүртгэлийг утас баталгаажуулах руу үргэлжлүүлэхийн тулд Confirm email тохиргоог унтраана уу.',
+    );
+  }
 
-  const localProfile: MockUserProfile = {
-    role: input.role,
-    full_name: input.fullName,
-    phone: input.phone,
-    email: input.email,
-    phone_verified: false,
-    onboarding_completed: false,
-    verification_status: input.role === 'driver' ? 'pending' : undefined,
-    cargo_policy_accepted: input.role === 'cargo_sender' ? false : undefined,
-  };
-  saveStoredUser(localProfile);
-
-  if (data.session) {
-    await supabase
-      .from('profiles')
-      .update({
-        role: input.role,
-        full_name: input.fullName,
-        phone: input.phone,
-        email: input.email,
-        phone_verified: false,
-        onboarding_completed: false,
-        cargo_policy_accepted: input.role === 'cargo_sender' ? false : undefined,
-      })
-      .eq('id', data.user?.id);
+  const localProfile = await syncCurrentProfileFromSupabase(input.email);
+  if (!localProfile || localProfile.role !== input.role) {
+    throw new Error('Сонгосон хэрэглэгчийн төрөл хадгалагдсангүй. Бүртгэлийг дахин оролдоно уу.');
   }
 
   return localProfile;
@@ -167,13 +157,15 @@ export async function logoutFromSupabase() {
 export async function markPhoneVerified() {
   if (!supabase) return updateStoredUser({ phone_verified: true });
 
-  const { data: sessionData } = await supabase.auth.getSession();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
   const userId = sessionData.session?.user.id;
-  if (userId) {
-    await supabase.from('profiles').update({ phone_verified: true }).eq('id', userId);
-  }
+  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин бүртгүүлэх эсвэл нэвтэрнэ үү.');
 
-  return updateStoredUser({ phone_verified: true });
+  const { error } = await supabase.from('profiles').update({ phone_verified: true }).eq('id', userId);
+  if (error) throw error;
+
+  return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
 }
 
 export async function completeTravelerOnboarding(input: {
@@ -183,16 +175,17 @@ export async function completeTravelerOnboarding(input: {
   if (supabase) {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
-    if (userId) {
-      await supabase
-        .from('profiles')
-        .update({
-          emergency_contact_name: input.emergencyContactName,
-          emergency_contact_phone: input.emergencyContactPhone,
-          onboarding_completed: true,
-        })
-        .eq('id', userId);
-    }
+    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна.');
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        emergency_contact_name: input.emergencyContactName,
+        emergency_contact_phone: input.emergencyContactPhone,
+        onboarding_completed: true,
+      })
+      .eq('id', userId);
+    if (error) throw error;
+    return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
   }
 
   return updateStoredUser({ role: 'traveler', onboarding_completed: true });
@@ -206,16 +199,22 @@ export async function submitDriverOnboarding(input: {
   if (supabase) {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
-    if (userId) {
-      await supabase.from('driver_profiles').upsert({
-        user_id: userId,
-        verification_status: 'pending',
-        car_model: input.carModel,
-        plate_number: input.plateNumber,
-        seats: input.seats,
-      });
-      await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', userId);
-    }
+    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна.');
+    const { error: driverError } = await supabase.from('driver_profiles').upsert({
+      user_id: userId,
+      verification_status: 'pending',
+      car_model: input.carModel,
+      plate_number: input.plateNumber,
+      seats: input.seats,
+    });
+    if (driverError) throw driverError;
+
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ onboarding_completed: true })
+      .eq('id', userId);
+    if (profileError) throw profileError;
+    return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
   }
 
   return updateStoredUser({ role: 'driver', onboarding_completed: true, verification_status: 'pending' });
@@ -225,12 +224,13 @@ export async function completeCargoOnboarding() {
   if (supabase) {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
-    if (userId) {
-      await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true, cargo_policy_accepted: true })
-        .eq('id', userId);
-    }
+    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна.');
+    const { error } = await supabase
+      .from('profiles')
+      .update({ onboarding_completed: true, cargo_policy_accepted: true })
+      .eq('id', userId);
+    if (error) throw error;
+    return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
   }
 
   return updateStoredUser({ role: 'cargo_sender', onboarding_completed: true, cargo_policy_accepted: true });
