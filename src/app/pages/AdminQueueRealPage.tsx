@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, CheckCircle2, CreditCard, ExternalLink, RefreshCw, ShieldCheck, X } from 'lucide-react';
+import { ArrowLeft, Boxes, CheckCircle2, CreditCard, ExternalLink, Map, RefreshCw, ShieldCheck, Ticket, Users, X } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
@@ -8,12 +8,22 @@ import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import {
   approvePayment,
+  fetchAdminBookings,
+  fetchAdminCargoRequests,
   fetchAdminDriverVerifications,
   fetchAdminPayments,
+  fetchAdminTrips,
+  fetchAdminUsers,
   rejectPayment,
+  setUserSuspended,
   updateDriverVerification,
+  updateTripStatus,
+  type AdminBookingItem,
+  type AdminCargoItem,
   type AdminDriverVerificationItem,
   type AdminPaymentItem,
+  type AdminTripItem,
+  type AdminUserItem,
 } from '../services/adminService';
 
 type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings' | 'logs';
@@ -59,7 +69,21 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
       <Sidebar menuItems={getDashboardMenu('admin')} accountRole="admin" />
       <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
         <PageHeader view={view} />
-        {view === 'payments' ? <AdminPaymentsQueue /> : view === 'verifications' ? <AdminVerificationsQueue /> : <ComingSoonQueue view={view} />}
+        {view === 'payments' ? (
+          <AdminPaymentsQueue />
+        ) : view === 'verifications' ? (
+          <AdminVerificationsQueue />
+        ) : view === 'users' ? (
+          <AdminUsersQueue />
+        ) : view === 'routes' ? (
+          <AdminTripsQueue />
+        ) : view === 'bookings' ? (
+          <AdminBookingsQueue />
+        ) : view === 'cargo' ? (
+          <AdminCargoQueue />
+        ) : (
+          <ComingSoonQueue view={view} />
+        )}
         <AppFooter />
       </main>
     </div>
@@ -314,6 +338,293 @@ function AdminVerificationsQueue() {
   );
 }
 
+function AdminUsersQueue() {
+  const [items, setItems] = useState<AdminUserItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [busyId, setBusyId] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminUsers());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Хэрэглэгчдийн жагсаалт уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const toggleSuspend = async (item: AdminUserItem) => {
+    setBusyId(item.id);
+    setError('');
+    setMessage('');
+    try {
+      await setUserSuspended(item.id, !item.isSuspended);
+      setMessage(item.isSuspended ? 'Хэрэглэгчийн эрхийг сэргээлээ.' : 'Хэрэглэгчийг түр түдгэлзүүллээ.');
+      await load();
+    } catch (toggleError) {
+      setError(toggleError instanceof Error ? toggleError.message : 'Хэрэглэгчийн төлөв шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setBusyId('');
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<Users className="h-5 w-5" />} title="Бүртгэлтэй хэрэглэгчид" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+      {message && <Notice tone="success" text={message} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Хэрэглэгчдийг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор хэрэглэгч алга" text="Хэрэглэгч бүртгүүлмэгц энд бодитоор гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="p-4 sm:p-5">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="info">{roleLabel(item.role)}</Badge>
+                    {item.isSuspended && <Badge variant="danger">Түдгэлзсэн</Badge>}
+                    {item.phoneVerified && <Badge variant="success">Утас баталгаажсан</Badge>}
+                    {item.onboardingCompleted && <Badge variant="default">Onboarding дууссан</Badge>}
+                  </div>
+                  <h2 className="mt-3 break-words text-xl font-semibold text-foreground">{item.fullName}</h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {[item.phone, item.email].filter(Boolean).join(' · ') || 'Холбоо барих мэдээлэл алга'}
+                    {item.createdAt ? ` · ${new Date(item.createdAt).toLocaleDateString('mn-MN')}` : ''}
+                  </p>
+                </div>
+                {item.role !== 'admin' && (
+                  <Button
+                    variant="outline"
+                    disabled={busyId === item.id}
+                    onClick={() => toggleSuspend(item)}
+                  >
+                    {item.isSuspended ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                    {item.isSuspended ? 'Эрх сэргээх' : 'Түдгэлзүүлэх'}
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminTripsQueue() {
+  const [items, setItems] = useState<AdminTripItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [busyId, setBusyId] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminTrips());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Чиглэлийн жагсаалт уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const setStatus = async (item: AdminTripItem, status: 'active' | 'cancelled') => {
+    setBusyId(item.id);
+    setError('');
+    setMessage('');
+    try {
+      await updateTripStatus(item.id, status);
+      setMessage(status === 'cancelled' ? 'Чиглэлийг цуцаллаа.' : 'Чиглэлийг идэвхжүүллээ.');
+      await load();
+    } catch (statusError) {
+      setError(statusError instanceof Error ? statusError.message : 'Чиглэлийн төлөв шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setBusyId('');
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<Map className="h-5 w-5" />} title="Нийтлэгдсэн чиглэлүүд" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+      {message && <Notice tone="success" text={message} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Чиглэлүүдийг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор чиглэл алга" text="Баталгаажсан жолооч чиглэл нийтэлмэгц энд бодитоор гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="p-4 sm:p-5">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    {item.allowsCargo && <Badge variant="info">Ачаа зөвшөөрнө</Badge>}
+                  </div>
+                  <h2 className="mt-3 break-words text-xl font-semibold text-foreground">{item.route}</h2>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {item.driverName}{item.driverPhone ? ` · ${item.driverPhone}` : ''} · {new Date(item.departureAt).toLocaleString('mn-MN')}
+                  </p>
+                  <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                    <Info label="Суудал" value={`${item.seatsAvailable}/${item.seatsTotal} сул`} />
+                    <Info label="Үнэ" value={`₮${item.pricePerSeat.toLocaleString()}`} />
+                    <Info label="Төлөв" value={tripStatusLabel(item.status)} />
+                  </div>
+                </div>
+                {item.status !== 'completed' && (
+                  item.status === 'cancelled' ? (
+                    <Button variant="outline" disabled={busyId === item.id} onClick={() => setStatus(item, 'active')}>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Идэвхжүүлэх
+                    </Button>
+                  ) : (
+                    <Button variant="outline" disabled={busyId === item.id} onClick={() => setStatus(item, 'cancelled')}>
+                      <X className="h-4 w-4" />
+                      Цуцлах
+                    </Button>
+                  )
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminBookingsQueue() {
+  const [items, setItems] = useState<AdminBookingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminBookings());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Захиалгын жагсаалт уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<Ticket className="h-5 w-5" />} title="Аяллын захиалгууд" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Захиалгуудыг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор захиалга алга" text="Аялагч суудал захиалмагц энд бодитоор гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="p-4 sm:p-5">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={item.status} />
+                  <Badge variant="default">{item.seatsRequested} суудал</Badge>
+                </div>
+                <h2 className="mt-3 break-words text-xl font-semibold text-foreground">{item.route}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Аялагч: {item.travelerName}{item.travelerPhone ? ` · ${item.travelerPhone}` : ''} · Жолооч: {item.driverName}
+                </p>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                  <Info label="Дүн" value={`₮${item.totalAmount.toLocaleString()}`} />
+                  <Info label="Төлөв" value={bookingStatusLabel(item.status)} />
+                  <Info label="Огноо" value={new Date(item.createdAt).toLocaleString('mn-MN')} />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminCargoQueue() {
+  const [items, setItems] = useState<AdminCargoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminCargoRequests());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Ачааны хүсэлтүүд уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<Boxes className="h-5 w-5" />} title="Ачааны хүсэлтүүд" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Ачааны хүсэлтүүдийг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор ачааны хүсэлт алга" text="Ачаа илгээгч хүсэлт үүсгэмэгц энд бодитоор гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="p-4 sm:p-5">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={item.status} />
+                  {item.weightKg ? <Badge variant="default">{item.weightKg} кг</Badge> : null}
+                </div>
+                <h2 className="mt-3 break-words text-xl font-semibold text-foreground">{item.cargoName}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.route}</p>
+                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                  <Info label="Илгээгч" value={`${item.senderName}${item.senderPhone ? ` · ${item.senderPhone}` : ''}`} />
+                  <Info label="Хүлээн авагч" value={`${item.receiverName} · ${item.receiverPhone}`} />
+                  <Info label="Огноо" value={new Date(item.createdAt).toLocaleString('mn-MN')} />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function QueueToolbar({
   icon,
   title,
@@ -374,12 +685,61 @@ function Notice({ tone, text }: { tone: 'success' | 'danger'; text: string }) {
   return <div className={`rounded-lg border p-4 text-sm font-medium ${classes}`}>{text}</div>;
 }
 
+const successStatuses = new Set(['approved', 'active', 'confirmed', 'completed', 'delivered', 'cargo_accepted', 'accepted']);
+const dangerStatuses = new Set(['rejected', 'cancelled', 'disputed']);
+const warningStatuses = new Set([
+  'proof_uploaded', 'pending', 'pending_request', 'waiting_payment', 'payment_review',
+  'cargo_requested', 'picked_up', 'in_transit', 'on_trip', 'full', 'draft',
+]);
+
+const statusLabels: Record<string, string> = {
+  approved: 'Баталгаажсан',
+  rejected: 'Буцаасан',
+  proof_uploaded: 'Баримт ирсэн',
+  pending: 'Хүлээгдэж байна',
+  pending_request: 'Хүсэлт ирсэн',
+  accepted: 'Зөвшөөрсөн',
+  waiting_payment: 'Төлбөр хүлээж байна',
+  payment_review: 'Төлбөр шалгаж байна',
+  confirmed: 'Баталгаажсан',
+  on_trip: 'Аялалд гарсан',
+  completed: 'Дууссан',
+  cancelled: 'Цуцалсан',
+  disputed: 'Маргаантай',
+  active: 'Идэвхтэй',
+  full: 'Дүүрсэн',
+  draft: 'Ноорог',
+  cargo_requested: 'Хүсэлт ирсэн',
+  cargo_accepted: 'Зөвшөөрсөн',
+  picked_up: 'Ачигдсан',
+  in_transit: 'Замд яваа',
+  delivered: 'Хүргэгдсэн',
+};
+
+function bookingStatusLabel(status: string) {
+  return statusLabels[status] || status;
+}
+
+function tripStatusLabel(status: string) {
+  return statusLabels[status] || status;
+}
+
+function roleLabel(role: string) {
+  const labels: Record<string, string> = {
+    driver: 'Жолооч',
+    traveler: 'Аялагч',
+    cargo_sender: 'Ачаа илгээгч',
+    admin: 'Админ',
+  };
+  return labels[role] || role;
+}
+
 function StatusBadge({ status }: { status: string }) {
-  if (status === 'approved') return <Badge variant="success">Баталгаажсан</Badge>;
-  if (status === 'rejected') return <Badge variant="danger">Буцаасан</Badge>;
-  if (status === 'proof_uploaded') return <Badge variant="warning">Баримт ирсэн</Badge>;
-  if (status === 'pending') return <Badge variant="warning">Хүлээгдэж байна</Badge>;
-  return <Badge variant="default">{status}</Badge>;
+  const label = statusLabels[status] || status;
+  if (successStatuses.has(status)) return <Badge variant="success">{label}</Badge>;
+  if (dangerStatuses.has(status)) return <Badge variant="danger">{label}</Badge>;
+  if (warningStatuses.has(status)) return <Badge variant="warning">{label}</Badge>;
+  return <Badge variant="default">{label}</Badge>;
 }
 
 function Info({ label, value }: { label: string; value: string }) {

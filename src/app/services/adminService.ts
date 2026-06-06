@@ -248,3 +248,231 @@ export async function updateDriverVerification(userId: string, status: DriverVer
 
   if (error) throw toError(error, 'Жолоочийн баталгаажуулалт шинэчлэхэд алдаа гарлаа.');
 }
+
+export interface AdminUserItem {
+  id: string;
+  fullName: string;
+  phone?: string;
+  email?: string;
+  role: string;
+  phoneVerified: boolean;
+  onboardingCompleted: boolean;
+  isSuspended: boolean;
+  createdAt?: string;
+}
+
+export async function fetchAdminUsers(): Promise<AdminUserItem[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, phone, email, role, phone_verified, onboarding_completed, is_suspended, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) throw toError(error, 'Хэрэглэгчдийн жагсаалт уншихад алдаа гарлаа.');
+
+  return (data || []).map((row) => ({
+    id: row.id,
+    fullName: row.full_name || 'Нэргүй хэрэглэгч',
+    phone: row.phone || undefined,
+    email: row.email || undefined,
+    role: row.role,
+    phoneVerified: Boolean(row.phone_verified),
+    onboardingCompleted: Boolean(row.onboarding_completed),
+    isSuspended: Boolean(row.is_suspended),
+    createdAt: row.created_at || undefined,
+  }));
+}
+
+export async function setUserSuspended(userId: string, isSuspended: boolean) {
+  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_suspended: isSuspended })
+    .eq('id', userId);
+
+  if (error) throw toError(error, 'Хэрэглэгчийн төлөв шинэчлэхэд алдаа гарлаа.');
+}
+
+export interface AdminTripItem {
+  id: string;
+  route: string;
+  departureAt: string;
+  seatsTotal: number;
+  seatsAvailable: number;
+  pricePerSeat: number;
+  allowsCargo: boolean;
+  status: string;
+  driverName: string;
+  driverPhone?: string;
+  createdAt?: string;
+}
+
+export async function fetchAdminTrips(): Promise<AdminTripItem[]> {
+  if (!supabase) return [];
+
+  const { data: trips, error } = await supabase
+    .from('trips')
+    .select('id, driver_id, from_location, to_location, departure_at, seats_total, seats_available, price_per_seat, allows_cargo, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) throw toError(error, 'Чиглэлийн жагсаалт уншихад алдаа гарлаа.');
+  if (!trips?.length) return [];
+
+  const driverIds = Array.from(new Set(trips.map((trip) => trip.driver_id).filter(Boolean)));
+  const { data: drivers } = driverIds.length
+    ? await supabase.from('profiles').select('id, full_name, phone').in('id', driverIds)
+    : { data: [] };
+
+  const driversById = new Map((drivers || []).map((driver) => [driver.id, driver]));
+
+  return trips.map((trip) => {
+    const driver = driversById.get(trip.driver_id);
+    return {
+      id: trip.id,
+      route: `${trip.from_location} → ${trip.to_location}`,
+      departureAt: trip.departure_at,
+      seatsTotal: Number(trip.seats_total || 0),
+      seatsAvailable: Number(trip.seats_available || 0),
+      pricePerSeat: Number(trip.price_per_seat || 0),
+      allowsCargo: Boolean(trip.allows_cargo),
+      status: trip.status,
+      driverName: driver?.full_name || 'Жолооч',
+      driverPhone: driver?.phone || undefined,
+      createdAt: trip.created_at || undefined,
+    };
+  });
+}
+
+export async function updateTripStatus(tripId: string, status: 'active' | 'cancelled') {
+  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+
+  const { error } = await supabase
+    .from('trips')
+    .update({ status })
+    .eq('id', tripId);
+
+  if (error) throw toError(error, 'Чиглэлийн төлөв шинэчлэхэд алдаа гарлаа.');
+}
+
+export interface AdminBookingItem {
+  id: string;
+  route: string;
+  departureAt?: string;
+  travelerName: string;
+  travelerPhone?: string;
+  driverName: string;
+  seatsRequested: number;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+}
+
+export async function fetchAdminBookings(): Promise<AdminBookingItem[]> {
+  if (!supabase) return [];
+
+  const { data: bookings, error } = await supabase
+    .from('passenger_bookings')
+    .select('id, trip_id, traveler_id, seats_requested, total_amount, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) throw toError(error, 'Захиалгын жагсаалт уншихад алдаа гарлаа.');
+  if (!bookings?.length) return [];
+
+  const tripIds = Array.from(new Set(bookings.map((booking) => booking.trip_id).filter(Boolean)));
+  const travelerIds = Array.from(new Set(bookings.map((booking) => booking.traveler_id).filter(Boolean)));
+
+  const { data: trips } = tripIds.length
+    ? await supabase.from('trips').select('id, driver_id, from_location, to_location, departure_at').in('id', tripIds)
+    : { data: [] };
+
+  const driverIds = Array.from(new Set((trips || []).map((trip) => trip.driver_id).filter(Boolean)));
+  const profileIds = Array.from(new Set([...travelerIds, ...driverIds]));
+
+  const { data: profiles } = profileIds.length
+    ? await supabase.from('profiles').select('id, full_name, phone').in('id', profileIds)
+    : { data: [] };
+
+  const tripsById = new Map((trips || []).map((trip) => [trip.id, trip]));
+  const profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
+
+  return bookings.map((booking) => {
+    const trip = tripsById.get(booking.trip_id);
+    const traveler = profilesById.get(booking.traveler_id);
+    const driver = trip ? profilesById.get(trip.driver_id) : undefined;
+    return {
+      id: booking.id,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Чиглэл олдсонгүй',
+      departureAt: trip?.departure_at || undefined,
+      travelerName: traveler?.full_name || 'Аялагч',
+      travelerPhone: traveler?.phone || undefined,
+      driverName: driver?.full_name || 'Жолооч',
+      seatsRequested: Number(booking.seats_requested || 0),
+      totalAmount: Number(booking.total_amount || 0),
+      status: booking.status,
+      createdAt: booking.created_at,
+    };
+  });
+}
+
+export interface AdminCargoItem {
+  id: string;
+  route: string;
+  cargoName: string;
+  senderName: string;
+  senderPhone?: string;
+  receiverName: string;
+  receiverPhone: string;
+  weightKg?: number;
+  status: string;
+  createdAt: string;
+}
+
+export async function fetchAdminCargoRequests(): Promise<AdminCargoItem[]> {
+  if (!supabase) return [];
+
+  const { data: cargo, error } = await supabase
+    .from('cargo_requests')
+    .select('id, trip_id, sender_id, cargo_name, receiver_name, receiver_phone, weight_kg, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) throw toError(error, 'Ачааны хүсэлтүүд уншихад алдаа гарлаа.');
+  if (!cargo?.length) return [];
+
+  const tripIds = Array.from(new Set(cargo.map((request) => request.trip_id).filter(Boolean)));
+  const senderIds = Array.from(new Set(cargo.map((request) => request.sender_id).filter(Boolean)));
+
+  const [{ data: trips }, { data: senders }] = await Promise.all([
+    tripIds.length
+      ? supabase.from('trips').select('id, from_location, to_location').in('id', tripIds)
+      : Promise.resolve({ data: [] }),
+    senderIds.length
+      ? supabase.from('profiles').select('id, full_name, phone').in('id', senderIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const tripsById = new Map((trips || []).map((trip) => [trip.id, trip]));
+  const sendersById = new Map((senders || []).map((sender) => [sender.id, sender]));
+
+  return cargo.map((request) => {
+    const trip = tripsById.get(request.trip_id);
+    const sender = sendersById.get(request.sender_id);
+    return {
+      id: request.id,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Чиглэл олдсонгүй',
+      cargoName: request.cargo_name,
+      senderName: sender?.full_name || 'Илгээгч',
+      senderPhone: sender?.phone || undefined,
+      receiverName: request.receiver_name,
+      receiverPhone: request.receiver_phone,
+      weightKg: request.weight_kg ?? undefined,
+      status: request.status,
+      createdAt: request.created_at,
+    };
+  });
+}
