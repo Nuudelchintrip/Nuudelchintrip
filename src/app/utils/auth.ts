@@ -98,6 +98,10 @@ export function saveStoredUser(profile: MockUserProfile) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
 }
 
+export function clearStoredUser() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 export function updateStoredUser(patch: Partial<MockUserProfile>) {
   const current = getStoredUser();
   const next: MockUserProfile = {

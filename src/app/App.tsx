@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AccountPasswordPage, AccountProfilePage, AccountSettingsPage, AccountVerificationPage, PublicDriverProfilePage } from './pages/AccountPages';
 import { ProfileRouterPage, SettingsRouterPage } from './pages/AccountRouterPages';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -27,27 +27,53 @@ import { TripDetailPage } from './pages/TripDetailPage';
 import { TripsPage } from './pages/TripsPage';
 import { TravelerDashboard } from './pages/TravelerDashboard';
 import { VerifyPhonePage } from './pages/VerifyPhonePage';
-import { getDashboardPath, getOnboardingPath, getStoredUser, type MarketplaceRole } from './utils/auth';
+import { refreshLocalProfileFromSupabase } from './services/supabaseAuth';
+import { getDashboardPath, getOnboardingPath, type MarketplaceRole, type MockUserProfile } from './utils/auth';
 
-function AdminOnly({ children }: { children: ReactNode }) {
-  const user = getStoredUser();
+function AccountGate({ children, roles }: { children: ReactNode; roles?: MarketplaceRole[] }) {
+  const [user, setUser] = useState<MockUserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  if (user?.role === 'admin') {
-    return children;
+  useEffect(() => {
+    let isActive = true;
+
+    refreshLocalProfileFromSupabase()
+      .then((profile) => {
+        if (isActive) setUser(profile);
+      })
+      .catch((error: unknown) => {
+        if (isActive) {
+          setLoadError(error instanceof Error ? error.message : 'Бүртгэлийг шалгахад алдаа гарлаа.');
+        }
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm font-medium text-muted-foreground">Бүртгэлийг шалгаж байна...</p>
+      </div>
+    );
   }
 
-  return <Navigate to={user ? getDashboardPath(user.role) : '/auth/login'} replace />;
-}
-
-function RequireAccount({ children, roles }: { children: ReactNode; roles?: MarketplaceRole[] }) {
-  const user = getStoredUser();
   const next = `${window.location.pathname}${window.location.search}`;
 
-  if (!user) {
-    return <Navigate to={`/auth/login?reason=${encodeURIComponent('Энэ хэсэгт орохын тулд нэвтэрнэ үү.')}&next=${encodeURIComponent(next)}`} replace />;
+  if (loadError || !user) {
+    const reason = loadError
+      ? `Бүртгэлийг баталгаажуулж чадсангүй: ${loadError}`
+      : 'Энэ хэсэгт орохын тулд нэвтэрнэ үү.';
+    return <Navigate to={`/auth/login?reason=${encodeURIComponent(reason)}&next=${encodeURIComponent(next)}`} replace />;
   }
 
-  if (!user.phone_verified) {
+  if (user.role !== 'admin' && !user.phone_verified) {
     return <Navigate to="/auth/verify-phone" replace />;
   }
 
@@ -60,6 +86,14 @@ function RequireAccount({ children, roles }: { children: ReactNode; roles?: Mark
   }
 
   return children;
+}
+
+function AdminOnly({ children }: { children: ReactNode }) {
+  return <AccountGate roles={['admin']}>{children}</AccountGate>;
+}
+
+function RequireAccount({ children, roles }: { children: ReactNode; roles?: MarketplaceRole[] }) {
+  return <AccountGate roles={roles}>{children}</AccountGate>;
 }
 
 export default function App() {

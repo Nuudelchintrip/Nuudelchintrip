@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react';
 import { CircleHelp, LogOut, Menu, ShieldCheck, UserCircle, X } from 'lucide-react';
 import { useLocation } from 'react-router';
 import type { DashboardRole } from '../navigation/dashboardMenus';
+import { logoutFromSupabase } from '../services/supabaseAuth';
+import { getRoleLabel, getStoredUser } from '../utils/auth';
 import { Logo } from './Logo';
 
 interface SidebarProps {
@@ -156,8 +158,15 @@ function SidebarFooter() {
         <span className="font-medium leading-5">Аюулгүй байдал</span>
       </a>
       <button
+        type="button"
         className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] leading-5 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        onClick={() => window.location.href = '/auth/login'}
+        onClick={async () => {
+          try {
+            await logoutFromSupabase();
+          } finally {
+            window.location.href = '/auth/login';
+          }
+        }}
       >
         <LogOut className="h-4 w-4 shrink-0" />
         <span className="font-medium leading-5">Гарах</span>
@@ -182,6 +191,7 @@ function getActiveMenuHref(pathname: string, hrefs: string[]) {
 }
 
 function getAccountContext(pathname: string, accountRole?: DashboardRole) {
+  const storedUser = getStoredUser();
   const role =
     accountRole ??
     (pathname.startsWith('/admin')
@@ -196,7 +206,7 @@ function getAccountContext(pathname: string, accountRole?: DashboardRole) {
 
   if (role === 'admin') {
     return {
-      name: 'Админ хэрэглэгч',
+      name: storedUser?.full_name || 'Админ хэрэглэгч',
       label: 'Платформын хяналт',
       profileHref: '/admin/profile',
       settingsHref: '/admin/settings',
@@ -204,18 +214,18 @@ function getAccountContext(pathname: string, accountRole?: DashboardRole) {
   }
   if (role === 'driver') {
     return {
-      name: 'Бат Болд',
-      label: 'Жолооч',
+      name: storedUser?.full_name || 'Жолооч',
+      label: getRoleLabel('driver'),
     };
   }
   if (role === 'traveler') {
     return {
-      name: 'Сарангэрэл Цэцэг',
-      label: 'Аялагч',
+      name: storedUser?.full_name || 'Аялагч',
+      label: getRoleLabel('traveler'),
     };
   }
   return {
-    name: 'Дорж Цэцэг',
-    label: 'Дайвар ачаа',
+    name: storedUser?.full_name || 'Дайвар ачаа илгээгч',
+    label: getRoleLabel('cargo_sender'),
   };
 }

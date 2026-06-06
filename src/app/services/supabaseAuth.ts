@@ -1,5 +1,13 @@
 import { supabase } from '../lib/supabase';
-import { getStoredUser, saveStoredUser, updateStoredUser, type DriverVerificationStatus, type MarketplaceRole, type MockUserProfile } from '../utils/auth';
+import {
+  clearStoredUser,
+  getStoredUser,
+  saveStoredUser,
+  updateStoredUser,
+  type DriverVerificationStatus,
+  type MarketplaceRole,
+  type MockUserProfile,
+} from '../utils/auth';
 
 interface RegisterInput {
   role: MarketplaceRole;
@@ -41,6 +49,23 @@ function toLocalProfile(row: ProfileRow, fallbackEmail = ''): MockUserProfile {
     verification_status: row.verification_status,
     cargo_policy_accepted: row.cargo_policy_accepted,
   };
+}
+
+async function syncCurrentProfileFromSupabase(fallbackEmail = '') {
+  if (!supabase) return getStoredUser();
+
+  const { data, error } = await supabase.rpc('sync_current_profile');
+  if (error) {
+    throw toError(error, 'Хэрэглэгчийн мэдээллийг Supabase-тэй синк хийхэд алдаа гарлаа.');
+  }
+
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Supabase profile sync хоосон хариу буцаалаа.');
+  }
+
+  const profile = toLocalProfile(data as ProfileRow, fallbackEmail);
+  saveStoredUser(profile);
+  return profile;
 }
 
 export async function registerWithSupabase(input: RegisterInput) {
@@ -97,35 +122,7 @@ export async function loginWithSupabase(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 
-  const { error: ensureProfileError } = await supabase.rpc('ensure_current_profile');
-  if (ensureProfileError) {
-    throw toError(ensureProfileError, 'Profile мөр автоматаар үүсгэхэд алдаа гарлаа.');
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, full_name, phone, email, phone_verified, onboarding_completed, cargo_policy_accepted')
-    .eq('id', data.user.id)
-    .maybeSingle();
-
-  if (profileError) throw toError(profileError, 'Profile мэдээлэл уншихад алдаа гарлаа.');
-  if (!profile) {
-    throw new Error('Auth login амжилттай боловч profiles мөр олдсонгүй. Supabase Authentication user болон public.profiles id таарч байгаа эсэхийг шалгана уу.');
-  }
-
-  let verificationStatus: ProfileRow['verification_status'];
-  if (profile.role === 'driver') {
-    const { data: driverProfile } = await supabase
-      .from('driver_profiles')
-      .select('verification_status')
-      .eq('user_id', data.user.id)
-      .maybeSingle();
-    verificationStatus = driverProfile?.verification_status;
-  }
-
-  const localProfile = toLocalProfile({ ...profile, verification_status: verificationStatus }, email);
-  saveStoredUser(localProfile);
-  return localProfile;
+  return syncCurrentProfileFromSupabase(data.user.email || email);
 }
 
 export async function sendPasswordResetEmail(email: string) {
@@ -148,37 +145,23 @@ export async function updatePasswordWithRecovery(newPassword: string) {
 export async function refreshLocalProfileFromSupabase() {
   if (!supabase) return getStoredUser();
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw userError;
-  const userId = userData.user?.id;
-  if (!userId) return getStoredUser();
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, full_name, phone, email, phone_verified, onboarding_completed, cargo_policy_accepted')
-    .eq('id', userId)
-    .single();
-
-  if (profileError) throw profileError;
-
-  let verificationStatus: ProfileRow['verification_status'];
-  if (profile.role === 'driver') {
-    const { data: driverProfile, error: driverError } = await supabase
-      .from('driver_profiles')
-      .select('verification_status')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (driverError) throw driverError;
-    verificationStatus = driverProfile?.verification_status;
+  if (!sessionData.session) {
+    clearStoredUser();
+    return null;
   }
 
-  const localProfile = toLocalProfile(
-    { ...profile, verification_status: verificationStatus },
-    userData.user.email || '',
-  );
-  saveStoredUser(localProfile);
-  return localProfile;
+  return syncCurrentProfileFromSupabase(sessionData.session.user.email || '');
+}
+
+export async function logoutFromSupabase() {
+  clearStoredUser();
+  if (!supabase) return;
+
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
 export async function markPhoneVerified() {
