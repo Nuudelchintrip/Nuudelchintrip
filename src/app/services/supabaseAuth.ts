@@ -197,23 +197,36 @@ export async function submitDriverOnboarding(input: {
   seats?: number;
 }) {
   if (supabase) {
-    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      throw toError(sessionError, 'Нэвтрэлтийн мэдээллийг шалгахад алдаа гарлаа.');
+    }
     const userId = sessionData.session?.user.id;
-    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна.');
-    const { error: driverError } = await supabase.from('driver_profiles').upsert({
-      user_id: userId,
-      verification_status: 'pending',
-      car_model: input.carModel,
-      plate_number: input.plateNumber,
-      seats: input.seats,
-    });
-    if (driverError) throw driverError;
+    if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
 
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ onboarding_completed: true })
-      .eq('id', userId);
-    if (profileError) throw profileError;
+    const { error: onboardingError } = await supabase.rpc('submit_driver_onboarding', {
+      p_car_model: input.carModel?.trim() || null,
+      p_plate_number: input.plateNumber?.trim() || null,
+      p_seats: input.seats ?? null,
+    });
+    if (onboardingError) {
+      const messageByCode: Record<string, string> = {
+        not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
+        profile_not_found: 'Таны хэрэглэгчийн profile олдсонгүй.',
+        driver_role_required: 'Энэ бүртгэл жолоочийн эрхгүй байна.',
+        car_model_required: 'Машины загварыг оруулна уу.',
+        plate_number_required: 'Улсын дугаарыг оруулна уу.',
+        invalid_seat_count: 'Суудлын тоо 1-12 хооронд байх ёстой.',
+      };
+      const knownMessage = Object.entries(messageByCode).find(([code]) =>
+        onboardingError.message?.includes(code),
+      )?.[1];
+
+      throw knownMessage
+        ? new Error(knownMessage)
+        : toError(onboardingError, 'Жолоочийн мэдээллийг хадгалахад алдаа гарлаа.');
+    }
+
     return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
   }
 

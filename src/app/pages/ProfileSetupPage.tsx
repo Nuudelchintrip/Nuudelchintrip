@@ -39,6 +39,22 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
       return;
     }
 
+    if (normalizedRole === 'driver') {
+      if (!carModel.trim()) {
+        setError('Машины загварыг оруулна уу.');
+        return;
+      }
+      if (!plateNumber.trim()) {
+        setError('Улсын дугаарыг оруулна уу.');
+        return;
+      }
+      const seatCount = Number(seats);
+      if (!Number.isInteger(seatCount) || seatCount < 1 || seatCount > 12) {
+        setError('Суудлын тоо 1-12 хооронд байх ёстой.');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setError('');
 
@@ -46,13 +62,13 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
       if (normalizedRole === 'traveler') {
         await completeTravelerOnboarding({ emergencyContactName, emergencyContactPhone });
       } else if (normalizedRole === 'driver') {
-        await submitDriverOnboarding({ carModel, plateNumber, seats: Number(seats) || undefined });
+        await submitDriverOnboarding({ carModel, plateNumber, seats: Number(seats) });
       } else {
         await completeCargoOnboarding();
       }
       window.location.href = getDashboardPath(normalizedRole);
     } catch (err) {
-        setError(err instanceof Error ? err.message : 'Мэдээлэл хадгалахад алдаа гарлаа.');
+      setError(err instanceof Error ? err.message : 'Мэдээлэл хадгалахад алдаа гарлаа.');
     } finally {
       setIsSubmitting(false);
     }
