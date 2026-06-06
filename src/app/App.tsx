@@ -82,19 +82,19 @@ function AccountGate({
     return <Navigate to={`${loginPath}?reason=${encodeURIComponent(reason)}&next=${encodeURIComponent(next)}`} replace />;
   }
 
+  if (roles && !roles.includes(user.role)) {
+    if (roles.length === 1 && roles[0] === 'admin') {
+      return <Navigate to="/admin/login?reason=Энэ бүртгэл админ эрхгүй байна." replace />;
+    }
+    return <Navigate to={getDashboardPath(user.role)} replace />;
+  }
+
   if (user.role !== 'admin' && !user.phone_verified) {
     return <Navigate to="/auth/verify-phone" replace />;
   }
 
   if (user.role !== 'admin' && !user.onboarding_completed) {
     return <Navigate to={getOnboardingPath(user.role)} replace />;
-  }
-
-  if (roles && !roles.includes(user.role)) {
-    if (roles.length === 1 && roles[0] === 'admin') {
-      return <Navigate to="/admin/login?reason=Энэ бүртгэл админ эрхгүй байна." replace />;
-    }
-    return <Navigate to={getDashboardPath(user.role)} replace />;
   }
 
   return children;
