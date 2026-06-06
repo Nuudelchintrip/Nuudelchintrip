@@ -5,7 +5,7 @@ import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
 import { Logo } from '../components/Logo';
 import { markPhoneVerified } from '../services/supabaseAuth';
-import { addActionLog, formatMongoliaPhone, getOnboardingPath, getStoredUser, isValidMongoliaPhone } from '../utils/auth';
+import { addActionLog, formatMongoliaPhone, getDashboardPath, getOnboardingPath, getStoredUser, isValidMongoliaPhone } from '../utils/auth';
 
 const DEMO_OTP_CODE = '123456';
 const OTP_SECONDS = 60;
@@ -94,7 +94,11 @@ export function VerifyPhonePage() {
     });
     setSuccess('Утас амжилттай баталгаажлаа. Дараагийн алхам руу шилжиж байна.');
     window.setTimeout(() => {
-      window.location.href = getOnboardingPath(nextUser.role);
+      window.location.replace(
+        nextUser.onboarding_completed
+          ? getDashboardPath(nextUser.role)
+          : getOnboardingPath(nextUser.role),
+      );
     }, 700);
   };
 

@@ -108,6 +108,64 @@ function RequireAccount({ children, roles }: { children: ReactNode; roles?: Mark
   return <AccountGate roles={roles}>{children}</AccountGate>;
 }
 
+function OnboardingGate({
+  children,
+  role,
+}: {
+  children: ReactNode;
+  role: Exclude<MarketplaceRole, 'admin'>;
+}) {
+  const [user, setUser] = useState<MockUserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isActive = true;
+
+    refreshLocalProfileFromSupabase()
+      .then((profile) => {
+        if (isActive) setUser(profile);
+      })
+      .catch(() => {
+        if (isActive) setUser(null);
+      })
+      .finally(() => {
+        if (isActive) setIsLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <p className="text-sm font-medium text-muted-foreground">Бүртгэлийг шалгаж байна...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth/login" replace />;
+  }
+
+  if (user.role !== role) {
+    return user.onboarding_completed
+      ? <Navigate to={getDashboardPath(user.role)} replace />
+      : <Navigate to={getOnboardingPath(user.role)} replace />;
+  }
+
+  if (!user.phone_verified) {
+    return <Navigate to="/auth/verify-phone" replace />;
+  }
+
+  if (user.onboarding_completed) {
+    return <Navigate to={getDashboardPath(user.role)} replace />;
+  }
+
+  return children;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -228,9 +286,9 @@ export default function App() {
         <Route path="/traveler/create-trip" element={<Navigate to="/dashboard/traveler/find" replace />} />
         <Route path="/traveler/delivery-proof" element={<Navigate to="/dashboard/traveler/trips" replace />} />
         <Route path="/onboarding/sender" element={<Navigate to="/onboarding/cargo" replace />} />
-        <Route path="/onboarding/traveler" element={<ProfileSetupPage role="traveler" />} />
-        <Route path="/onboarding/driver" element={<ProfileSetupPage role="driver" />} />
-        <Route path="/onboarding/cargo" element={<ProfileSetupPage role="cargo" />} />
+        <Route path="/onboarding/traveler" element={<OnboardingGate role="traveler"><ProfileSetupPage role="traveler" /></OnboardingGate>} />
+        <Route path="/onboarding/driver" element={<OnboardingGate role="driver"><ProfileSetupPage role="driver" /></OnboardingGate>} />
+        <Route path="/onboarding/cargo" element={<OnboardingGate role="cargo_sender"><ProfileSetupPage role="cargo" /></OnboardingGate>} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

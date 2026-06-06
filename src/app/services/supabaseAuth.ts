@@ -158,14 +158,24 @@ export async function markPhoneVerified() {
   if (!supabase) return updateStoredUser({ phone_verified: true });
 
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError) throw sessionError;
+  if (sessionError) {
+    throw toError(sessionError, 'Нэвтрэлтийн мэдээллийг шалгахад алдаа гарлаа.');
+  }
   const userId = sessionData.session?.user.id;
-  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин бүртгүүлэх эсвэл нэвтэрнэ үү.');
+  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
 
-  const { error } = await supabase.from('profiles').update({ phone_verified: true }).eq('id', userId);
-  if (error) throw error;
+  const { data, error } = await supabase.rpc('complete_phone_verification');
+  if (error) {
+    throw toError(error, 'Утасны баталгаажуулалтыг хадгалахад алдаа гарлаа.');
+  }
 
-  return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Утасны баталгаажуулалтын хариу буруу байна.');
+  }
+
+  const profile = toLocalProfile(data as ProfileRow, sessionData.session?.user.email || '');
+  saveStoredUser(profile);
+  return profile;
 }
 
 export async function completeTravelerOnboarding(input: {
