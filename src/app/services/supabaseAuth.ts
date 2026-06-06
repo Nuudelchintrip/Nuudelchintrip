@@ -212,8 +212,10 @@ export async function submitDriverOnboarding(input: {
     if (onboardingError) {
       const messageByCode: Record<string, string> = {
         not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
+        auth_user_not_found: 'Нэвтэрсэн хэрэглэгчийн бүртгэл олдсонгүй.',
         profile_not_found: 'Таны хэрэглэгчийн profile олдсонгүй.',
         driver_role_required: 'Энэ бүртгэл жолоочийн эрхгүй байна.',
+        account_suspended: 'Таны бүртгэл түр түдгэлзсэн байна.',
         car_model_required: 'Машины загварыг оруулна уу.',
         plate_number_required: 'Улсын дугаарыг оруулна уу.',
         invalid_seat_count: 'Суудлын тоо 1-12 хооронд байх ёстой.',

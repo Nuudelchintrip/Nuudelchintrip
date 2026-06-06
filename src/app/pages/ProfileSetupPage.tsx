@@ -97,6 +97,12 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
           </p>
         </div>
 
+        {error && (
+          <div className="mb-6 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+            {error}
+          </div>
+        )}
+
         {isTraveler && (
           <Card>
             <CardHeader>
@@ -186,12 +192,6 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
               </label>
             </CardBody>
           </Card>
-        )}
-
-        {error && (
-          <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
-            {error}
-          </div>
         )}
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
