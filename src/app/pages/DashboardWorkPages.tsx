@@ -760,32 +760,22 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
             </Card>
           ))}
         </div>
-      ) : (
-      <div className="grid gap-5">
-        {requests.map((request, index) => (
-          <Card key={`${request.name}-${index}`} className="p-6">
-            <div className="grid gap-5 lg:grid-cols-[1fr_220px] lg:items-center">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={index === 0 ? 'success' : 'info'}>{index === 0 ? copy.primaryMatch : request.type}</Badge>
-                  <Badge variant="default">{request.date}</Badge>
-                </div>
-                <h2 className="mt-3 text-2xl font-semibold text-foreground">{request.route}</h2>
-                <p className="mt-2 text-muted-foreground">{request.name} - {request.detail}</p>
-              </div>
-              <div className="rounded-lg bg-muted/40 p-4">
-                <p className="text-sm text-muted-foreground">Санал болгосон үнэ</p>
-                <p className="mt-1 text-2xl font-bold text-primary">{request.price}</p>
-                <div className="mt-4 flex gap-2">
-                  <Button size="sm" onClick={() => window.location.href = `${copy.base}/requests/${index + 1}/accept`}>Зөвшөөрөх</Button>
-                  <Button size="sm" variant="outline" onClick={() => window.location.href = `${copy.base}/requests/${index + 1}/reject`}>Татгалзах</Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-      )}
+      ) : !loadingRequests ? (
+        <Card className="p-10 text-center">
+          {role === 'driver' ? <UsersRound className="mx-auto mb-4 h-12 w-12 text-muted-foreground" /> : <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />}
+          <h2 className="text-xl font-semibold text-foreground">
+            {role === 'driver' ? 'Одоогоор ирсэн хүсэлт алга' : 'Идэвхтэй хүсэлт алга'}
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+            {role === 'driver'
+              ? 'Аялагч таны нийтэлсэн чиглэл дээр суудлын хүсэлт илгээхэд энд бодитоор гарч ирнэ.'
+              : 'Жолооч хайж суудлын хүсэлт илгээсний дараа төлөв энд харагдана.'}
+          </p>
+          <Button className="mt-5" onClick={() => window.location.href = role === 'driver' ? '/dashboard/driver/routes/new' : '/traveler/find-drivers'}>
+            {role === 'driver' ? 'Чиглэл нэмэх' : 'Жолооч хайх'}
+          </Button>
+        </Card>
+      ) : null}
     </DashboardFrame>
   );
 }

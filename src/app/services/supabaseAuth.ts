@@ -138,6 +138,71 @@ export async function updatePasswordWithRecovery(newPassword: string) {
   if (error) throw error;
 }
 
+/** Change password while logged in: verifies the current password, then updates. */
+export async function updateProfileInfo(input: { fullName?: string; avatarUrl?: string }) {
+  if (!supabase) return updateStoredUser({ full_name: input.fullName });
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
+
+  const patch: Record<string, unknown> = {};
+  if (input.fullName !== undefined) patch.full_name = input.fullName.trim();
+  if (input.avatarUrl !== undefined) patch.avatar_url = input.avatarUrl;
+  if (Object.keys(patch).length === 0) return getStoredUser();
+
+  const { error } = await supabase.from('profiles').update(patch).eq('id', userId);
+  if (error) throw toError(error, 'Профайл хадгалахад алдаа гарлаа.');
+
+  return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
+}
+
+export async function uploadAvatar(file: File): Promise<string> {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) throw new Error('Дахин нэвтэрнэ үү.');
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    throw new Error('Зөвхөн JPG, PNG, WEBP зураг оруулна уу.');
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('Зургийн хэмжээ 5MB-аас бага байх ёстой.');
+  }
+
+  const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
+  const path = `${userId}/avatar-${Date.now()}.${ext}`;
+  const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+  if (uploadError) throw toError(uploadError, 'Зураг upload хийхэд алдаа гарлаа.');
+
+  return supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+}
+
+export async function fetchMyAvatarUrl(): Promise<string | null> {
+  if (!supabase) return null;
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) return null;
+  const { data } = await supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle();
+  return (data?.avatar_url as string) || null;
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const email = sessionData.session?.user.email;
+  if (!email) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
+
+  // Verify the current password by re-authenticating.
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+  if (signInError) throw new Error('Одоогийн нууц үг буруу байна.');
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw toError(error, 'Нууц үг шинэчлэхэд алдаа гарлаа.');
+}
+
 export async function refreshLocalProfileFromSupabase() {
   if (!supabase) return getStoredUser();
 
@@ -375,6 +440,22 @@ export async function submitDriverOnboarding(input: {
   }
 
   return updateStoredUser({ role: 'driver', onboarding_completed: true, verification_status: 'pending' });
+}
+
+/** Update the signed-in user's display name (full_name is not a guarded field). */
+export async function updateProfileName(fullName: string) {
+  const trimmed = fullName.trim();
+  if (!trimmed) throw new Error('Нэрээ оруулна уу.');
+
+  if (!supabase) return updateStoredUser({ full_name: trimmed });
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
+
+  const { error } = await supabase.from('profiles').update({ full_name: trimmed }).eq('id', userId);
+  if (error) throw toError(error, 'Нэр хадгалахад алдаа гарлаа.');
+  updateStoredUser({ full_name: trimmed });
 }
 
 export interface MyDriverVerification {

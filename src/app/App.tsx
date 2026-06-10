@@ -1,36 +1,64 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
-import { useEffect, useState, type ReactNode } from 'react';
-import { AccountPasswordPage, AccountProfilePage, AccountSettingsPage, AccountVerificationPage, PublicDriverProfilePage } from './pages/AccountPages';
-import { ProfileRouterPage, SettingsRouterPage } from './pages/AccountRouterPages';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { AdminLoginPage } from './pages/AdminLoginPage';
-import { CargoFindRoutesPage, DriverCargoRequestsPage, DriverOffersPage, EarningsPage, FindDriversPage, MyRoutesPage, ReviewsPage, RoleRequestsPage, SenderCargoPage, TripFormPage } from './pages/DashboardWorkPages';
-import { AdminQueuePage } from './pages/AdminQueueRealPage';
-import { BookingDetailPage } from './pages/BookingDetailPage';
-import { CargoDetailPage } from './pages/CargoDetailPage';
-import { CargoRulesPage } from './pages/CargoRulesPage';
-import { DashboardRedirectPage } from './pages/DashboardRedirectPage';
-import { DeliveryProofPage } from './pages/DeliveryProofPage';
-import { DriverDashboard } from './pages/DriverDashboard';
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from 'react';
+// Public entry pages stay eager for a fast first paint.
 import { HomePage } from './pages/HomePage';
-import { HowItWorksPage } from './pages/HowItWorksPage';
 import { LoginPage } from './pages/LoginPage';
-import { PaymentProofPage } from './pages/PaymentProofPage';
-import { PostCargoPage } from './pages/PostCargoPage';
-import { PricingPage } from './pages/PricingPage';
-import { AboutPage, FaqPage, ForgotPasswordPage, LegalPage, NotFoundPage, ResetPasswordPage, SupportPage } from './pages/PublicInfoPages';
-import { ProfileSetupPage } from './pages/ProfileSetupPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { RoleSelectPage } from './pages/RoleSelectPage';
-import { SafetyPage } from './pages/SafetyPage';
-import { SenderDashboard } from './pages/SenderDashboard';
-import { TripDetailPage } from './pages/TripDetailPage';
-import { TripsPage } from './pages/TripsPage';
-import { TravelerDashboard } from './pages/TravelerDashboard';
-import { NotificationsPage } from './pages/NotificationsPage';
-import { VerifyPhonePage } from './pages/VerifyPhonePage';
 import { refreshLocalProfileFromSupabase } from './services/supabaseAuth';
 import { getDashboardPath, getOnboardingPath, type MarketplaceRole, type MockUserProfile } from './utils/auth';
+
+// Everything else is lazy-loaded so the initial bundle stays small.
+const named = <T extends Record<string, unknown>, K extends keyof T>(
+  loader: () => Promise<T>,
+  key: K,
+) => lazy(() => loader().then((m) => ({ default: m[key] as unknown as ComponentType })));
+
+const AccountPasswordPage = named(() => import('./pages/AccountPages'), 'AccountPasswordPage');
+const AccountProfilePage = named(() => import('./pages/AccountPages'), 'AccountProfilePage');
+const AccountSettingsPage = named(() => import('./pages/AccountPages'), 'AccountSettingsPage');
+const AccountVerificationPage = named(() => import('./pages/AccountPages'), 'AccountVerificationPage');
+const PublicDriverProfilePage = named(() => import('./pages/AccountPages'), 'PublicDriverProfilePage');
+const ProfileRouterPage = named(() => import('./pages/AccountRouterPages'), 'ProfileRouterPage');
+const SettingsRouterPage = named(() => import('./pages/AccountRouterPages'), 'SettingsRouterPage');
+const AdminDashboard = named(() => import('./pages/AdminDashboard'), 'AdminDashboard');
+const AdminLoginPage = named(() => import('./pages/AdminLoginPage'), 'AdminLoginPage');
+const CargoFindRoutesPage = named(() => import('./pages/DashboardWorkPages'), 'CargoFindRoutesPage');
+const DriverCargoRequestsPage = named(() => import('./pages/DashboardWorkPages'), 'DriverCargoRequestsPage');
+const DriverOffersPage = named(() => import('./pages/DashboardWorkPages'), 'DriverOffersPage');
+const EarningsPage = named(() => import('./pages/DashboardWorkPages'), 'EarningsPage');
+const FindDriversPage = named(() => import('./pages/DashboardWorkPages'), 'FindDriversPage');
+const MyRoutesPage = named(() => import('./pages/DashboardWorkPages'), 'MyRoutesPage');
+const ReviewsPage = named(() => import('./pages/DashboardWorkPages'), 'ReviewsPage');
+const RoleRequestsPage = named(() => import('./pages/DashboardWorkPages'), 'RoleRequestsPage');
+const SenderCargoPage = named(() => import('./pages/DashboardWorkPages'), 'SenderCargoPage');
+const TripFormPage = named(() => import('./pages/DashboardWorkPages'), 'TripFormPage');
+const AdminQueuePage = named(() => import('./pages/AdminQueueRealPage'), 'AdminQueuePage');
+const BookingDetailPage = named(() => import('./pages/BookingDetailPage'), 'BookingDetailPage');
+const CargoDetailPage = named(() => import('./pages/CargoDetailPage'), 'CargoDetailPage');
+const CargoRulesPage = named(() => import('./pages/CargoRulesPage'), 'CargoRulesPage');
+const DashboardRedirectPage = named(() => import('./pages/DashboardRedirectPage'), 'DashboardRedirectPage');
+const DeliveryProofPage = named(() => import('./pages/DeliveryProofPage'), 'DeliveryProofPage');
+const DriverDashboard = named(() => import('./pages/DriverDashboard'), 'DriverDashboard');
+const HowItWorksPage = named(() => import('./pages/HowItWorksPage'), 'HowItWorksPage');
+const PaymentProofPage = named(() => import('./pages/PaymentProofPage'), 'PaymentProofPage');
+const PostCargoPage = named(() => import('./pages/PostCargoPage'), 'PostCargoPage');
+const PricingPage = named(() => import('./pages/PricingPage'), 'PricingPage');
+const AboutPage = named(() => import('./pages/PublicInfoPages'), 'AboutPage');
+const FaqPage = named(() => import('./pages/PublicInfoPages'), 'FaqPage');
+const ForgotPasswordPage = named(() => import('./pages/PublicInfoPages'), 'ForgotPasswordPage');
+const LegalPage = named(() => import('./pages/PublicInfoPages'), 'LegalPage');
+const NotFoundPage = named(() => import('./pages/PublicInfoPages'), 'NotFoundPage');
+const ResetPasswordPage = named(() => import('./pages/PublicInfoPages'), 'ResetPasswordPage');
+const SupportPage = named(() => import('./pages/PublicInfoPages'), 'SupportPage');
+const ProfileSetupPage = named(() => import('./pages/ProfileSetupPage'), 'ProfileSetupPage');
+const RoleSelectPage = named(() => import('./pages/RoleSelectPage'), 'RoleSelectPage');
+const SafetyPage = named(() => import('./pages/SafetyPage'), 'SafetyPage');
+const SenderDashboard = named(() => import('./pages/SenderDashboard'), 'SenderDashboard');
+const TripDetailPage = named(() => import('./pages/TripDetailPage'), 'TripDetailPage');
+const TripsPage = named(() => import('./pages/TripsPage'), 'TripsPage');
+const TravelerDashboard = named(() => import('./pages/TravelerDashboard'), 'TravelerDashboard');
+const NotificationsPage = named(() => import('./pages/NotificationsPage'), 'NotificationsPage');
+const VerifyPhonePage = named(() => import('./pages/VerifyPhonePage'), 'VerifyPhonePage');
 
 function AccountGate({
   children,
@@ -170,6 +198,7 @@ function OnboardingGate({
 export default function App() {
   return (
     <BrowserRouter>
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">Уншиж байна...</div>}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/routes" element={<TripsPage />} />
@@ -296,6 +325,7 @@ export default function App() {
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

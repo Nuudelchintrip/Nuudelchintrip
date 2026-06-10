@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -31,6 +31,7 @@ import { Navbar } from '../components/Navbar';
 import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
+import { changePassword, fetchMyAvatarUrl, updateProfileInfo, uploadAvatar } from '../services/supabaseAuth';
 import {
   getActionLogs,
   getIdentityRequests,
@@ -213,11 +214,56 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
   const profile = profiles[role];
   const details = getProfileExperience(role);
   const storedUser = getStoredUser();
-  const displayName = storedUser?.full_name || 'Нэр оруулаагүй';
   const displayPhone = storedUser?.phone || '';
   const displayEmail = storedUser?.email || '';
   const phoneVerified = Boolean(storedUser?.phone_verified);
-  const completion = Math.round(([displayName !== 'Нэр оруулаагүй', displayPhone, displayEmail].filter(Boolean).length / 3) * 100);
+
+  const [editName, setEditName] = useState(storedUser?.full_name || '');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [profileMsg, setProfileMsg] = useState('');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    void fetchMyAvatarUrl().then(setAvatarUrl);
+  }, []);
+
+  const displayName = editName.trim() || 'Нэр оруулаагүй';
+  const completion = Math.round(([editName.trim(), displayPhone, displayEmail].filter(Boolean).length / 3) * 100);
+
+  const saveName = async () => {
+    setProfileMsg('');
+    if (!editName.trim()) {
+      setProfileMsg('Нэрээ оруулна уу.');
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateProfileInfo({ fullName: editName });
+      setProfileMsg('Профайл хадгалагдлаа.');
+    } catch (err) {
+      setProfileMsg(err instanceof Error ? err.message : 'Хадгалахад алдаа гарлаа.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onAvatarSelected = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    setProfileMsg('');
+    try {
+      const url = await uploadAvatar(file);
+      await updateProfileInfo({ avatarUrl: url });
+      setAvatarUrl(url);
+      setProfileMsg('Профайл зураг шинэчлэгдлээ.');
+    } catch (err) {
+      setProfileMsg(err instanceof Error ? err.message : 'Зураг оруулахад алдаа гарлаа.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <AccountFrame role={role}>
@@ -238,11 +284,27 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
         <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
           <Card className="overflow-hidden p-6">
-            <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 via-white to-warning/20 text-primary shadow-inner">
-              <UserCircle className="h-20 w-20" />
-              <button className="absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
+            <div className="relative mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/20 via-white to-warning/20 text-primary shadow-inner">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+              ) : (
+                <UserCircle className="h-20 w-20" />
+              )}
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-2 right-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow disabled:opacity-60"
+              >
                 <Camera className="h-4 w-4" />
               </button>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => onAvatarSelected(e.target.files?.[0] ?? null)}
+              />
             </div>
 
             <div className="mt-5 text-center">
@@ -323,12 +385,15 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
                 <h2 className="text-2xl font-semibold text-foreground">Хувийн мэдээлэл</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Хувийн мэдээлэл зөвхөн тухайн хэрэглэгч болон админд харагдана.</p>
               </div>
-              <Button variant="outline" size="sm">Засвар хадгалах</Button>
+              <Button variant="outline" size="sm" disabled={saving} onClick={saveName}>
+                {saving ? 'Хадгалж байна...' : 'Засвар хадгалах'}
+              </Button>
             </div>
+            {profileMsg && <p className="mt-3 text-sm font-medium text-primary">{profileMsg}</p>}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <Input label="Нэр" defaultValue={displayName === 'Нэр оруулаагүй' ? '' : displayName} />
-              <Input label="Утас" defaultValue={displayPhone} />
-              <Input label="И-мэйл" defaultValue={displayEmail} />
+              <Input label="Нэр" value={editName} onChange={(e) => setEditName(e.target.value)} />
+              <Input label="Утас" defaultValue={displayPhone} readOnly />
+              <Input label="И-мэйл" defaultValue={displayEmail} readOnly />
               <Select
                 label="Хэрэглэгчийн төрөл"
                 value={role}
@@ -1030,6 +1095,33 @@ function FileSelectBox({ label, value, required, onChange }: { label: string; va
 }
 
 export function AccountPasswordPage({ role }: { role: AccountRole }) {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const submit = async () => {
+    setError('');
+    setSuccess('');
+    if (!current || !next) return setError('Бүх талбарыг бөглөнө үү.');
+    if (next.length < 8) return setError('Шинэ нууц үг 8-аас дээш тэмдэгт байх ёстой.');
+    if (next !== confirm) return setError('Шинэ нууц үг таарахгүй байна.');
+    setBusy(true);
+    try {
+      await changePassword(current, next);
+      setSuccess('Нууц үг амжилттай шинэчлэгдлээ.');
+      setCurrent('');
+      setNext('');
+      setConfirm('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Нууц үг шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <AccountFrame role={role}>
       <button
@@ -1063,16 +1155,18 @@ export function AccountPasswordPage({ role }: { role: AccountRole }) {
           </div>
 
           <div className="space-y-5">
-            <Input label="Одоогийн нууц үг" type="password" placeholder="Одоогийн нууц үгээ оруулна" />
+            <Input label="Одоогийн нууц үг" type="password" placeholder="Одоогийн нууц үгээ оруулна" value={current} onChange={(e) => setCurrent(e.target.value)} />
             <div className="grid gap-5 md:grid-cols-2">
-              <Input label="Шинэ нууц үг" type="password" placeholder="Шинэ нууц үг" />
-              <Input label="Шинэ нууц үг давтах" type="password" placeholder="Давтаж оруулна" />
+              <Input label="Шинэ нууц үг" type="password" placeholder="Шинэ нууц үг" value={next} onChange={(e) => setNext(e.target.value)} />
+              <Input label="Шинэ нууц үг давтах" type="password" placeholder="Давтаж оруулна" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
             </div>
-            <ToggleRow label="Бусад төхөөрөмж дээрх нэвтрэлтийг гаргах" checked />
           </div>
 
+          {error && <p className="mt-4 text-sm font-medium text-destructive">{error}</p>}
+          {success && <p className="mt-4 text-sm font-medium text-success">{success}</p>}
+
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Button>Нууц үг шинэчлэх</Button>
+            <Button disabled={busy} onClick={submit}>{busy ? 'Шинэчилж байна...' : 'Нууц үг шинэчлэх'}</Button>
             <Button variant="outline" onClick={() => window.location.href = '/forgot-password'}>Нууц үг мартсан</Button>
           </div>
         </Card>
