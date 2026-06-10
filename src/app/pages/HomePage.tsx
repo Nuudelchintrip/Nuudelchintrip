@@ -75,10 +75,10 @@ export function HomePage() {
           <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
             <div className="flex min-w-0 flex-col justify-center">
               <Badge variant="info">Орон нутгийн унаа хуваалцах платформ</Badge>
-              <h1 className="mt-5 max-w-4xl text-3xl font-bold leading-tight text-foreground sm:text-5xl lg:text-6xl">
+              <h1 className="mt-5 max-w-4xl text-[2rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-5xl sm:leading-tight lg:text-6xl">
                 Орон нутаг руу хамт явах жолоочоо олоорой
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+              <p className="mt-4 max-w-2xl text-[0.95rem] leading-7 text-muted-foreground sm:mt-5 sm:text-lg sm:leading-8">
                 NuudelchinTrip нь нэг чиглэлд явах аялагчийг сул суудалтай жолоочтой холбодог marketplace. Дайвар ачаа нь зөвхөн тухайн жолоочийн чиглэл дээр суурилсан нэмэлт боломж байна.
               </p>
 

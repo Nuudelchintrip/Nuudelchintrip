@@ -1,4 +1,4 @@
-import { Banknote, Box, Bus, CreditCard, FileCheck2, Flag, LayoutDashboard, ListChecks, PackageCheck, PackagePlus, Route, Search, Settings, ShieldCheck, Star, UserCircle, UsersRound } from 'lucide-react';
+import { Banknote, Bell, Box, Bus, CreditCard, FileCheck2, Flag, LayoutDashboard, ListChecks, PackageCheck, PackagePlus, Route, Search, Settings, ShieldCheck, Star, UserCircle, UsersRound } from 'lucide-react';
 
 export type DashboardRole = 'sender' | 'traveler' | 'driver' | 'admin';
 
@@ -8,6 +8,7 @@ export function getDashboardMenu(role: DashboardRole) {
       { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Самбар', href: '/dashboard/cargo' },
       { icon: <PackagePlus className="h-5 w-5" />, label: 'Ачаа илгээх', href: '/cargo/find-routes' },
       { icon: <Box className="h-5 w-5" />, label: 'Миний ачаа', href: '/dashboard/cargo/requests' },
+      { icon: <Bell className="h-5 w-5" />, label: 'Мэдэгдэл', href: '/dashboard/notifications' },
       { icon: <ShieldCheck className="h-5 w-5" />, label: 'Хүргэлтийн код', href: '/dashboard/cargo/status' },
       { icon: <FileCheck2 className="h-5 w-5" />, label: 'Төлбөрийн баримт', href: '/dashboard/cargo/proof' },
       { icon: <Flag className="h-5 w-5" />, label: 'Ачааны дүрэм', href: '/dashboard/cargo/rules' },
@@ -21,6 +22,7 @@ export function getDashboardMenu(role: DashboardRole) {
       { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Самбар', href: '/dashboard/traveler' },
       { icon: <Search className="h-5 w-5" />, label: 'Жолооч хайх', href: '/traveler/find-drivers' },
       { icon: <Bus className="h-5 w-5" />, label: 'Миний аялал', href: '/dashboard/traveler/trips' },
+      { icon: <Bell className="h-5 w-5" />, label: 'Мэдэгдэл', href: '/dashboard/notifications' },
       { icon: <CreditCard className="h-5 w-5" />, label: 'Төлбөрийн баримт', href: '/dashboard/traveler/trips' },
       { icon: <Star className="h-5 w-5" />, label: 'Үнэлгээ', href: '/dashboard/traveler/reviews' },
       { icon: <UserCircle className="h-5 w-5" />, label: 'Хувийн мэдээлэл', href: '/dashboard/traveler/profile' },
@@ -34,6 +36,7 @@ export function getDashboardMenu(role: DashboardRole) {
       { icon: <Route className="h-5 w-5" />, label: 'Чиглэл нэмэх', href: '/driver/add-route' },
       { icon: <Route className="h-5 w-5" />, label: 'Миний чиглэлүүд', href: '/dashboard/driver/routes' },
       { icon: <UsersRound className="h-5 w-5" />, label: 'Ирсэн хүсэлтүүд', href: '/driver/requests' },
+      { icon: <Bell className="h-5 w-5" />, label: 'Мэдэгдэл', href: '/dashboard/notifications' },
       { icon: <Box className="h-5 w-5" />, label: 'Дайвар ачааны хүсэлтүүд', href: '/dashboard/driver/cargo-requests' },
       { icon: <Banknote className="h-5 w-5" />, label: 'Орлого', href: '/dashboard/driver/earnings' },
       { icon: <ShieldCheck className="h-5 w-5" />, label: 'Баталгаажуулалт', href: '/dashboard/driver/verification' },

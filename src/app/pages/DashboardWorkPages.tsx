@@ -13,6 +13,7 @@ import { bookings, reports, users } from '../data/mockData';
 import { getDefaultSeatIds } from '../data/seats';
 import { locationMatchesText } from '../data/locations';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { getBookingBadgeVariant, getCargoStatusLabel, getRequestStatusLabel } from '../utils/bookingStatus';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import { refreshLocalProfileFromSupabase } from '../services/supabaseAuth';
 import {
@@ -21,13 +22,18 @@ import {
   fetchActiveTrips,
   fetchCargoEnabledTrips,
   fetchCurrentDriverCargoRequests,
+  fetchCurrentSenderCargoRequests,
   fetchCurrentDriverPassengerRequests,
   fetchCurrentDriverTrips,
   fetchCurrentTravelerBookings,
+  startPassengerTrip,
+  completePassengerTrip,
+  completeCargoDelivery,
   updateCargoRequestStatus,
   updatePassengerBookingStatus,
   type DriverCargoRequest,
   type DriverPassengerRequest,
+  type SenderCargoRequest,
   type MarketplaceTrip,
   type TravelerBookingSummary,
 } from '../services/tripService';
@@ -580,6 +586,8 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
   const [loadingRequests, setLoadingRequests] = useState(role === 'driver' && isSupabaseConfigured);
   const [requestError, setRequestError] = useState('');
   const [actionMessage, setActionMessage] = useState('');
+  const [codeInputs, setCodeInputs] = useState<Record<string, string>>({});
+  const [tripBusyId, setTripBusyId] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -617,6 +625,41 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
       setActionMessage(nextStatus === 'accepted' ? 'Хүсэлт зөвшөөрөгдлөө. Аялагч төлбөрийн баримт илгээх шат руу орно.' : 'Хүсэлт татгалзагдлаа.');
     } catch (error) {
       setRequestError(error instanceof Error ? error.message : 'Status шинэчлэхэд алдаа гарлаа.');
+    }
+  };
+
+  const startTrip = async (bookingId: string) => {
+    setActionMessage('');
+    setRequestError('');
+    setTripBusyId(bookingId);
+    try {
+      await startPassengerTrip(bookingId);
+      setDriverRequests((current) => current.map((item) => (item.id === bookingId ? { ...item, status: 'on_trip' } : item)));
+      setActionMessage('Аялал эхэллээ. Дуусгахдаа аялагчийн 6 оронтой кодыг оруулна.');
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : 'Аялал эхлүүлэхэд алдаа гарлаа.');
+    } finally {
+      setTripBusyId('');
+    }
+  };
+
+  const completeTrip = async (bookingId: string) => {
+    const code = codeInputs[bookingId]?.trim() || '';
+    if (code.length !== 6) {
+      setRequestError('Аялагчийн 6 оронтой баталгаажуулах кодыг оруулна уу.');
+      return;
+    }
+    setActionMessage('');
+    setRequestError('');
+    setTripBusyId(bookingId);
+    try {
+      await completePassengerTrip(bookingId, code);
+      setDriverRequests((current) => current.map((item) => (item.id === bookingId ? { ...item, status: 'completed' } : item)));
+      setActionMessage('Аялал амжилттай дууслаа.');
+    } catch (error) {
+      setRequestError(error instanceof Error ? error.message : 'Аялал дуусгахад алдаа гарлаа.');
+    } finally {
+      setTripBusyId('');
     }
   };
 
@@ -671,12 +714,41 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
                   <p className="text-sm text-muted-foreground">Нийт дүн</p>
                   <p className="mt-1 text-2xl font-bold text-primary">₮{request.totalAmount.toLocaleString()}</p>
                   <div className="mt-4 grid gap-2">
-                    <Button size="sm" onClick={() => changeBookingStatus(request.id, 'accepted')} disabled={request.status === 'accepted'}>
-                      Зөвшөөрөх
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => changeBookingStatus(request.id, 'rejected')} disabled={request.status === 'rejected'}>
-                      Татгалзах
-                    </Button>
+                    {request.status === 'pending_request' && (
+                      <>
+                        <Button size="sm" onClick={() => changeBookingStatus(request.id, 'accepted')}>
+                          Зөвшөөрөх
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => changeBookingStatus(request.id, 'rejected')}>
+                          Татгалзах
+                        </Button>
+                      </>
+                    )}
+                    {request.status === 'confirmed' && (
+                      <Button size="sm" disabled={tripBusyId === request.id} onClick={() => startTrip(request.id)}>
+                        Аялал эхлүүлэх
+                      </Button>
+                    )}
+                    {request.status === 'on_trip' && (
+                      <>
+                        <Input
+                          label="Аялагчийн 6 оронтой код"
+                          value={codeInputs[request.id] || ''}
+                          onChange={(event) => setCodeInputs((prev) => ({ ...prev, [request.id]: event.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                          inputMode="numeric"
+                          placeholder="123456"
+                        />
+                        <Button size="sm" disabled={tripBusyId === request.id} onClick={() => completeTrip(request.id)}>
+                          Аялал дуусгах
+                        </Button>
+                      </>
+                    )}
+                    {['accepted', 'waiting_payment', 'payment_review'].includes(request.status) && (
+                      <p className="text-center text-xs text-muted-foreground">Төлбөр баталгаажихыг хүлээж байна</p>
+                    )}
+                    {request.status === 'completed' && (
+                      <p className="text-center text-xs font-medium text-success">Аялал дууссан</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -863,27 +935,6 @@ export function FindDriversPage() {
       )}
     </DashboardFrame>
   );
-}
-
-function getRequestStatusLabel(status: string) {
-  if (status === 'accepted') return 'Зөвшөөрсөн';
-  if (status === 'rejected') return 'Татгалзсан';
-  if (status === 'waiting_payment') return 'Төлбөр хүлээгдэж байна';
-  if (status === 'payment_review') return 'Төлбөр шалгаж байна';
-  if (status === 'confirmed') return 'Баталгаажсан';
-  if (status === 'on_trip') return 'Аялал эхэлсэн';
-  if (status === 'completed') return 'Дууссан';
-  if (status === 'cancelled') return 'Цуцлагдсан';
-  if (status === 'disputed') return 'Маргаан шалгаж байна';
-  return 'Хүлээгдэж байна';
-}
-
-function getBookingBadgeVariant(status: string): 'success' | 'warning' | 'danger' | 'info' | 'default' {
-  if (status === 'confirmed' || status === 'on_trip' || status === 'completed') return 'success';
-  if (status === 'rejected' || status === 'cancelled' || status === 'disputed') return 'danger';
-  if (status === 'waiting_payment' || status === 'payment_review') return 'warning';
-  if (status === 'accepted') return 'info';
-  return 'default';
 }
 
 export function DriverOffersPage() {
@@ -1181,6 +1232,8 @@ export function DriverCargoRequestsPage() {
   const [loadingCargoRequests, setLoadingCargoRequests] = useState(isSupabaseConfigured);
   const [cargoRequestError, setCargoRequestError] = useState('');
   const [cargoActionMessage, setCargoActionMessage] = useState('');
+  const [cargoCodeInputs, setCargoCodeInputs] = useState<Record<string, string>>({});
+  const [cargoBusyId, setCargoBusyId] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -1206,20 +1259,50 @@ export function DriverCargoRequestsPage() {
     };
   }, []);
 
-  const changeCargoStatus = async (requestId: string, nextStatus: 'cargo_accepted' | 'rejected') => {
+  const changeCargoStatus = async (
+    requestId: string,
+    nextStatus: 'cargo_accepted' | 'rejected' | 'in_transit',
+  ) => {
     setCargoActionMessage('');
     setCargoRequestError('');
-
+    setCargoBusyId(requestId);
     try {
       await updateCargoRequestStatus(requestId, nextStatus);
       setCargoRequests((current) => current.map((item) => (
         item.id === requestId ? { ...item, status: nextStatus } : item
       )));
-      setCargoActionMessage(nextStatus === 'cargo_accepted'
-        ? 'Дайвар ачааны хүсэлт зөвшөөрөгдлөө. Илгээгч төлбөрийн баримтын шат руу орно.'
-        : 'Дайвар ачааны хүсэлт татгалзагдлаа.');
+      const messages: Record<string, string> = {
+        cargo_accepted: 'Дайвар ачааны хүсэлт зөвшөөрөгдлөө. Илгээгч төлбөрийн баримтын шат руу орно.',
+        rejected: 'Дайвар ачааны хүсэлт татгалзагдлаа.',
+        in_transit: 'Ачаа тээвэрлэгдэж эхэллээ.',
+      };
+      setCargoActionMessage(messages[nextStatus] || 'Ачааны төлөв шинэчлэгдлээ.');
     } catch (error) {
       setCargoRequestError(error instanceof Error ? error.message : 'Ачааны төлөв шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setCargoBusyId('');
+    }
+  };
+
+  const completeDelivery = async (requestId: string) => {
+    const code = cargoCodeInputs[requestId]?.trim() || '';
+    if (code.length !== 6) {
+      setCargoRequestError('Хүлээн авагчийн 6 оронтой хүргэлтийн кодыг оруулна уу.');
+      return;
+    }
+    setCargoActionMessage('');
+    setCargoRequestError('');
+    setCargoBusyId(requestId);
+    try {
+      await completeCargoDelivery(requestId, code);
+      setCargoRequests((current) => current.map((item) => (
+        item.id === requestId ? { ...item, status: 'delivered' } : item
+      )));
+      setCargoActionMessage('Ачаа амжилттай хүргэгдлээ.');
+    } catch (error) {
+      setCargoRequestError(error instanceof Error ? error.message : 'Хүргэлт баталгаажуулахад алдаа гарлаа.');
+    } finally {
+      setCargoBusyId('');
     }
   };
 
@@ -1289,24 +1372,44 @@ export function DriverCargoRequestsPage() {
               </div>
 
               <div className="rounded-xl border border-border bg-card p-4">
-                <p className="text-sm text-muted-foreground">Хүргэлтийн код</p>
-                <p className="mt-1 text-3xl font-bold text-primary">{request.deliveryCode}</p>
+                <p className="text-sm text-muted-foreground">Төлөв</p>
+                <p className="mt-1 text-lg font-semibold text-foreground">{getCargoStatusLabel(request.status)}</p>
                 <div className="mt-5 grid gap-2">
-                  <Button
-                    fullWidth
-                    disabled={request.status === 'cargo_accepted'}
-                    onClick={() => changeCargoStatus(request.id, 'cargo_accepted')}
-                  >
-                    Зөвшөөрөх
-                  </Button>
-                  <Button
-                    variant="outline"
-                    fullWidth
-                    disabled={request.status === 'rejected'}
-                    onClick={() => changeCargoStatus(request.id, 'rejected')}
-                  >
-                    Татгалзах
-                  </Button>
+                  {request.status === 'cargo_requested' && (
+                    <>
+                      <Button fullWidth disabled={cargoBusyId === request.id} onClick={() => changeCargoStatus(request.id, 'cargo_accepted')}>
+                        Зөвшөөрөх
+                      </Button>
+                      <Button variant="outline" fullWidth disabled={cargoBusyId === request.id} onClick={() => changeCargoStatus(request.id, 'rejected')}>
+                        Татгалзах
+                      </Button>
+                    </>
+                  )}
+                  {request.status === 'picked_up' && (
+                    <Button fullWidth disabled={cargoBusyId === request.id} onClick={() => changeCargoStatus(request.id, 'in_transit')}>
+                      Тээвэрлэж эхлэх
+                    </Button>
+                  )}
+                  {request.status === 'in_transit' && (
+                    <>
+                      <Input
+                        label="Хүлээн авагчийн код"
+                        value={cargoCodeInputs[request.id] || ''}
+                        onChange={(event) => setCargoCodeInputs((prev) => ({ ...prev, [request.id]: event.target.value.replace(/\D/g, '').slice(0, 6) }))}
+                        inputMode="numeric"
+                        placeholder="123456"
+                      />
+                      <Button fullWidth disabled={cargoBusyId === request.id} onClick={() => completeDelivery(request.id)}>
+                        Хүргэлт баталгаажуулах
+                      </Button>
+                    </>
+                  )}
+                  {['cargo_accepted', 'waiting_payment', 'payment_review'].includes(request.status) && (
+                    <p className="text-center text-xs text-muted-foreground">Төлбөр баталгаажихыг хүлээж байна</p>
+                  )}
+                  {['delivered', 'completed'].includes(request.status) && (
+                    <p className="text-center text-xs font-medium text-success">Хүргэгдсэн</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1498,50 +1601,95 @@ export function SenderCargoPage({ view }: { view: SenderView }) {
     : isStatus
       ? 'Хүлээн авагчийн 6 оронтой код болон хүргэлтийн төлөвөө нэг дор хянана.'
       : 'Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж.';
-  return (
-    <DashboardFrame sender active={view}>
-      <PageTop badge="Дайвар ачааны нэмэлт боломж" title={title} description={description} backHref="/dashboard/cargo" />
-      <Card className="p-8 text-center">
-        <PackageCheck className="mx-auto mb-4 h-12 w-12 text-primary" />
-        <h2 className="text-xl font-semibold text-foreground">Одоогоор бодит ачааны хүсэлт алга</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-          Зохиомол захиалга, зохиомол хүргэлтийн код, зохиомол төлбөрийн баримт харуулахгүй. Ачаа авах боломжтой чиглэл сонгож хүсэлт үүсгэсний дараа энэ хэсэг дүүрнэ.
-        </p>
-        <Button className="mt-5" onClick={() => window.location.href = '/cargo/find-routes'}>
-          Ачаа авах чиглэл хайх
-        </Button>
-      </Card>
-    </DashboardFrame>
-  );
+
+  const [items, setItems] = useState<SenderCargoRequest[]>([]);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
+
+  useEffect(() => {
+    let active = true;
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+    fetchCurrentSenderCargoRequests()
+      .then((rows) => {
+        if (active) setItems(rows);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <DashboardFrame sender active={view}>
       <PageTop badge="Дайвар ачааны нэмэлт боломж" title={title} description={description} backHref="/dashboard/cargo" />
-      <div className="grid gap-5">
-        {['BK-001', 'BK-002', 'BK-003'].map((id, index) => (
-          <Card key={id} className="p-6">
-            <div className="grid gap-4 md:grid-cols-[1fr_180px_160px] md:items-center">
-              <div>
-                <Badge variant={index === 0 ? 'warning' : index === 1 ? 'info' : 'success'}>
-                  {isStatus
-                    ? index === 0 ? 'Код хүлээгдэж байна' : index === 1 ? 'Замд явж байна' : 'Хүлээлгэн өгсөн'
-                    : index === 0 ? 'Баримт хүлээгдэж байна' : index === 1 ? 'Админ шалгаж байна' : 'Баталгаажсан'}
-                </Badge>
-                <h2 className="mt-3 text-xl font-semibold text-foreground">{id} - УБ → Дархан</h2>
-                <p className="mt-1 text-muted-foreground">
-                  {isStatus ? 'Хүлээн авагчийн код: 482913. Хүргэлтийн баталгаажуулалт хүлээгдэж байна.' : 'Ачаа авсан болон хүргэсэн баталгааг тусдаа оруулна.'}
-                </p>
-              </div>
-              <p className="text-2xl font-bold text-primary">₮{(18000 + index * 4000).toLocaleString()}</p>
-              <Button variant="outline" onClick={() => window.location.href = isStatus ? '/dashboard/cargo' : '/dashboard/bookings/BK-001/delivery-proof'}>
-                {isStatus ? 'Самбар' : 'Баталгаа оруулах'}
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+
+      {loading ? (
+        <Card className="p-6 text-sm text-muted-foreground">Ачааны хүсэлтүүдийг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <Card className="p-8 text-center">
+          <PackageCheck className="mx-auto mb-4 h-12 w-12 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Одоогоор бодит ачааны хүсэлт алга</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            Ачаа авах боломжтой чиглэл сонгож хүсэлт үүсгэсний дараа энэ хэсэг дүүрнэ.
+          </p>
+          <Button className="mt-5" onClick={() => window.location.href = '/cargo/find-routes'}>
+            Ачаа авах чиглэл хайх
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid gap-5">
+          {items.map((item) => {
+            const showCode = isStatus && ['picked_up', 'in_transit'].includes(item.status);
+            return (
+              <Card key={item.id} className="p-6">
+                <div className="grid gap-4 md:grid-cols-[1fr_200px] md:items-center">
+                  <div>
+                    <Badge variant={getCargoBadgeVariant(item.status)}>{getCargoStatusLabel(item.status)}</Badge>
+                    <h2 className="mt-3 text-xl font-semibold text-foreground">{item.cargoName} · {item.route}</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Хүлээн авагч: {item.receiverName} · {item.receiverPhone}
+                      {item.weightKg ? ` · ${item.weightKg} кг` : ''}
+                    </p>
+                    {isStatus && (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {showCode
+                          ? 'Доорх 6 оронтой кодыг хүлээн авагчид өгнө үү. Жолооч хүргэх үед энэ кодыг оруулж баталгаажуулна.'
+                          : 'Ачаа авагдаж замдаа гармагц хүргэлтийн код идэвхжинэ.'}
+                      </p>
+                    )}
+                  </div>
+                  {isStatus ? (
+                    <div className="rounded-xl border border-border bg-card p-4 text-center">
+                      <p className="text-sm text-muted-foreground">Хүргэлтийн код</p>
+                      <p className="mt-1 text-3xl font-bold tracking-widest text-primary">
+                        {showCode ? item.deliveryCode : '••••••'}
+                      </p>
+                    </div>
+                  ) : (
+                    <Button variant="outline" onClick={() => window.location.href = '/dashboard/cargo/requests'}>
+                      Дэлгэрэнгүй
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </DashboardFrame>
   );
+}
+
+function getCargoBadgeVariant(status: string): 'success' | 'warning' | 'danger' | 'info' | 'default' {
+  if (['delivered', 'completed'].includes(status)) return 'success';
+  if (['rejected', 'cancelled', 'disputed'].includes(status)) return 'danger';
+  if (['waiting_payment', 'payment_review'].includes(status)) return 'warning';
+  if (['picked_up', 'in_transit', 'cargo_accepted'].includes(status)) return 'info';
+  return 'default';
 }
 
 export function AdminQueuePage({ view }: { view: AdminView }) {

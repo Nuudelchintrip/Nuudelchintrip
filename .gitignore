@@ -4,3 +4,10 @@ dist
 .env
 .env.local
 .DS_Store
+
+# temp / tooling junk
+.codex-tmp/
+.claude/
+vite-dev.out.log
+vite-dev.err.log
+~$*

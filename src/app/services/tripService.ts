@@ -124,6 +124,7 @@ export interface PassengerBookingDetail {
   totalAmount: number;
   note?: string;
   createdAt: string;
+  tripCode?: string;
   trip: {
     driverId: string;
     fromLocation: string;
@@ -747,15 +748,96 @@ export async function updatePassengerBookingStatus(
 ) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
+  // Role-validated transition that also releases held seats on reject/cancel.
   const { data, error } = await supabase
-    .from('passenger_bookings')
-    .update({ status })
-    .eq('id', bookingId)
-    .select('id, status')
+    .rpc('set_passenger_booking_status', { p_booking_id: bookingId, p_status: status })
     .single();
 
-  if (error) throw toError(error, 'Booking status шинэчлэхэд алдаа гарлаа.');
-  return data;
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
+      booking_not_found: 'Захиалга олдсонгүй.',
+      driver_or_admin_required: 'Зөвхөн чиглэлийн жолооч энэ үйлдлийг хийнэ.',
+      not_authorized: 'Энэ үйлдлийг хийх эрхгүй байна.',
+      unsupported_status: 'Буруу төлөв.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Booking status шинэчлэхэд алдаа гарлаа.');
+  }
+  return data as { id: string; status: string };
+}
+
+export async function startPassengerTrip(bookingId: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  const { error } = await supabase.rpc('start_passenger_trip', { p_booking_id: bookingId }).single();
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      driver_or_admin_required: 'Зөвхөн чиглэлийн жолооч аялал эхлүүлнэ.',
+      booking_not_confirmed: 'Зөвхөн баталгаажсан захиалгын аяллыг эхлүүлнэ.',
+      booking_not_found: 'Захиалга олдсонгүй.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Аялал эхлүүлэхэд алдаа гарлаа.');
+  }
+}
+
+export async function completePassengerTrip(bookingId: string, code: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  const { error } = await supabase.rpc('complete_passenger_trip', { p_booking_id: bookingId, p_code: code }).single();
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      driver_or_admin_required: 'Зөвхөн чиглэлийн жолооч аялал дуусгана.',
+      booking_not_on_trip: 'Энэ захиалга аялал эхэлсэн төлөвт байхгүй байна.',
+      invalid_trip_code: 'Баталгаажуулах код буруу байна. Аялагчаас 6 оронтой кодыг асууна уу.',
+      booking_not_found: 'Захиалга олдсонгүй.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Аялал дуусгахад алдаа гарлаа.');
+  }
+}
+
+/** File a dispute/report tied to a booking. reporter_id is the signed-in user (RLS-enforced). */
+export async function createBookingReport(input: { bookingId: string; tripId?: string; reason: string; details?: string }) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) throw new Error('Дахин нэвтэрнэ үү.');
+  if (!input.reason.trim()) throw new Error('Асуудлын талаар бичнэ үү.');
+
+  const { error } = await supabase.from('reports').insert({
+    reporter_id: userId,
+    booking_id: input.bookingId,
+    trip_id: input.tripId || null,
+    reason: input.reason.trim(),
+    details: input.details?.trim() || null,
+  });
+  if (error) throw toError(error, 'Гомдол илгээхэд алдаа гарлаа.');
+}
+
+export interface BookingStatusLog {
+  id: string;
+  status: string;
+  note?: string;
+  createdAt: string;
+}
+
+/** Fetch the audit trail (status transitions) for a booking, oldest first. */
+export async function fetchBookingStatusHistory(bookingId: string): Promise<BookingStatusLog[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('trip_status_logs')
+    .select('id, status, note, created_at')
+    .eq('booking_id', bookingId)
+    .order('created_at', { ascending: true });
+
+  if (error) return [];
+  return (data || []).map((row) => ({
+    id: row.id as string,
+    status: row.status as string,
+    note: (row.note as string) || undefined,
+    createdAt: row.created_at as string,
+  }));
 }
 
 export async function fetchPassengerBookingById(bookingId: string): Promise<PassengerBookingDetail | null> {
@@ -763,7 +845,7 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
 
   let { data: booking, error: bookingError } = await supabase
     .from('passenger_bookings')
-    .select('id, trip_id, traveler_id, seats_requested, selected_seats, status, total_amount, note, created_at')
+    .select('id, trip_id, traveler_id, seats_requested, selected_seats, status, total_amount, note, created_at, trip_code')
     .eq('id', bookingId)
     .maybeSingle();
 
@@ -821,6 +903,7 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
     totalAmount: Number(bookingRow.total_amount || 0),
     note: bookingRow.note || undefined,
     createdAt: bookingRow.created_at,
+    tripCode: (bookingRow as { trip_code?: string }).trip_code || undefined,
     trip: {
       driverId: trip.driver_id,
       fromLocation: trip.from_location,
@@ -852,30 +935,83 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
 export async function createCargoRequest(input: CreateCargoRequestInput) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw toError(userError, 'User session check failed.');
-  const userId = userData.user?.id;
-  if (!userId) throw new Error('Cargo request илгээхийн тулд дахин нэвтэрнэ үү.');
-
   const { data, error } = await supabase
-    .from('cargo_requests')
-    .insert({
-      trip_id: input.tripId,
-      sender_id: userId,
-      cargo_name: input.cargoName,
-      cargo_type: input.cargoType || null,
-      size_note: input.sizeNote || null,
-      weight_kg: input.weightKg ?? null,
-      receiver_name: input.receiverName,
-      receiver_phone: input.receiverPhone,
-      pickup_note: input.pickupNote || null,
-      status: 'cargo_requested',
+    .rpc('create_cargo_request', {
+      p_trip_id: input.tripId,
+      p_cargo_name: input.cargoName,
+      p_cargo_type: input.cargoType || null,
+      p_size_note: input.sizeNote || null,
+      p_weight_kg: input.weightKg ?? null,
+      p_receiver_name: input.receiverName,
+      p_receiver_phone: input.receiverPhone,
+      p_pickup_note: input.pickupNote || null,
     })
-    .select('id, status, delivery_code')
     .single();
 
-  if (error) throw toError(error, 'Cargo request хадгалахад алдаа гарлаа.');
-  return data;
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      not_authenticated: 'Дахин нэвтэрнэ үү.',
+      cargo_name_required: 'Ачааны нэрийг оруулна уу.',
+      receiver_required: 'Хүлээн авагчийн нэрийг оруулна уу.',
+      receiver_phone_required: 'Хүлээн авагчийн утсыг оруулна уу.',
+      cargo_sender_required: 'Зөвхөн дүрэм зөвшөөрсөн, утсаа баталгаажуулсан ачаа илгээгч хүсэлт үүсгэнэ.',
+      trip_not_cargo_enabled: 'Энэ чиглэл дайвар ачаа авах боломжгүй байна.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Cargo request хадгалахад алдаа гарлаа.');
+  }
+  return data as { id: string; status: string; delivery_code: string };
+}
+
+export interface SenderCargoRequest {
+  id: string;
+  route: string;
+  cargoName: string;
+  weightKg?: number;
+  receiverName: string;
+  receiverPhone: string;
+  status: string;
+  deliveryCode: string;
+  createdAt: string;
+}
+
+/** The signed-in sender's own cargo requests, including the delivery code to share. */
+export async function fetchCurrentSenderCargoRequests(): Promise<SenderCargoRequest[]> {
+  if (!supabase) return [];
+
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return [];
+
+  const { data: cargoRows, error } = await supabase
+    .from('cargo_requests')
+    .select('id, trip_id, cargo_name, weight_kg, receiver_name, receiver_phone, status, delivery_code, created_at')
+    .eq('sender_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error || !cargoRows?.length) return [];
+
+  const tripIds = Array.from(new Set(cargoRows.map((r) => r.trip_id)));
+  const { data: trips } = await supabase
+    .from('trips')
+    .select('id, from_location, to_location')
+    .in('id', tripIds);
+  const tripsById = new Map((trips || []).map((t) => [t.id, t]));
+
+  return cargoRows.map((r) => {
+    const trip = tripsById.get(r.trip_id);
+    return {
+      id: r.id as string,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Чиглэл',
+      cargoName: r.cargo_name as string,
+      weightKg: (r.weight_kg as number) ?? undefined,
+      receiverName: r.receiver_name as string,
+      receiverPhone: r.receiver_phone as string,
+      status: r.status as string,
+      deliveryCode: r.delivery_code as string,
+      createdAt: r.created_at as string,
+    };
+  });
 }
 
 export async function fetchCurrentDriverCargoRequests() {
@@ -940,19 +1076,43 @@ export async function fetchCurrentDriverCargoRequests() {
   });
 }
 
+const CARGO_STATUS_ERRORS: Record<string, string> = {
+  not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
+  cargo_not_found: 'Ачааны хүсэлт олдсонгүй.',
+  driver_or_admin_required: 'Зөвхөн чиглэлийн жолооч энэ үйлдлийг хийнэ.',
+  sender_or_admin_required: 'Зөвхөн ачаа илгээгч энэ үйлдлийг хийнэ.',
+  not_authorized: 'Энэ үйлдлийг хийх эрхгүй байна.',
+  invalid_transition: 'Энэ төлөвт шилжих боломжгүй.',
+  cargo_not_in_transit: 'Ачаа тээвэрлэгдэж буй төлөвт байхгүй байна.',
+  invalid_delivery_code: 'Хүргэлтийн код буруу байна. Хүлээн авагчаас 6 оронтой кодыг асууна уу.',
+};
+
 export async function updateCargoRequestStatus(
   cargoRequestId: string,
-  status: 'cargo_accepted' | 'rejected' | 'waiting_payment' | 'picked_up' | 'in_transit' | 'delivered' | 'completed',
+  status: 'cargo_accepted' | 'rejected' | 'waiting_payment' | 'picked_up' | 'in_transit' | 'completed' | 'cancelled',
 ) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
   const { data, error } = await supabase
-    .from('cargo_requests')
-    .update({ status })
-    .eq('id', cargoRequestId)
-    .select('id, status')
+    .rpc('set_cargo_request_status', { p_cargo_id: cargoRequestId, p_status: status })
     .single();
 
-  if (error) throw toError(error, 'Cargo status шинэчлэхэд алдаа гарлаа.');
-  return data;
+  if (error) {
+    const known = Object.entries(CARGO_STATUS_ERRORS).find(([code]) => toError(error, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Cargo status шинэчлэхэд алдаа гарлаа.');
+  }
+  return data as { id: string; status: string };
+}
+
+export async function completeCargoDelivery(cargoRequestId: string, code: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { error } = await supabase
+    .rpc('complete_cargo_delivery', { p_cargo_id: cargoRequestId, p_code: code })
+    .single();
+
+  if (error) {
+    const known = Object.entries(CARGO_STATUS_ERRORS).find(([code2]) => toError(error, '').message.includes(code2))?.[1];
+    throw known ? new Error(known) : toError(error, 'Хүргэлт баталгаажуулахад алдаа гарлаа.');
+  }
 }

@@ -68,7 +68,11 @@ async function syncCurrentProfileFromSupabase(fallbackEmail = '') {
   return profile;
 }
 
-export async function registerWithSupabase(input: RegisterInput) {
+export type RegisterResult =
+  | { status: 'active'; profile: MockUserProfile }
+  | { status: 'email_confirmation_pending'; email: string };
+
+export async function registerWithSupabase(input: RegisterInput): Promise<RegisterResult> {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
   clearStoredUser();
@@ -92,10 +96,12 @@ export async function registerWithSupabase(input: RegisterInput) {
   if (!data.user || data.user.identities?.length === 0) {
     throw new Error('Энэ и-мэйл хаяг өмнө нь бүртгэгдсэн байна. Нэвтрэх хэсгийг ашиглана уу.');
   }
+
+  // When "Confirm email" is enabled (production), signUp returns no session until
+  // the user clicks the link in their inbox. Surface that as a pending state
+  // instead of an error so the flow works with email confirmation on.
   if (!data.session) {
-    throw new Error(
-      'Supabase дээр и-мэйл баталгаажуулалт асаалттай байна. Шинэ бүртгэлийг утас баталгаажуулах руу үргэлжлүүлэхийн тулд Confirm email тохиргоог унтраана уу.',
-    );
+    return { status: 'email_confirmation_pending', email: input.email };
   }
 
   const localProfile = await syncCurrentProfileFromSupabase(input.email);
@@ -103,7 +109,7 @@ export async function registerWithSupabase(input: RegisterInput) {
     throw new Error('Сонгосон хэрэглэгчийн төрөл хадгалагдсангүй. Бүртгэлийг дахин оролдоно уу.');
   }
 
-  return localProfile;
+  return { status: 'active', profile: localProfile };
 }
 
 export async function loginWithSupabase(email: string, password: string) {
@@ -154,25 +160,89 @@ export async function logoutFromSupabase() {
   if (error) throw error;
 }
 
-export async function markPhoneVerified() {
-  if (!supabase) return updateStoredUser({ phone_verified: true });
+const OTP_ERROR_MESSAGES: Record<string, string> = {
+  not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
+  phone_required: 'Утасны дугаараа оруулна уу.',
+  otp_rate_limited: 'Дахин код авахын тулд түр хүлээнэ үү.',
+  otp_hourly_limit: 'Хэт олон код хүслээ. 1 цагийн дараа дахин оролдоно уу.',
+  otp_invalid: 'Код буруу байна. 6 оронтой кодоо шалгаад дахин оруулна уу.',
+  otp_not_found_or_expired: 'Кодын хугацаа дууссан байна. Дахин код авна уу.',
+  otp_too_many_attempts: 'Хэт олон удаа буруу оруулсан байна. Дахин код авна уу.',
+  auth_user_not_found: 'Нэвтэрсэн хэрэглэгчийн бүртгэл олдсонгүй.',
+};
 
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-  if (sessionError) {
-    throw toError(sessionError, 'Нэвтрэлтийн мэдээллийг шалгахад алдаа гарлаа.');
+function mapOtpError(error: { message?: string } | null, fallback: string) {
+  const known = Object.entries(OTP_ERROR_MESSAGES).find(([code]) => error?.message?.includes(code));
+  return known ? new Error(known[1]) : toError(error, fallback);
+}
+
+export interface RequestOtpResult {
+  resendAfterSeconds: number;
+  expiresInSeconds: number;
+  /** Present only while otp_dev_mode is on (no SMS provider connected yet). */
+  devCode: string | null;
+}
+
+async function requestOtpViaRpc(phone: string): Promise<RequestOtpResult> {
+  const { data, error } = await supabase!.rpc('request_phone_otp', { p_phone: phone });
+  if (error) throw mapOtpError(error, 'OTP код илгээхэд алдаа гарлаа.');
+  const row = (data || {}) as { resend_after_seconds?: number; expires_in_seconds?: number; dev_code?: string | null };
+  return {
+    resendAfterSeconds: row.resend_after_seconds ?? 60,
+    expiresInSeconds: row.expires_in_seconds ?? 300,
+    devCode: row.dev_code ?? null,
+  };
+}
+
+export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> {
+  if (!supabase) {
+    // Local fallback when Supabase env is not configured.
+    return { resendAfterSeconds: 60, expiresInSeconds: 300, devCode: '123456' };
   }
-  const userId = sessionData.session?.user.id;
-  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
 
-  const { data, error } = await supabase.rpc('complete_phone_verification');
+  // Production: the send-otp edge function generates the code and delivers it by SMS.
+  const { data, error } = await supabase.functions.invoke('send-otp', { body: { phone } });
+
+  if (!error && data?.ok) {
+    return {
+      resendAfterSeconds: data.resend_after_seconds ?? 60,
+      expiresInSeconds: data.expires_in_seconds ?? 300,
+      devCode: null,
+    };
+  }
+
   if (error) {
-    throw toError(error, 'Утасны баталгаажуулалтыг хадгалахад алдаа гарлаа.');
+    // If the function ran but returned a known OTP error, surface it (no fallback).
+    let payload: { error?: string } | null = null;
+    try {
+      payload = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.() ?? null;
+    } catch {
+      payload = null;
+    }
+    if (payload?.error && OTP_ERROR_MESSAGES[payload.error]) {
+      throw new Error(OTP_ERROR_MESSAGES[payload.error]);
+    }
+    // Otherwise the function is likely not deployed yet → fall back to the dev RPC.
+    return requestOtpViaRpc(phone);
   }
+
+  return requestOtpViaRpc(phone);
+}
+
+export async function verifyPhoneOtp(phone: string, code: string) {
+  if (!supabase) {
+    if (code !== '123456') throw new Error(OTP_ERROR_MESSAGES.otp_invalid);
+    return updateStoredUser({ phone_verified: true });
+  }
+
+  const { data, error } = await supabase.rpc('verify_phone_otp', { p_phone: phone, p_code: code });
+  if (error) throw mapOtpError(error, 'Утасны баталгаажуулалтыг хадгалахад алдаа гарлаа.');
 
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new Error('Утасны баталгаажуулалтын хариу буруу байна.');
   }
 
+  const { data: sessionData } = await supabase.auth.getSession();
   const profile = toLocalProfile(data as ProfileRow, sessionData.session?.user.email || '');
   saveStoredUser(profile);
   return profile;
@@ -221,10 +291,45 @@ export async function completeTravelerOnboarding(input: {
   return updateStoredUser({ role: 'traveler', onboarding_completed: true });
 }
 
+export type DriverDocumentKind = 'driver_license' | 'vehicle_certificate' | 'vehicle_photo';
+
+function safeFileName(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
+}
+
+const ALLOWED_DOC_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+/** Upload one driver document to the private driver-documents bucket; returns the stored path. */
+export async function uploadDriverDocument(file: File, kind: DriverDocumentKind): Promise<string> {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
+
+  if (!ALLOWED_DOC_TYPES.includes(file.type)) {
+    throw new Error('Зөвхөн JPG, PNG, WEBP, PDF файл оруулна уу.');
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    throw new Error('Файлын хэмжээ 10MB-аас бага байх ёстой.');
+  }
+
+  const path = `${userId}/${kind}/${Date.now()}-${safeFileName(file.name)}`;
+  const { error: uploadError } = await supabase.storage
+    .from('driver-documents')
+    .upload(path, file, { cacheControl: '3600', upsert: true });
+
+  if (uploadError) throw toError(uploadError, 'Бичиг баримт upload хийхэд алдаа гарлаа.');
+  return `driver-documents/${path}`;
+}
+
 export async function submitDriverOnboarding(input: {
   carModel?: string;
   plateNumber?: string;
   seats?: number;
+  driverLicenseUrl?: string;
+  vehicleCertificateUrl?: string;
+  vehiclePhotoUrl?: string;
 }) {
   if (supabase) {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -238,6 +343,9 @@ export async function submitDriverOnboarding(input: {
       p_car_model: input.carModel?.trim() || null,
       p_plate_number: input.plateNumber?.trim() || null,
       p_seats: input.seats ?? null,
+      p_driver_license_url: input.driverLicenseUrl?.trim() || null,
+      p_vehicle_certificate_url: input.vehicleCertificateUrl?.trim() || null,
+      p_vehicle_photo_url: input.vehiclePhotoUrl?.trim() || null,
     });
     if (onboardingError) {
       const messageByCode: Record<string, string> = {
@@ -249,6 +357,9 @@ export async function submitDriverOnboarding(input: {
         car_model_required: 'Машины загварыг оруулна уу.',
         plate_number_required: 'Улсын дугаарыг оруулна уу.',
         invalid_seat_count: 'Суудлын тоо 1-12 хооронд байх ёстой.',
+        driver_license_required: 'Жолооны үнэмлэхний зургийг оруулна уу.',
+        vehicle_certificate_required: 'Машины гэрчилгээний зургийг оруулна уу.',
+        vehicle_photo_required: 'Машины зургийг оруулна уу.',
       };
       const knownMessage = Object.entries(messageByCode).find(([code]) =>
         onboardingError.message?.includes(code),
@@ -263,6 +374,34 @@ export async function submitDriverOnboarding(input: {
   }
 
   return updateStoredUser({ role: 'driver', onboarding_completed: true, verification_status: 'pending' });
+}
+
+export interface MyDriverVerification {
+  status: DriverVerificationStatus;
+  rejectionReason?: string;
+  reviewedAt?: string;
+}
+
+/** Fetch the signed-in driver's own verification status + rejection reason. */
+export async function fetchMyDriverVerification(): Promise<MyDriverVerification | null> {
+  if (!supabase) return null;
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData.session?.user.id;
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from('driver_profiles')
+    .select('verification_status, rejection_reason, reviewed_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return {
+    status: data.verification_status as DriverVerificationStatus,
+    rejectionReason: data.rejection_reason || undefined,
+    reviewedAt: data.reviewed_at || undefined,
+  };
 }
 
 export async function completeCargoOnboarding() {

@@ -52,9 +52,6 @@ export async function uploadPaymentProof(input: UploadPaymentProofInput): Promis
     throw new Error('Файлын хэмжээ 10MB-аас бага байх ёстой.');
   }
 
-  const targetColumn = input.target === 'booking' ? 'booking_id' : 'cargo_request_id';
-  const statusTable = input.target === 'booking' ? 'passenger_bookings' : 'cargo_requests';
-  const reviewStatus = input.target === 'booking' ? 'payment_review' : 'payment_review';
   const path = `${userId}/${input.target}/${input.targetId}/${Date.now()}-${safeFileName(input.file.name)}`;
 
   const { error: uploadError } = await supabase.storage
@@ -67,45 +64,85 @@ export async function uploadPaymentProof(input: UploadPaymentProofInput): Promis
   if (uploadError) throw toError(uploadError, 'Төлбөрийн баримтын файл upload хийхэд алдаа гарлаа.');
 
   const storedPath = `payment-proofs/${path}`;
+  const amount = Math.max(0, Math.round(input.amount));
 
+  if (input.target === 'booking') {
+    // Atomic: payment row + proof row + booking → payment_review in one transaction.
+    const { data: paymentId, error: rpcError } = await supabase.rpc('submit_payment_proof', {
+      p_booking_id: input.targetId,
+      p_amount: amount,
+      p_proof_url: storedPath,
+      p_note: input.note || null,
+    });
+    if (rpcError) {
+      const messageByCode: Record<string, string> = {
+        not_your_booking: 'Энэ захиалга таных биш байна.',
+        booking_not_payable: 'Энэ захиалга одоо төлбөр хүлээж авах төлөвт байхгүй байна.',
+        invalid_amount: 'Төлбөрийн дүн буруу байна.',
+        proof_required: 'Төлбөрийн баримтаа оруулна уу.',
+      };
+      const known = Object.entries(messageByCode).find(([code]) => toError(rpcError, '').message.includes(code))?.[1];
+      throw known ? new Error(known) : toError(rpcError, 'Төлбөрийн баримт хадгалахад алдаа гарлаа.');
+    }
+    return { paymentId: paymentId as string, proofId: '', proofPath: storedPath };
+  }
+
+  // Cargo path (refined in Phase 9) — keep the direct inserts for now.
   const { data: payment, error: paymentError } = await supabase
     .from('payments')
     .insert({
       user_id: userId,
-      [targetColumn]: input.targetId,
-      amount: Math.max(0, Math.round(input.amount)),
+      cargo_request_id: input.targetId,
+      amount,
       status: 'proof_uploaded',
       proof_url: storedPath,
     })
     .select('id')
     .single();
-
   if (paymentError) throw toError(paymentError, 'Төлбөрийн мөр хадгалахад алдаа гарлаа.');
 
   const { data: proof, error: proofError } = await supabase
     .from('proofs')
     .insert({
       user_id: userId,
-      [targetColumn]: input.targetId,
+      cargo_request_id: input.targetId,
       proof_type: 'payment',
       file_url: storedPath,
       note: input.note || null,
     })
     .select('id')
     .single();
-
   if (proofError) throw toError(proofError, 'Proof timeline хадгалахад алдаа гарлаа.');
 
-  const { error: statusError } = await supabase
-    .from(statusTable)
-    .update({ status: reviewStatus })
-    .eq('id', input.targetId);
-
-  if (statusError) throw toError(statusError, 'Booking status шинэчлэхэд алдаа гарлаа.');
+  const { error: statusError } = await supabase.rpc('set_cargo_request_status', {
+    p_cargo_id: input.targetId,
+    p_status: 'payment_review',
+    p_note: 'Илгээгч төлбөрийн баримт илгээв.',
+  });
+  if (statusError) throw toError(statusError, 'Ачааны төлөв шинэчлэхэд алдаа гарлаа.');
 
   return {
     paymentId: payment.id as string,
     proofId: proof.id as string,
     proofPath: storedPath,
+  };
+}
+
+export interface PlatformPaymentInfo {
+  holder: string;
+  bankName: string;
+  account: string;
+}
+
+/** Read the admin-configured platform bank account travelers pay into. */
+export async function fetchPlatformPaymentInfo(): Promise<PlatformPaymentInfo | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.rpc('get_platform_payment_info');
+  if (error || !data) return null;
+  const row = data as { holder?: string; bank_name?: string; account?: string };
+  return {
+    holder: row.holder || '',
+    bankName: row.bank_name || '',
+    account: row.account || '',
   };
 }

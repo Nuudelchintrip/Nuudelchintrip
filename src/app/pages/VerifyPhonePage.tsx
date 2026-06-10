@@ -4,10 +4,9 @@ import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
 import { Logo } from '../components/Logo';
-import { markPhoneVerified } from '../services/supabaseAuth';
+import { requestPhoneOtp, verifyPhoneOtp } from '../services/supabaseAuth';
 import { addActionLog, formatMongoliaPhone, getDashboardPath, getOnboardingPath, getStoredUser, isValidMongoliaPhone } from '../utils/auth';
 
-const DEMO_OTP_CODE = '123456';
 const OTP_SECONDS = 60;
 
 export function VerifyPhonePage() {
@@ -18,6 +17,9 @@ export function VerifyPhonePage() {
   const [secondsLeft, setSecondsLeft] = useState(OTP_SECONDS);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
   const isExpired = otpSent && secondsLeft <= 0 && !success;
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export function VerifyPhonePage() {
     return () => window.clearInterval(intervalId);
   }, [otpSent, secondsLeft, success]);
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     setError('');
     setSuccess('');
 
@@ -39,16 +41,25 @@ export function VerifyPhonePage() {
       return;
     }
 
-    setOtp('');
-    setOtpSent(true);
-    setSecondsLeft(OTP_SECONDS);
-    addActionLog({
-      actor: user?.full_name || phone,
-      user: user?.full_name || phone,
-      actionType: 'OTP код хүссэн',
-      status: 'Амжилттай',
-      details: `${formatMongoliaPhone(phone)} дугаар дээр хөгжүүлэлтийн баталгаажуулалтын төлөв үүсэв.`,
-    });
+    setSending(true);
+    try {
+      const result = await requestPhoneOtp(phone);
+      setOtp('');
+      setDevCode(result.devCode);
+      setOtpSent(true);
+      setSecondsLeft(result.resendAfterSeconds);
+      addActionLog({
+        actor: user?.full_name || phone,
+        user: user?.full_name || phone,
+        actionType: 'OTP код хүссэн',
+        status: 'Амжилттай',
+        details: `${formatMongoliaPhone(phone)} дугаар дээр баталгаажуулалтын код илгээв.`,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OTP код илгээхэд алдаа гарлаа.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleVerify = async () => {
@@ -72,19 +83,23 @@ export function VerifyPhonePage() {
       return;
     }
 
-    if (otp !== DEMO_OTP_CODE) {
-      setError('Код буруу байна. 6 оронтой кодоо шалгаад дахин оруулна уу.');
+    setVerifying(true);
+    let nextUser;
+    try {
+      nextUser = await verifyPhoneOtp(phone, otp);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Баталгаажуулалт амжилтгүй боллоо.');
       addActionLog({
         actor: user?.full_name || phone,
         user: user?.full_name || phone,
         actionType: 'OTP баталгаажуулалт',
         status: 'Амжилтгүй',
-        details: 'Хэрэглэгч буруу OTP код оруулсан.',
+        details: 'Хэрэглэгч буруу эсвэл хугацаа дууссан OTP код оруулсан.',
       });
+      setVerifying(false);
       return;
     }
 
-    const nextUser = await markPhoneVerified();
     addActionLog({
       actor: nextUser.full_name || phone,
       user: nextUser.full_name || phone,
@@ -135,9 +150,15 @@ export function VerifyPhonePage() {
                   inputMode="tel"
                   placeholder="+976 80883461"
                 />
-                <Button type="button" variant="outline" className="w-full sm:h-12 sm:w-auto" onClick={handleSendOtp}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:h-12 sm:w-auto"
+                  onClick={handleSendOtp}
+                  disabled={sending || (otpSent && secondsLeft > 0 && !isExpired)}
+                >
                   {otpSent ? <RefreshCw className="h-4 w-4" /> : <MessageSquareText className="h-4 w-4" />}
-                  {otpSent ? 'Дахин код авах' : 'Код авах'}
+                  {sending ? 'Илгээж байна...' : otpSent ? 'Дахин код авах' : 'Код авах'}
                 </Button>
               </div>
 
@@ -155,9 +176,11 @@ export function VerifyPhonePage() {
                     <Clock3 className="h-4 w-4" />
                     <span>{otpSent ? `Код дахин авах: ${Math.max(secondsLeft, 0)} сек` : 'Код авахад 60 секундийн хугацаа эхэлнэ'}</span>
                   </div>
-                  <span className="rounded-lg bg-card px-3 py-2 font-mono text-sm font-semibold text-foreground">
-                    Хөгжүүлэлтийн код: {DEMO_OTP_CODE}
-                  </span>
+                  {devCode && (
+                    <span className="rounded-lg bg-card px-3 py-2 font-mono text-sm font-semibold text-foreground">
+                      Туршилтын код: {devCode}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -182,8 +205,8 @@ export function VerifyPhonePage() {
                 </div>
               )}
 
-              <Button type="button" size="lg" fullWidth onClick={handleVerify}>
-                Баталгаажуулах
+              <Button type="button" size="lg" fullWidth onClick={handleVerify} disabled={verifying || !!success}>
+                {verifying ? 'Баталгаажуулж байна...' : 'Баталгаажуулах'}
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>

@@ -8,12 +8,12 @@ import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { uploadPaymentProof } from '../services/paymentService';
+import { fetchPlatformPaymentInfo, uploadPaymentProof, type PlatformPaymentInfo } from '../services/paymentService';
 import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
-const platformPayment = {
+const fallbackPayment: PlatformPaymentInfo = {
   holder: import.meta.env.VITE_PLATFORM_BANK_HOLDER || 'NuudelchinTrip админ',
   bankName: import.meta.env.VITE_PLATFORM_BANK_NAME || 'Админы данс',
   account: import.meta.env.VITE_PLATFORM_BANK_ACCOUNT || 'Дансны мэдээллийг админ тохируулна',
@@ -41,6 +41,23 @@ export function PaymentProofPage() {
   const [transactionNote, setTransactionNote] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [platformPayment, setPlatformPayment] = useState<PlatformPaymentInfo>(fallbackPayment);
+
+  useEffect(() => {
+    let active = true;
+    fetchPlatformPaymentInfo().then((info) => {
+      if (!active || !info) return;
+      // Use DB-configured values when present, otherwise keep the env fallback.
+      setPlatformPayment({
+        holder: info.holder || fallbackPayment.holder,
+        bankName: info.bankName || fallbackPayment.bankName,
+        account: info.account || fallbackPayment.account,
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -88,7 +105,7 @@ export function PaymentProofPage() {
       total: agreed + serviceFee,
       status: realBooking.status,
     };
-  }, [realBooking]);
+  }, [realBooking, platformPayment]);
 
   const handleSubmit = async () => {
     setError('');

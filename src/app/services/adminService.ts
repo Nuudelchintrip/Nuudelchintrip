@@ -29,6 +29,9 @@ export interface AdminDriverVerificationItem {
   plateNumber?: string;
   seats?: number;
   createdAt?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+  documents: { label: string; signedUrl: string }[];
 }
 
 function toError(error: unknown, fallback: string) {
@@ -52,6 +55,16 @@ async function getPaymentSignedUrl(proofUrl?: string | null) {
   if (!path) return undefined;
 
   const { data, error } = await supabase.storage.from('payment-proofs').createSignedUrl(path, 60 * 10);
+  if (error) return undefined;
+  return data.signedUrl;
+}
+
+async function getDriverDocSignedUrl(storedPath?: string | null) {
+  if (!supabase || !storedPath) return undefined;
+  const path = storedPath.replace(/^driver-documents\//, '');
+  if (!path) return undefined;
+
+  const { data, error } = await supabase.storage.from('driver-documents').createSignedUrl(path, 60 * 10);
   if (error) return undefined;
   return data.signedUrl;
 }
@@ -126,75 +139,86 @@ export async function fetchAdminPayments(): Promise<AdminPaymentItem[]> {
   });
 }
 
-export async function approvePayment(paymentId: string) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+function mapPaymentError(error: { message?: string } | null) {
+  const messageByCode: Record<string, string> = {
+    admin_required: 'Зөвхөн админ төлбөр шийдвэрлэнэ.',
+    payment_not_found: 'Төлбөрийн мөр олдсонгүй.',
+    payment_already_reviewed: 'Энэ төлбөр аль хэдийн шийдвэрлэгдсэн байна.',
+    refund_reason_required: 'Буцаалтын шалтгааныг бичнэ үү.',
+    already_refunded: 'Энэ төлбөр аль хэдийн буцаагдсан байна.',
+  };
+  const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
+  return known ? new Error(known) : toError(error, 'Төлбөр шийдвэрлэхэд алдаа гарлаа.');
+}
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw toError(userError, 'Admin session шалгахад алдаа гарлаа.');
-  const adminId = userData.user?.id;
-  if (!adminId) throw new Error('Admin эрхээр дахин нэвтэрнэ үү.');
-
-  const { data: payment, error: paymentError } = await supabase
+async function getPaymentTarget(paymentId: string) {
+  const { data, error } = await supabase!
     .from('payments')
     .select('id, booking_id, cargo_request_id')
     .eq('id', paymentId)
     .single();
+  if (error) throw toError(error, 'Төлбөрийн мөр олдсонгүй.');
+  return data as { id: string; booking_id: string | null; cargo_request_id: string | null };
+}
 
-  if (paymentError) throw toError(paymentError, 'Төлбөрийн мөр олдсонгүй.');
-
-  const { error: updateError } = await supabase
-    .from('payments')
-    .update({ status: 'approved', reviewed_by: adminId, reviewed_at: new Date().toISOString() })
-    .eq('id', paymentId);
-
-  if (updateError) throw toError(updateError, 'Төлбөр баталгаажуулахад алдаа гарлаа.');
+export async function approvePayment(paymentId: string) {
+  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  const payment = await getPaymentTarget(paymentId);
 
   if (payment.booking_id) {
-    const { error } = await supabase
-      .from('passenger_bookings')
-      .update({ status: 'confirmed' })
-      .eq('id', payment.booking_id);
-    if (error) throw toError(error, 'Захиалгын төлөв шинэчлэхэд алдаа гарлаа.');
+    // Atomic: payment approved + booking → confirmed.
+    const { error } = await supabase.rpc('review_payment', { p_payment_id: paymentId, p_approved: true, p_note: null });
+    if (error) throw mapPaymentError(error);
+    return;
   }
 
+  // Cargo path (Phase 9 will make this transactional).
+  const { error: updateError } = await supabase
+    .from('payments')
+    .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+    .eq('id', paymentId);
+  if (updateError) throw toError(updateError, 'Төлбөр баталгаажуулахад алдаа гарлаа.');
   if (payment.cargo_request_id) {
-    const { error } = await supabase
-      .from('cargo_requests')
-      .update({ status: 'picked_up' })
-      .eq('id', payment.cargo_request_id);
+    const { error } = await supabase.rpc('set_cargo_request_status', {
+      p_cargo_id: payment.cargo_request_id,
+      p_status: 'picked_up',
+      p_note: 'Админ төлбөрийг баталгаажуулав.',
+    });
     if (error) throw toError(error, 'Ачааны төлөв шинэчлэхэд алдаа гарлаа.');
   }
 }
 
 export async function rejectPayment(paymentId: string) {
   if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  const payment = await getPaymentTarget(paymentId);
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  if (userError) throw toError(userError, 'Admin session шалгахад алдаа гарлаа.');
-  const adminId = userData.user?.id;
-  if (!adminId) throw new Error('Admin эрхээр дахин нэвтэрнэ үү.');
-
-  const { data: payment, error: paymentError } = await supabase
-    .from('payments')
-    .select('id, booking_id, cargo_request_id')
-    .eq('id', paymentId)
-    .single();
-
-  if (paymentError) throw toError(paymentError, 'Төлбөрийн мөр олдсонгүй.');
+  if (payment.booking_id) {
+    // Atomic: payment rejected + booking → waiting_payment.
+    const { error } = await supabase.rpc('review_payment', { p_payment_id: paymentId, p_approved: false, p_note: null });
+    if (error) throw mapPaymentError(error);
+    return;
+  }
 
   const { error: updateError } = await supabase
     .from('payments')
-    .update({ status: 'rejected', reviewed_by: adminId, reviewed_at: new Date().toISOString() })
+    .update({ status: 'rejected', reviewed_at: new Date().toISOString() })
     .eq('id', paymentId);
-
   if (updateError) throw toError(updateError, 'Төлбөр буцаахад алдаа гарлаа.');
-
-  if (payment.booking_id) {
-    await supabase.from('passenger_bookings').update({ status: 'waiting_payment' }).eq('id', payment.booking_id);
-  }
   if (payment.cargo_request_id) {
-    await supabase.from('cargo_requests').update({ status: 'waiting_payment' }).eq('id', payment.cargo_request_id);
+    const { error } = await supabase.rpc('set_cargo_request_status', {
+      p_cargo_id: payment.cargo_request_id,
+      p_status: 'waiting_payment',
+      p_note: 'Админ төлбөрийн баримтыг буцаав.',
+    });
+    if (error) throw toError(error, 'Ачааны төлөв шинэчлэхэд алдаа гарлаа.');
   }
+}
+
+/** Refund a booking payment: marks refunded + cancels the booking (releases seats). */
+export async function refundPayment(paymentId: string, reason: string) {
+  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  const { error } = await supabase.rpc('refund_payment', { p_payment_id: paymentId, p_note: reason });
+  if (error) throw mapPaymentError(error);
 }
 
 export async function fetchAdminDriverVerifications(): Promise<AdminDriverVerificationItem[]> {
@@ -202,7 +226,9 @@ export async function fetchAdminDriverVerifications(): Promise<AdminDriverVerifi
 
   const { data: driverRows, error } = await supabase
     .from('driver_profiles')
-    .select('user_id, verification_status, car_model, plate_number, seats, created_at')
+    .select(
+      'user_id, verification_status, car_model, plate_number, seats, created_at, reviewed_at, rejection_reason, driver_license_url, vehicle_certificate_url, vehicle_photo_url',
+    )
     .order('created_at', { ascending: false })
     .limit(100);
 
@@ -219,34 +245,64 @@ export async function fetchAdminDriverVerifications(): Promise<AdminDriverVerifi
 
   const profilesById = new Map((profiles || []).map((profile) => [profile.id, profile]));
 
-  return driverRows.map((row) => {
-    const profile = profilesById.get(row.user_id);
-    return {
-      userId: row.user_id,
-      fullName: profile?.full_name || 'Жолооч',
-      phone: profile?.phone || undefined,
-      email: profile?.email || undefined,
-      status: row.verification_status as DriverVerificationStatus,
-      carModel: row.car_model || undefined,
-      plateNumber: row.plate_number || undefined,
-      seats: row.seats ?? undefined,
-      createdAt: row.created_at || undefined,
-    };
-  });
+  return Promise.all(
+    driverRows.map(async (row) => {
+      const profile = profilesById.get(row.user_id);
+      const docSpecs: { label: string; path?: string | null }[] = [
+        { label: 'Жолооны үнэмлэх', path: row.driver_license_url },
+        { label: 'Машины гэрчилгээ', path: row.vehicle_certificate_url },
+        { label: 'Машины зураг', path: row.vehicle_photo_url },
+      ];
+      const documents = (
+        await Promise.all(
+          docSpecs.map(async (spec) => {
+            const signedUrl = await getDriverDocSignedUrl(spec.path);
+            return signedUrl ? { label: spec.label, signedUrl } : null;
+          }),
+        )
+      ).filter((doc): doc is { label: string; signedUrl: string } => doc !== null);
+
+      return {
+        userId: row.user_id,
+        fullName: profile?.full_name || 'Жолооч',
+        phone: profile?.phone || undefined,
+        email: profile?.email || undefined,
+        status: row.verification_status as DriverVerificationStatus,
+        carModel: row.car_model || undefined,
+        plateNumber: row.plate_number || undefined,
+        seats: row.seats ?? undefined,
+        createdAt: row.created_at || undefined,
+        reviewedAt: row.reviewed_at || undefined,
+        rejectionReason: row.rejection_reason || undefined,
+        documents,
+      };
+    }),
+  );
 }
 
-export async function updateDriverVerification(userId: string, status: DriverVerificationStatus) {
+export async function updateDriverVerification(
+  userId: string,
+  status: DriverVerificationStatus,
+  rejectionReason?: string,
+) {
   if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
 
-  const { error } = await supabase
-    .from('driver_profiles')
-    .update({
-      verification_status: status,
-      cargo_permission_status: status === 'approved' ? 'approved' : status,
-    })
-    .eq('user_id', userId);
+  const { error } = await supabase.rpc('review_driver_verification', {
+    p_user_id: userId,
+    p_status: status,
+    p_rejection_reason: rejectionReason?.trim() || null,
+  });
 
-  if (error) throw toError(error, 'Жолоочийн баталгаажуулалт шинэчлэхэд алдаа гарлаа.');
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      admin_required: 'Зөвхөн админ баталгаажуулалт хийнэ.',
+      rejection_reason_required: 'Татгалзах шалтгааныг бичнэ үү.',
+      driver_not_found: 'Жолоочийн бүртгэл олдсонгүй.',
+      invalid_status: 'Төлөв буруу байна.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => error.message?.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Жолоочийн баталгаажуулалт шинэчлэхэд алдаа гарлаа.');
+  }
 }
 
 export interface AdminUserItem {
@@ -475,4 +531,107 @@ export async function fetchAdminCargoRequests(): Promise<AdminCargoItem[]> {
       createdAt: request.created_at,
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Reports / disputes
+// ---------------------------------------------------------------------------
+export interface AdminReportItem {
+  id: string;
+  reason: string;
+  details?: string;
+  status: string;
+  reporterName: string;
+  targetName?: string;
+  bookingId?: string;
+  cargoRequestId?: string;
+  resolvedAt?: string;
+  createdAt: string;
+}
+
+export async function fetchAdminReports(): Promise<AdminReportItem[]> {
+  if (!supabase) return [];
+
+  const { data: reports, error } = await supabase
+    .from('reports')
+    .select('id, reporter_id, target_user_id, booking_id, cargo_request_id, reason, details, status, resolved_at, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) throw toError(error, 'Гомдол уншихад алдаа гарлаа.');
+  if (!reports?.length) return [];
+
+  const userIds = Array.from(
+    new Set(reports.flatMap((r) => [r.reporter_id, r.target_user_id]).filter(Boolean) as string[]),
+  );
+  const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', userIds);
+  const namesById = new Map((profiles || []).map((p) => [p.id, p.full_name]));
+
+  return reports.map((r) => ({
+    id: r.id as string,
+    reason: r.reason as string,
+    details: (r.details as string) || undefined,
+    status: r.status as string,
+    reporterName: namesById.get(r.reporter_id as string) || 'Хэрэглэгч',
+    targetName: r.target_user_id ? namesById.get(r.target_user_id as string) || undefined : undefined,
+    bookingId: (r.booking_id as string) || undefined,
+    cargoRequestId: (r.cargo_request_id as string) || undefined,
+    resolvedAt: (r.resolved_at as string) || undefined,
+    createdAt: r.created_at as string,
+  }));
+}
+
+export async function resolveReport(reportId: string, status: 'reviewing' | 'resolved' | 'rejected') {
+  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  const { data: userData } = await supabase.auth.getUser();
+  const adminId = userData.user?.id;
+
+  const patch: Record<string, unknown> = { status };
+  if (status === 'resolved' || status === 'rejected') {
+    patch.resolved_by = adminId;
+    patch.resolved_at = new Date().toISOString();
+  }
+
+  const { error } = await supabase.from('reports').update(patch).eq('id', reportId);
+  if (error) throw toError(error, 'Гомдол шинэчлэхэд алдаа гарлаа.');
+}
+
+// ---------------------------------------------------------------------------
+// Audit logs (trip_status_logs)
+// ---------------------------------------------------------------------------
+export interface AdminAuditLogItem {
+  id: string;
+  status: string;
+  note?: string;
+  bookingId?: string;
+  cargoRequestId?: string;
+  actorName?: string;
+  createdAt: string;
+}
+
+export async function fetchAdminAuditLogs(): Promise<AdminAuditLogItem[]> {
+  if (!supabase) return [];
+
+  const { data: logs, error } = await supabase
+    .from('trip_status_logs')
+    .select('id, status, note, booking_id, cargo_request_id, changed_by, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200);
+
+  if (error) throw toError(error, 'Үйлдлийн түүх уншихад алдаа гарлаа.');
+  if (!logs?.length) return [];
+
+  const actorIds = Array.from(new Set(logs.map((l) => l.changed_by).filter(Boolean) as string[]));
+  const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', actorIds);
+  const namesById = new Map((profiles || []).map((p) => [p.id, p.full_name]));
+
+  return logs.map((l) => ({
+    id: l.id as string,
+    status: l.status as string,
+    note: (l.note as string) || undefined,
+    bookingId: (l.booking_id as string) || undefined,
+    cargoRequestId: (l.cargo_request_id as string) || undefined,
+    actorName: l.changed_by ? namesById.get(l.changed_by as string) || undefined : undefined,
+    createdAt: l.created_at as string,
+  }));
 }

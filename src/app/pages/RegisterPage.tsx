@@ -47,6 +47,7 @@ export function RegisterPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,13 +64,17 @@ export function RegisterPage() {
     setError('');
 
     try {
-      await registerWithSupabase({
+      const result = await registerWithSupabase({
         role,
         fullName: fullName.trim(),
         phone,
         email: email.trim(),
         password,
       });
+      if (result.status === 'email_confirmation_pending') {
+        setPendingEmail(result.email);
+        return;
+      }
       window.location.href = '/auth/verify-phone';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Бүртгэл үүсгэхэд алдаа гарлаа.');
@@ -77,6 +82,45 @@ export function RegisterPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (pendingEmail) {
+    return (
+      <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-4 py-12">
+        <div className="min-w-0" style={{ width: 'min(100%, 28rem)' }}>
+          <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
+            <Logo size="lg" />
+          </a>
+          <Card className="overflow-hidden">
+            <CardBody className="p-6 text-center md:p-8">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Mail className="h-7 w-7" />
+              </div>
+              <h1 className="mb-2 text-2xl font-bold text-foreground">И-мэйлээ баталгаажуулна уу</h1>
+              <p className="mx-auto max-w-sm break-words text-sm leading-7 text-muted-foreground">
+                <span className="font-medium text-foreground">{pendingEmail}</span> хаяг руу баталгаажуулах холбоос илгээлээ.
+                И-мэйл доторх холбоосыг дарж бүртгэлээ баталгаажуулаад утас баталгаажуулах алхам руу үргэлжлүүлнэ үү.
+              </p>
+              <p className="mt-4 text-xs text-muted-foreground">
+                И-мэйл ирээгүй бол спам хавтсаа шалгана уу.
+              </p>
+              <div className="mt-6 flex flex-col gap-2">
+                <a href="/auth/login">
+                  <Button variant="outline" fullWidth type="button">Нэвтрэх хэсэг рүү очих</Button>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPendingEmail('')}
+                  className="text-sm text-muted-foreground hover:text-primary"
+                >
+                  Өөр и-мэйлээр дахин бүртгүүлэх
+                </button>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-4 py-12">

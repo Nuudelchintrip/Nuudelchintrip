@@ -20,10 +20,11 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
-import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { bookingStatusSteps, getBooking, getStatusIndex, type BookingStatus } from '../data/mockData';
-import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
+import { createBookingReport, fetchBookingStatusHistory, fetchPassengerBookingById, updatePassengerBookingStatus, type BookingStatusLog, type PassengerBookingDetail } from '../services/tripService';
+import { getRequestStatusLabel } from '../utils/bookingStatus';
+import { getStoredUser } from '../utils/auth';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -32,7 +33,43 @@ export function BookingDetailPage() {
   const [realBooking, setRealBooking] = useState<PassengerBookingDetail | null>(null);
   const [loadingBooking, setLoadingBooking] = useState(Boolean(id && UUID_PATTERN.test(id)));
   const [bookingError, setBookingError] = useState('');
+  const [cancelling, setCancelling] = useState(false);
+  const [history, setHistory] = useState<BookingStatusLog[]>([]);
+  const [reportMessage, setReportMessage] = useState('');
+
+  const handleReport = async () => {
+    if (!realBooking) return;
+    const reason = window.prompt('Ямар асуудал гарсныг товч бичнэ үү (админд маргаан мэдэгдэнэ):');
+    if (!reason?.trim()) return;
+    try {
+      await createBookingReport({ bookingId: realBooking.id, tripId: realBooking.tripId, reason: reason.trim() });
+      setReportMessage('Таны мэдэгдэл админд илгээгдлээ. Удахгүй шалгана.');
+    } catch (err) {
+      setReportMessage(err instanceof Error ? err.message : 'Гомдол илгээхэд алдаа гарлаа.');
+    }
+  };
   const booking = useMemo<ReturnType<typeof getBooking> | null>(() => realBooking ? mapRealBooking(realBooking) : null, [realBooking]);
+  const isOwnBooking = Boolean(realBooking && getStoredUser()?.role === 'traveler');
+  const canCancel = isOwnBooking && ['pending_request', 'accepted', 'waiting_payment'].includes(realBooking?.status || '');
+
+  const handleCancel = async () => {
+    if (!realBooking || !window.confirm('Энэ захиалгыг цуцлах уу? Суудал нь буцаан чөлөөлөгдөнө.')) return;
+    setCancelling(true);
+    setBookingError('');
+    try {
+      await updatePassengerBookingStatus(realBooking.id, 'cancelled');
+      const [refreshed, logs] = await Promise.all([
+        fetchPassengerBookingById(realBooking.id),
+        fetchBookingStatusHistory(realBooking.id),
+      ]);
+      setRealBooking(refreshed);
+      setHistory(logs);
+    } catch (err) {
+      setBookingError(err instanceof Error ? err.message : 'Захиалга цуцлахад алдаа гарлаа.');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -56,6 +93,10 @@ export function BookingDetailPage() {
       .finally(() => {
         if (active) setLoadingBooking(false);
       });
+
+    fetchBookingStatusHistory(id).then((logs) => {
+      if (active) setHistory(logs);
+    });
 
     return () => {
       active = false;
@@ -216,6 +257,28 @@ export function BookingDetailPage() {
               </CardBody>
             </Card>
 
+            {history.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <h2 className="text-xl font-semibold text-foreground">Төлвийн түүх</h2>
+                </CardHeader>
+                <CardBody>
+                  <div className="space-y-3">
+                    {history.map((log) => (
+                      <div key={log.id} className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3">
+                        <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-foreground">{getRequestStatusLabel(log.status)}</p>
+                          {log.note && <p className="mt-0.5 text-sm text-muted-foreground">{log.note}</p>}
+                          <p className="mt-0.5 text-xs text-muted-foreground">{new Date(log.createdAt).toLocaleString('mn-MN')}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <h2 className="text-xl font-semibold text-foreground">Чиглэл ба аяллын мэдээлэл</h2>
@@ -275,11 +338,11 @@ export function BookingDetailPage() {
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold text-foreground">Мессеж / тэмдэглэл</h2>
+                  <h2 className="text-xl font-semibold text-foreground">Захиалгын тэмдэглэл</h2>
                 </div>
               </CardHeader>
               <CardBody>
-                <div className="space-y-4 mb-4">
+                <div className="space-y-4">
                   {booking.messages.map((message) => (
                     <div key={`${message.author}-${message.time}`} className={`${message.own ? 'bg-primary/10 ml-8' : 'bg-muted/50'} p-4 rounded-lg`}>
                       <p className="text-sm font-medium text-foreground mb-1">{message.author}</p>
@@ -288,12 +351,8 @@ export function BookingDetailPage() {
                     </div>
                   ))}
                   {booking.messages.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Энэ захиалга дээр мессеж хараахан алга.</p>
+                    <p className="text-sm text-muted-foreground">Захиалга үүсгэх үед оруулсан тэмдэглэл энд харагдана.</p>
                   )}
-                </div>
-                <div className="flex gap-2">
-                  <Input placeholder="Мессеж бичих..." />
-                  <Button variant="primary">Илгээх</Button>
                 </div>
               </CardBody>
             </Card>
@@ -354,14 +413,28 @@ export function BookingDetailPage() {
 
             <Card className="border-destructive/20">
               <CardBody>
-                <div className="flex gap-3 mb-4">
+                <div className="flex gap-3">
                   <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">Маргаан гарвал төлбөрийн баримт, аяллын баталгаа, мессеж админд нотолгоо болно.</p>
+                  <p className="text-sm text-muted-foreground">Маргаан гарвал төлбөрийн баримт, аяллын баталгаа, тэмдэглэл админд нотолгоо болно.</p>
                 </div>
-                <Button variant="ghost" fullWidth className="text-destructive hover:bg-destructive/10">
+                {reportMessage && (
+                  <p className="mt-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">{reportMessage}</p>
+                )}
+                <Button variant="ghost" fullWidth className="mt-4 text-destructive hover:bg-destructive/10" onClick={handleReport}>
                   <Flag className="w-4 h-4" />
                   Асуудал мэдэгдэх
                 </Button>
+                {canCancel && (
+                  <Button
+                    variant="ghost"
+                    fullWidth
+                    className="mt-2 text-destructive hover:bg-destructive/10"
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                  >
+                    {cancelling ? 'Цуцалж байна...' : 'Захиалга цуцлах'}
+                  </Button>
+                )}
               </CardBody>
             </Card>
           </aside>
@@ -537,8 +610,8 @@ function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBo
       screenshotName: '',
       status: detail.status === 'confirmed' || detail.status === 'on_trip' || detail.status === 'completed' ? 'approved' : 'pending',
     },
-    tripCode: detail.id.slice(0, 6).toUpperCase(),
-    deliveryCode: detail.id.slice(0, 6).toUpperCase(),
+    tripCode: detail.tripCode || detail.id.slice(0, 6).toUpperCase(),
+    deliveryCode: detail.tripCode || detail.id.slice(0, 6).toUpperCase(),
     messages: detail.note
       ? [{ author: detail.traveler.fullName, body: detail.note, time: 'Захиалга үүсэх үед', own: false }]
       : [],

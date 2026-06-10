@@ -8,13 +8,17 @@ import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import {
   approvePayment,
+  refundPayment,
   fetchAdminBookings,
   fetchAdminCargoRequests,
   fetchAdminDriverVerifications,
   fetchAdminPayments,
+  fetchAdminReports,
+  fetchAdminAuditLogs,
   fetchAdminTrips,
   fetchAdminUsers,
   rejectPayment,
+  resolveReport,
   setUserSuspended,
   updateDriverVerification,
   updateTripStatus,
@@ -22,6 +26,8 @@ import {
   type AdminCargoItem,
   type AdminDriverVerificationItem,
   type AdminPaymentItem,
+  type AdminReportItem,
+  type AdminAuditLogItem,
   type AdminTripItem,
   type AdminUserItem,
 } from '../services/adminService';
@@ -81,6 +87,10 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
           <AdminBookingsQueue />
         ) : view === 'cargo' ? (
           <AdminCargoQueue />
+        ) : view === 'reports' ? (
+          <AdminReportsQueue />
+        ) : view === 'logs' ? (
+          <AdminLogsQueue />
         ) : (
           <ComingSoonQueue view={view} />
         )}
@@ -148,6 +158,23 @@ function AdminPaymentsQueue() {
       await load();
     } catch (decisionError) {
       setError(decisionError instanceof Error ? decisionError.message : 'Шийдвэр хадгалахад алдаа гарлаа.');
+    } finally {
+      setBusyId('');
+    }
+  };
+
+  const refund = async (item: AdminPaymentItem) => {
+    const reason = window.prompt('Төлбөрийг буцаах шалтгаан (захиалга цуцлагдаж суудал чөлөөлөгдөнө):');
+    if (!reason?.trim()) return;
+    setBusyId(item.id);
+    setError('');
+    setMessage('');
+    try {
+      await refundPayment(item.id, reason.trim());
+      setMessage('Төлбөр буцаагдаж захиалга цуцлагдлаа.');
+      await load();
+    } catch (refundError) {
+      setError(refundError instanceof Error ? refundError.message : 'Төлбөр буцаахад алдаа гарлаа.');
     } finally {
       setBusyId('');
     }
@@ -225,6 +252,17 @@ function AdminPaymentsQueue() {
                       Буцаах
                     </Button>
                   </div>
+                  {item.bookingId && item.status === 'approved' && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive/10"
+                      disabled={busyId === item.id}
+                      onClick={() => refund(item)}
+                    >
+                      Төлбөр буцаах (refund)
+                    </Button>
+                  )}
                 </div>
               </div>
             </Card>
@@ -241,6 +279,7 @@ function AdminVerificationsQueue() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState('');
+  const [reasons, setReasons] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -260,11 +299,16 @@ function AdminVerificationsQueue() {
   }, []);
 
   const decide = async (item: AdminDriverVerificationItem, status: 'approved' | 'rejected') => {
+    const reason = reasons[item.userId]?.trim() || '';
+    if (status === 'rejected' && !reason) {
+      setError('Буцаахын тулд татгалзах шалтгааныг бичнэ үү.');
+      return;
+    }
     setBusyId(item.userId);
     setError('');
     setMessage('');
     try {
-      await updateDriverVerification(item.userId, status);
+      await updateDriverVerification(item.userId, status, reason);
       setMessage(status === 'approved' ? 'Жолоочийн эрх нээгдлээ. Одоо чиглэл нийтлэх боломжтой.' : 'Жолоочийн баталгаажуулалтыг буцаалаа.');
       await load();
     } catch (decisionError) {
@@ -310,6 +354,34 @@ function AdminVerificationsQueue() {
                     <Info label="Улсын дугаар" value={item.plateNumber || 'Оруулаагүй'} />
                     <Info label="Илгээсэн" value={item.createdAt ? new Date(item.createdAt).toLocaleDateString('mn-MN') : 'Тодорхойгүй'} />
                   </div>
+
+                  <div className="mt-4">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Бичиг баримт</p>
+                    {item.documents.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Бичиг баримт оруулаагүй байна.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {item.documents.map((doc) => (
+                          <a
+                            key={doc.label}
+                            href={doc.signedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm font-medium text-foreground hover:border-primary hover:text-primary"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            {doc.label}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {item.status === 'rejected' && item.rejectionReason && (
+                    <p className="mt-3 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                      Татгалзсан шалтгаан: {item.rejectionReason}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid gap-2">
@@ -320,6 +392,13 @@ function AdminVerificationsQueue() {
                     <CheckCircle2 className="h-4 w-4" />
                     Зөвшөөрөх
                   </Button>
+                  <textarea
+                    value={reasons[item.userId] || ''}
+                    onChange={(event) => setReasons((prev) => ({ ...prev, [item.userId]: event.target.value }))}
+                    placeholder="Буцаах шалтгаан (заавал)"
+                    rows={2}
+                    className="w-full resize-none rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                  />
                   <Button
                     variant="outline"
                     disabled={busyId === item.userId || item.status === 'rejected'}
@@ -659,6 +738,152 @@ function QueueToolbar({
   );
 }
 
+function AdminReportsQueue() {
+  const [items, setItems] = useState<AdminReportItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [busyId, setBusyId] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminReports());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Гомдол уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const decide = async (item: AdminReportItem, status: 'reviewing' | 'resolved' | 'rejected') => {
+    setBusyId(item.id);
+    setError('');
+    setMessage('');
+    try {
+      await resolveReport(item.id, status);
+      setMessage('Гомдлын төлөв шинэчлэгдлээ.');
+      await load();
+    } catch (decisionError) {
+      setError(decisionError instanceof Error ? decisionError.message : 'Гомдол шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setBusyId('');
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<ShieldCheck className="h-5 w-5" />} title="Гомдол, маргаан" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+      {message && <Notice tone="success" text={message} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Гомдлуудыг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор гомдол алга" text="Хэрэглэгч маргаан мэдэгдсэн үед энд бодитоор гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="p-4 sm:p-5">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    {item.bookingId && <Badge variant="default">Аяллын захиалга</Badge>}
+                    {item.cargoRequestId && <Badge variant="default">Дайвар ачаа</Badge>}
+                  </div>
+                  <h2 className="mt-3 break-words text-xl font-semibold text-foreground">{item.reason}</h2>
+                  {item.details && <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.details}</p>}
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Мэдэгдсэн: {item.reporterName}{item.targetName ? ` · Хариуцагч: ${item.targetName}` : ''} · {new Date(item.createdAt).toLocaleString('mn-MN')}
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  {item.bookingId && (
+                    <Button variant="ghost" onClick={() => { window.location.href = `/dashboard/bookings/${item.bookingId}`; }}>Захиалга харах</Button>
+                  )}
+                  <Button size="sm" variant="outline" disabled={busyId === item.id || item.status === 'reviewing'} onClick={() => decide(item, 'reviewing')}>
+                    Шалгаж байна
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button size="sm" disabled={busyId === item.id || item.status === 'resolved'} onClick={() => decide(item, 'resolved')}>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Шийдвэрлэх
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={busyId === item.id || item.status === 'rejected'} onClick={() => decide(item, 'rejected')}>
+                      <X className="h-4 w-4" />
+                      Татгалзах
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminLogsQueue() {
+  const [items, setItems] = useState<AdminAuditLogItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminAuditLogs());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Үйлдлийн түүх уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<Ticket className="h-5 w-5" />} title="Үйлдлийн түүх" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Үйлдлийн түүхийг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор үйлдэл бүртгэгдээгүй" text="Захиалга, төлбөр, аяллын төлөв өөрчлөгдөх бүрт энд бодит лог үүснэ." />
+      ) : (
+        <div className="grid gap-2">
+          {items.map((item) => (
+            <Card key={item.id} className="p-3 sm:p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    {item.cargoRequestId ? <Badge variant="default">Ачаа</Badge> : item.bookingId ? <Badge variant="default">Захиалга</Badge> : null}
+                  </div>
+                  {item.note && <p className="mt-2 text-sm text-foreground">{item.note}</p>}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {item.actorName ? `${item.actorName} · ` : ''}{new Date(item.createdAt).toLocaleString('mn-MN')}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ComingSoonQueue({ view }: { view: AdminView }) {
   const copy = pageCopy[view];
   return (
@@ -685,11 +910,11 @@ function Notice({ tone, text }: { tone: 'success' | 'danger'; text: string }) {
   return <div className={`rounded-lg border p-4 text-sm font-medium ${classes}`}>{text}</div>;
 }
 
-const successStatuses = new Set(['approved', 'active', 'confirmed', 'completed', 'delivered', 'cargo_accepted', 'accepted']);
+const successStatuses = new Set(['approved', 'active', 'confirmed', 'completed', 'delivered', 'cargo_accepted', 'accepted', 'resolved']);
 const dangerStatuses = new Set(['rejected', 'cancelled', 'disputed']);
 const warningStatuses = new Set([
   'proof_uploaded', 'pending', 'pending_request', 'waiting_payment', 'payment_review',
-  'cargo_requested', 'picked_up', 'in_transit', 'on_trip', 'full', 'draft',
+  'cargo_requested', 'picked_up', 'in_transit', 'on_trip', 'full', 'draft', 'open', 'reviewing',
 ]);
 
 const statusLabels: Record<string, string> = {
@@ -714,6 +939,9 @@ const statusLabels: Record<string, string> = {
   picked_up: 'Ачигдсан',
   in_transit: 'Замд яваа',
   delivered: 'Хүргэгдсэн',
+  open: 'Нээлттэй',
+  reviewing: 'Шалгаж байна',
+  resolved: 'Шийдвэрлэсэн',
 };
 
 function bookingStatusLabel(status: string) {

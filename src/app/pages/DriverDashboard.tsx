@@ -1,15 +1,25 @@
-import { Car, FileCheck2, Inbox, Route, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Car, FileCheck2, Inbox, Route, ShieldCheck, XCircle } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { AppFooter } from '../components/Footer';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
+import { fetchMyDriverVerification, type MyDriverVerification } from '../services/supabaseAuth';
 import { getStoredUser } from '../utils/auth';
 
 export function DriverDashboard() {
   const user = getStoredUser();
-  const isApproved = user?.verification_status === 'approved';
+  const [verification, setVerification] = useState<MyDriverVerification | null>(null);
+
+  useEffect(() => {
+    void fetchMyDriverVerification().then(setVerification);
+  }, []);
+
+  const status = verification?.status ?? user?.verification_status;
+  const isApproved = status === 'approved';
+  const isRejected = status === 'rejected';
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
@@ -26,14 +36,37 @@ export function DriverDashboard() {
           </p>
         </div>
 
-        {!isApproved && (
+        {isRejected && (
+          <Card className="mb-8 border-destructive/30 bg-destructive/5">
+            <CardBody className="p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="h-5 w-5 text-destructive" />
+                    <h2 className="text-xl font-semibold text-foreground">Баталгаажуулалт буцаагдсан</h2>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {verification?.rejectionReason
+                      ? `Шалтгаан: ${verification.rejectionReason}`
+                      : 'Админ таны бичиг баримтыг буцаалаа. Засаад дахин илгээнэ үү.'}
+                  </p>
+                </div>
+                <Button variant="outline" onClick={() => window.location.href = '/onboarding/driver'}>
+                  Дахин илгээх
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
+        {!isApproved && !isRejected && (
           <Card className="mb-8 border-warning/30 bg-warning/5">
             <CardBody className="p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
-                  <h2 className="text-xl font-semibold text-foreground">Жолоочийн баталгаажуулалт шаардлагатай</h2>
+                  <h2 className="text-xl font-semibold text-foreground">Жолоочийн баталгаажуулалт хүлээгдэж байна</h2>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Админ баталгаажуулалтыг зөвшөөрсний дараа чиглэл нийтлэх эрх нээгдэнэ.
+                    Админ таны бичиг баримтыг шалгаж байна. Зөвшөөрсний дараа чиглэл нийтлэх эрх нээгдэнэ.
                   </p>
                 </div>
                 <Button variant="outline" onClick={() => window.location.href = '/dashboard/driver/verification'}>

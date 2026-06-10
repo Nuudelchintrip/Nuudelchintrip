@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { AlertTriangle, Camera, Car, CheckCircle2, FileCheck2, Package, ShieldCheck, UserRound } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { AlertTriangle, Camera, Car, CheckCircle2, FileCheck2, Package, ShieldCheck, UploadCloud, UserRound } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
-import { completeCargoOnboarding, completeTravelerOnboarding, submitDriverOnboarding } from '../services/supabaseAuth';
+import {
+  completeCargoOnboarding,
+  completeTravelerOnboarding,
+  submitDriverOnboarding,
+  uploadDriverDocument,
+  type DriverDocumentKind,
+} from '../services/supabaseAuth';
 import { getDashboardPath, type MarketplaceRole } from '../utils/auth';
 
 interface ProfileSetupPageProps {
@@ -31,7 +37,11 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
   const [carModel, setCarModel] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
   const [seats, setSeats] = useState('');
+  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [progress, setProgress] = useState('');
 
   const finishOnboarding = async () => {
     if (normalizedRole === 'cargo_sender' && !cargoAccepted) {
@@ -53,16 +63,43 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
         setError('Суудлын тоо 1-12 хооронд байх ёстой.');
         return;
       }
+      if (!licenseFile) {
+        setError('Жолооны үнэмлэхний зургийг оруулна уу.');
+        return;
+      }
+      if (!certificateFile) {
+        setError('Машины гэрчилгээний зургийг оруулна уу.');
+        return;
+      }
+      if (!photoFile) {
+        setError('Машины зургийг оруулна уу.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
     setError('');
+    setProgress('');
 
     try {
       if (normalizedRole === 'traveler') {
         await completeTravelerOnboarding({ emergencyContactName, emergencyContactPhone });
       } else if (normalizedRole === 'driver') {
-        await submitDriverOnboarding({ carModel, plateNumber, seats: Number(seats) });
+        setProgress('Бичиг баримтыг илгээж байна...');
+        const [driverLicenseUrl, vehicleCertificateUrl, vehiclePhotoUrl] = await Promise.all([
+          uploadDriverDocument(licenseFile!, 'driver_license'),
+          uploadDriverDocument(certificateFile!, 'vehicle_certificate'),
+          uploadDriverDocument(photoFile!, 'vehicle_photo'),
+        ]);
+        setProgress('Мэдээллийг хадгалж байна...');
+        await submitDriverOnboarding({
+          carModel,
+          plateNumber,
+          seats: Number(seats),
+          driverLicenseUrl,
+          vehicleCertificateUrl,
+          vehiclePhotoUrl,
+        });
       } else {
         await completeCargoOnboarding();
       }
@@ -71,6 +108,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
       setError(err instanceof Error ? err.message : 'Мэдээлэл хадгалахад алдаа гарлаа.');
     } finally {
       setIsSubmitting(false);
+      setProgress('');
     }
   };
 
@@ -140,10 +178,13 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
                   <Input label="Улсын дугаар" placeholder="УБА 1234" value={plateNumber} onChange={(event) => setPlateNumber(event.target.value)} />
                   <Input label="Суудлын тоо" placeholder="4" value={seats} onChange={(event) => setSeats(event.target.value)} />
                 </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-3">
-                  <UploadPlaceholder title="Жолооны үнэмлэх" />
-                  <UploadPlaceholder title="Машины гэрчилгээ" />
-                  <UploadPlaceholder title="Машины зураг" />
+                <p className="mt-6 text-sm text-muted-foreground">
+                  Доорх 3 бичиг баримтыг тод зургаар оруулна уу (JPG, PNG, WEBP эсвэл PDF, 10MB хүртэл).
+                </p>
+                <div className="mt-3 grid gap-4 md:grid-cols-3">
+                  <DocumentUploadField title="Жолооны үнэмлэх" file={licenseFile} onSelect={setLicenseFile} />
+                  <DocumentUploadField title="Машины гэрчилгээ" file={certificateFile} onSelect={setCertificateFile} />
+                  <DocumentUploadField title="Машины зураг" file={photoFile} onSelect={setPhotoFile} />
                 </div>
               </CardBody>
             </Card>
@@ -194,9 +235,9 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
           </Card>
         )}
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
           <Button size="lg" onClick={finishOnboarding} disabled={isSubmitting}>
-            {isSubmitting ? 'Хадгалж байна...' : isDriver ? 'Баталгаажуулалт илгээх' : isCargo ? 'Үргэлжлүүлэх' : 'Дуусгах'}
+            {isSubmitting ? (progress || 'Хадгалж байна...') : isDriver ? 'Баталгаажуулалт илгээх' : isCargo ? 'Үргэлжлүүлэх' : 'Дуусгах'}
             <CheckCircle2 className="h-5 w-5" />
           </Button>
           <Button variant="outline" size="lg" onClick={() => window.location.href = '/auth/register'}>Буцах</Button>
@@ -208,12 +249,42 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
   );
 }
 
-function UploadPlaceholder({ title }: { title: string }) {
+function DocumentUploadField({
+  title,
+  file,
+  onSelect,
+}: {
+  title: string;
+  file: File | null;
+  onSelect: (file: File | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const selected = Boolean(file);
+
   return (
-    <div className="rounded-lg border-2 border-dashed border-border bg-muted/20 p-5 text-center">
-      <FileCheck2 className="mx-auto mb-3 h-9 w-9 text-muted-foreground" />
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      className={`w-full rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
+        selected ? 'border-success/40 bg-success/5' : 'border-border bg-muted/20 hover:border-primary/50'
+      }`}
+    >
+      {selected ? (
+        <FileCheck2 className="mx-auto mb-3 h-9 w-9 text-success" />
+      ) : (
+        <UploadCloud className="mx-auto mb-3 h-9 w-9 text-muted-foreground" />
+      )}
       <p className="font-medium text-foreground">{title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">Файл оруулах хэсэг дараагийн шатанд холбогдоно</p>
-    </div>
+      <p className="mt-1 break-words text-xs text-muted-foreground">
+        {selected ? file!.name : 'Дарж файл сонгох'}
+      </p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        onChange={(event) => onSelect(event.target.files?.[0] ?? null)}
+      />
+    </button>
   );
 }

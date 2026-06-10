@@ -24,7 +24,7 @@ export function Card({ children, className = '', hover = false, onClick, style }
 
   return (
     <div
-      className={`bg-card border border-border rounded-lg shadow-sm ${hover ? 'hover:shadow-md transition-shadow cursor-pointer' : ''} ${className}`}
+      className={`bg-card border border-border/70 rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_16px_-8px_rgba(15,23,42,0.08)] ${hover ? 'hover:shadow-[0_8px_28px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer' : ''} ${className}`}
       onClick={onClick}
       style={style}
       {...interactiveProps}

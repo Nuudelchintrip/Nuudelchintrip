@@ -1,14 +1,46 @@
-import { Bus, CreditCard, Search, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, Bus, CreditCard, Search, ShieldCheck } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
-import { Card, CardBody, CardHeader } from '../components/Card';
+import { Card, CardBody } from '../components/Card';
 import { AppFooter } from '../components/Footer';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchCurrentTravelerBookings, type TravelerBookingSummary } from '../services/tripService';
+import { getBookingBadgeVariant, getRequestStatusLabel } from '../utils/bookingStatus';
 import { getStoredUser } from '../utils/auth';
 
 export function TravelerDashboard() {
   const user = getStoredUser();
+  const [bookings, setBookings] = useState<TravelerBookingSummary[]>([]);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    fetchCurrentTravelerBookings()
+      .then((items) => {
+        if (active) setBookings(items);
+      })
+      .catch((err) => {
+        if (active) setError(err instanceof Error ? err.message : 'Аяллын захиалгуудыг уншихад алдаа гарлаа.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const recentBookings = bookings.slice(0, 3);
+  const awaitingPayment = bookings.filter((booking) => booking.status === 'waiting_payment');
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
@@ -44,25 +76,111 @@ export function TravelerDashboard() {
           </CardBody>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <EmptyPanel
-            icon={<Bus className="h-6 w-6" />}
-            title="Миний аялал"
-            text="Захиалга үүссэний дараа таны аяллын төлөв энд харагдана."
-            action="Жолооч хайх"
-            href="/traveler/find-drivers"
-          />
-          <EmptyPanel
-            icon={<CreditCard className="h-6 w-6" />}
-            title="Төлбөрийн баримт"
-            text="Жолооч хүсэлтийг зөвшөөрсний дараа төлбөрийн баримт оруулах алхам нээгдэнэ."
-          />
+        {awaitingPayment.length > 0 && (
+          <Card className="mb-8 border-warning/30 bg-warning/5">
+            <CardBody className="p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-warning" />
+                    <h2 className="text-xl font-semibold text-foreground">Төлбөрийн баримт хүлээгдэж байна</h2>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {awaitingPayment.length} захиалга төлбөрийн баримт оруулахыг хүлээж байна.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = `/dashboard/bookings/${awaitingPayment[0].id}/payment-proof`}
+                >
+                  Баримт оруулах
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        )}
+
+        <section className="mb-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Миний аялал</h2>
+            {bookings.length > 0 && (
+              <button
+                type="button"
+                onClick={() => window.location.href = '/dashboard/traveler/trips'}
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              >
+                Бүгдийг харах
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {loading ? (
+            <Card className="p-6 text-sm text-muted-foreground">Аяллын захиалгуудыг уншиж байна...</Card>
+          ) : error ? (
+            <Card className="border-destructive/20 bg-destructive/5 p-6 text-sm font-medium text-destructive">{error}</Card>
+          ) : recentBookings.length === 0 ? (
+            <Card className="p-8 text-center">
+              <Bus className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+              <h3 className="text-lg font-semibold text-foreground">Аяллын захиалга хараахан алга</h3>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                Жолооч хайж, суудлын хүсэлт илгээсний дараа таны аялал энд харагдана.
+              </p>
+              <Button className="mt-5" onClick={() => window.location.href = '/traveler/find-drivers'}>
+                Жолооч хайх
+              </Button>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {recentBookings.map((booking) => (
+                <Card key={booking.id} className="p-4 sm:p-5">
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_170px_160px] lg:items-center">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground">{booking.route}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {new Date(booking.departureAt).toLocaleString('mn-MN')} · {booking.driverName}
+                        {booking.carModel ? ` · ${booking.carModel}` : ''}
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {booking.selectedSeats.length > 0
+                          ? `Суудал: ${booking.selectedSeats.join(', ')}`
+                          : `${booking.seatsRequested} суудал`}
+                        {' · '}₮{booking.totalAmount.toLocaleString()}
+                      </p>
+                    </div>
+                    <Badge variant={getBookingBadgeVariant(booking.status)}>{getRequestStatusLabel(booking.status)}</Badge>
+                    <Button
+                      variant={booking.status === 'waiting_payment' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        window.location.href = booking.status === 'waiting_payment'
+                          ? `/dashboard/bookings/${booking.id}/payment-proof`
+                          : `/dashboard/bookings/${booking.id}`;
+                      }}
+                    >
+                      {booking.status === 'waiting_payment' ? 'Баримт оруулах' : 'Дэлгэрэнгүй'}
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="grid gap-6 lg:grid-cols-2">
           <EmptyPanel
             icon={<ShieldCheck className="h-6 w-6" />}
             title="Итгэлцэл"
             text="Утас баталгаажуулалт, profile мэдээлэл, аяллын status нь booking flow дээр ашиглагдана."
             action="Профайл шалгах"
             href="/dashboard/traveler/profile"
+          />
+          <EmptyPanel
+            icon={<Search className="h-6 w-6" />}
+            title="Шинэ жолооч хайх"
+            text="Хаанаас хаашаа явахаа оруулаад бодитоор нийтлэгдсэн чиглэлүүдээс сонгоно."
+            action="Жолооч хайх"
+            href="/traveler/find-drivers"
           />
         </div>
 

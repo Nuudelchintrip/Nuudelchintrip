@@ -8,20 +8,20 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', fullWidth = false, className = '', children, ...props }, ref) => {
-    const baseStyles = 'inline-flex min-w-0 items-center justify-center gap-2 rounded-lg text-center font-medium leading-tight transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex min-w-0 items-center justify-center gap-2 rounded-lg text-center font-semibold leading-tight transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
-      primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
+      primary: 'bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25',
       secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border',
-      accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
-      outline: 'border border-border text-foreground hover:bg-secondary',
+      accent: 'bg-accent text-accent-foreground shadow-sm shadow-accent/20 hover:bg-accent/90 hover:shadow-md',
+      outline: 'border border-border bg-card text-foreground hover:bg-secondary hover:border-primary/40',
       ghost: 'text-foreground hover:bg-secondary',
     };
 
     const sizes = {
       sm: 'px-3 py-1.5 text-sm',
-      md: 'px-5 py-2.5',
-      lg: 'px-6 py-3.5 text-lg',
+      md: 'px-5 py-2.5 text-sm sm:text-base',
+      lg: 'px-6 py-3 text-base sm:text-lg',
     };
 
     return (

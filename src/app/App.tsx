@@ -27,6 +27,7 @@ import { SenderDashboard } from './pages/SenderDashboard';
 import { TripDetailPage } from './pages/TripDetailPage';
 import { TripsPage } from './pages/TripsPage';
 import { TravelerDashboard } from './pages/TravelerDashboard';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { VerifyPhonePage } from './pages/VerifyPhonePage';
 import { refreshLocalProfileFromSupabase } from './services/supabaseAuth';
 import { getDashboardPath, getOnboardingPath, type MarketplaceRole, type MockUserProfile } from './utils/auth';
@@ -216,6 +217,8 @@ export default function App() {
         <Route path="/dashboard/cargo/proof" element={<RequireAccount roles={['cargo_sender']}><SenderCargoPage view="proof" /></RequireAccount>} />
         <Route path="/dashboard/cargo/status" element={<RequireAccount roles={['cargo_sender']}><SenderCargoPage view="status" /></RequireAccount>} />
         <Route path="/dashboard/cargo/rules" element={<RequireAccount roles={['cargo_sender']}><CargoRulesPage /></RequireAccount>} />
+
+        <Route path="/dashboard/notifications" element={<RequireAccount><NotificationsPage /></RequireAccount>} />
 
         <Route path="/dashboard/traveler" element={<RequireAccount roles={['traveler']}><TravelerDashboard /></RequireAccount>} />
         <Route path="/dashboard/traveler/profile" element={<RequireAccount roles={['traveler']}><AccountProfilePage role="traveler" /></RequireAccount>} />
