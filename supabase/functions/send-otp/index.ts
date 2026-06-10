@@ -3,7 +3,8 @@
 // The browser only receives timing info — never the code.
 //
 // Required secrets (Supabase → Edge Functions → Secrets):
-//   MOCEAN_API_KEY, MOCEAN_API_SECRET, MOCEAN_SENDER (e.g. "NuudelchinTrip")
+//   MOCEAN_API_TOKEN  — the "apit_..." API token from Mocean (Bearer auth)
+//   MOCEAN_SENDER     — approved Sender ID / from (e.g. "Nuudelchin")
 // Auto-provided by Supabase: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -50,12 +51,10 @@ Deno.serve(async (req) => {
     });
     if (genErr) return json({ error: genErr.message }, 400);
 
-    // 3. Deliver via Mocean. International MSISDN, digits only (e.g. 97699112233).
+    // 3. Deliver via Mocean (Bearer API token). International MSISDN, digits only.
     const to = String(phone).replace(/\D/g, '');
     const body = new URLSearchParams({
-      'mocean-api-key': Deno.env.get('MOCEAN_API_KEY') ?? '',
-      'mocean-api-secret': Deno.env.get('MOCEAN_API_SECRET') ?? '',
-      'mocean-from': Deno.env.get('MOCEAN_SENDER') ?? 'NuudelchinTrip',
+      'mocean-from': Deno.env.get('MOCEAN_SENDER') ?? 'Nuudelchin',
       'mocean-to': to,
       'mocean-text': `NuudelchinTrip баталгаажуулах код: ${code}`,
       'mocean-resp-format': 'JSON',
@@ -63,7 +62,10 @@ Deno.serve(async (req) => {
 
     const smsResp = await fetch('https://rest.moceanapi.com/rest/2/sms', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${Deno.env.get('MOCEAN_API_TOKEN') ?? ''}`,
+      },
       body,
     });
     const smsResult = await smsResp.json().catch(() => ({}));
