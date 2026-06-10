@@ -201,7 +201,8 @@ export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> 
   }
 
   // Production: the send-otp edge function generates the code and delivers it by SMS.
-  const { data, error } = await supabase.functions.invoke('send-otp', { body: { phone } });
+  const fnName = (import.meta.env.VITE_OTP_FUNCTION as string | undefined) || 'send-otp';
+  const { data, error } = await supabase.functions.invoke(fnName, { body: { phone } });
 
   if (!error && data?.ok) {
     return {
