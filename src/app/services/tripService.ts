@@ -1014,6 +1014,214 @@ export async function fetchCurrentSenderCargoRequests(): Promise<SenderCargoRequ
   });
 }
 
+// ---------------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------------
+export interface ReceivedReview {
+  id: string;
+  rating: number;
+  comment?: string;
+  reviewerName: string;
+  createdAt: string;
+}
+
+export interface PendingReview {
+  bookingId: string;
+  route: string;
+  otherName: string;
+  completedAt: string;
+}
+
+export async function submitReview(bookingId: string, rating: number, comment?: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  const { error } = await supabase.rpc('submit_review', {
+    p_booking_id: bookingId,
+    p_rating: rating,
+    p_comment: comment?.trim() || null,
+  });
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      invalid_rating: 'Үнэлгээ 1-5 одны хооронд байх ёстой.',
+      booking_not_found: 'Захиалга олдсонгүй.',
+      booking_not_completed: 'Зөвхөн дууссан аяллыг үнэлнэ.',
+      not_a_participant: 'Зөвхөн аяллын оролцогч үнэлгээ өгнө.',
+      already_reviewed: 'Та энэ аяллыг аль хэдийн үнэлсэн байна.',
+    };
+    const known = Object.entries(messageByCode).find(([c]) => toError(error, '').message.includes(c))?.[1];
+    throw known ? new Error(known) : toError(error, 'Үнэлгээ өгөхөд алдаа гарлаа.');
+  }
+}
+
+export async function fetchReceivedReviews(): Promise<ReceivedReview[]> {
+  if (!supabase) return [];
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id, rating, comment, reviewer_id, created_at')
+    .eq('reviewee_id', userId)
+    .order('created_at', { ascending: false });
+  if (error || !data?.length) return [];
+
+  const reviewerIds = Array.from(new Set(data.map((r) => r.reviewer_id)));
+  const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', reviewerIds);
+  const names = new Map((profiles || []).map((p) => [p.id, p.full_name]));
+
+  return data.map((r) => ({
+    id: r.id as string,
+    rating: Number(r.rating),
+    comment: (r.comment as string) || undefined,
+    reviewerName: names.get(r.reviewer_id as string) || 'Хэрэглэгч',
+    createdAt: r.created_at as string,
+  }));
+}
+
+/** Completed bookings the signed-in user can still review (hasn't yet). */
+export async function fetchPendingReviews(): Promise<PendingReview[]> {
+  if (!supabase) return [];
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return [];
+
+  // RLS limits these to bookings where the user is the traveler or the trip driver.
+  const { data: bookings } = await supabase
+    .from('passenger_bookings')
+    .select('id, trip_id, traveler_id, completed_at, updated_at')
+    .eq('status', 'completed')
+    .order('updated_at', { ascending: false });
+  if (!bookings?.length) return [];
+
+  const { data: myReviews } = await supabase
+    .from('reviews')
+    .select('booking_id')
+    .eq('reviewer_id', userId);
+  const reviewed = new Set((myReviews || []).map((r) => r.booking_id));
+
+  const pending = bookings.filter((b) => !reviewed.has(b.id));
+  if (!pending.length) return [];
+
+  const tripIds = Array.from(new Set(pending.map((b) => b.trip_id)));
+  const { data: trips } = await supabase
+    .from('trips')
+    .select('id, from_location, to_location, driver_id')
+    .in('id', tripIds);
+  const tripsById = new Map((trips || []).map((t) => [t.id, t]));
+
+  // The "other party" is the driver (when I'm traveler) or the traveler (when I'm driver).
+  const otherIds = Array.from(
+    new Set(
+      pending.map((b) => {
+        const trip = tripsById.get(b.trip_id);
+        return b.traveler_id === userId ? trip?.driver_id : b.traveler_id;
+      }).filter(Boolean) as string[],
+    ),
+  );
+  const { data: profiles } = otherIds.length
+    ? await supabase.from('profiles').select('id, full_name').in('id', otherIds)
+    : { data: [] };
+  const names = new Map((profiles || []).map((p) => [p.id, p.full_name]));
+
+  return pending.map((b) => {
+    const trip = tripsById.get(b.trip_id);
+    const otherId = b.traveler_id === userId ? trip?.driver_id : b.traveler_id;
+    return {
+      bookingId: b.id as string,
+      route: trip ? `${trip.from_location} → ${trip.to_location}` : 'Аялал',
+      otherName: (otherId && names.get(otherId)) || 'Хэрэглэгч',
+      completedAt: (b.completed_at as string) || (b.updated_at as string),
+    };
+  });
+}
+
+export interface CargoRequestDetail {
+  id: string;
+  status: string;
+  cargoName: string;
+  cargoType?: string;
+  sizeNote?: string;
+  weightKg?: number;
+  receiverName: string;
+  receiverPhone: string;
+  pickupNote?: string;
+  deliveryCode: string;
+  createdAt: string;
+  isSender: boolean;
+  trip: { fromLocation: string; toLocation: string; departureAt: string; driverId: string };
+  driver: { fullName: string; phone?: string; carModel?: string; rating: number };
+  history: BookingStatusLog[];
+}
+
+export async function fetchCargoRequestById(cargoId: string): Promise<CargoRequestDetail | null> {
+  if (!supabase) return null;
+
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+
+  const { data: cargo, error } = await supabase
+    .from('cargo_requests')
+    .select('id, trip_id, sender_id, cargo_name, cargo_type, size_note, weight_kg, receiver_name, receiver_phone, pickup_note, status, delivery_code, created_at')
+    .eq('id', cargoId)
+    .maybeSingle();
+
+  if (error || !cargo) return null;
+
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('id, driver_id, from_location, to_location, departure_at')
+    .eq('id', cargo.trip_id)
+    .maybeSingle();
+
+  const driverId = trip?.driver_id;
+  const [{ data: driver }, { data: driverProfile }, { data: logs }] = await Promise.all([
+    driverId
+      ? supabase.from('profiles').select('full_name, phone').eq('id', driverId).maybeSingle()
+      : Promise.resolve({ data: null }),
+    driverId
+      ? supabase.from('driver_profiles').select('car_model, rating').eq('user_id', driverId).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from('trip_status_logs')
+      .select('id, status, note, created_at')
+      .eq('cargo_request_id', cargoId)
+      .order('created_at', { ascending: true }),
+  ]);
+
+  return {
+    id: cargo.id,
+    status: cargo.status,
+    cargoName: cargo.cargo_name,
+    cargoType: cargo.cargo_type || undefined,
+    sizeNote: cargo.size_note || undefined,
+    weightKg: cargo.weight_kg ?? undefined,
+    receiverName: cargo.receiver_name,
+    receiverPhone: cargo.receiver_phone,
+    pickupNote: cargo.pickup_note || undefined,
+    deliveryCode: cargo.delivery_code,
+    createdAt: cargo.created_at,
+    isSender: cargo.sender_id === userId,
+    trip: {
+      fromLocation: trip?.from_location || '',
+      toLocation: trip?.to_location || '',
+      departureAt: trip?.departure_at || cargo.created_at,
+      driverId: driverId || '',
+    },
+    driver: {
+      fullName: driver?.full_name || 'Жолооч',
+      phone: driver?.phone || undefined,
+      carModel: driverProfile?.car_model || undefined,
+      rating: Number(driverProfile?.rating || 0),
+    },
+    history: (logs || []).map((l) => ({
+      id: l.id as string,
+      status: l.status as string,
+      note: (l.note as string) || undefined,
+      createdAt: l.created_at as string,
+    })),
+  };
+}
+
 export async function fetchCurrentDriverCargoRequests() {
   if (!supabase) return [];
 

@@ -31,6 +31,11 @@ import {
   completeCargoDelivery,
   updateCargoRequestStatus,
   updatePassengerBookingStatus,
+  submitReview,
+  fetchReceivedReviews,
+  fetchPendingReviews,
+  type ReceivedReview,
+  type PendingReview,
   type DriverCargoRequest,
   type DriverPassengerRequest,
   type SenderCargoRequest,
@@ -1551,43 +1556,130 @@ export function EarningsPage({ role }: { role: WorkRole }) {
   );
 }
 
+function StarRating({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button key={n} type="button" onClick={() => onChange(n)} aria-label={`${n} од`}>
+          <Star className={`h-7 w-7 ${n <= value ? 'fill-warning text-warning' : 'text-muted-foreground'}`} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function PendingReviewCard({ item, onDone }: { item: PendingReview; onDone: () => void }) {
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await submitReview(item.bookingId, rating, comment);
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Үнэлгээ өгөхөд алдаа гарлаа.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="p-5">
+      <p className="font-semibold text-foreground">{item.route}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{item.otherName}-г үнэлэх · {new Date(item.completedAt).toLocaleDateString('mn-MN')}</p>
+      <div className="mt-3"><StarRating value={rating} onChange={setRating} /></div>
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        rows={2}
+        placeholder="Сэтгэгдэл (сонголтоор)"
+        className="mt-3 w-full resize-none rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+      />
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+      <Button className="mt-3" size="sm" disabled={busy} onClick={submit}>Үнэлгээ илгээх</Button>
+    </Card>
+  );
+}
+
 export function ReviewsPage({ role }: { role: WorkRole | 'sender' }) {
   const title = role === 'sender' ? 'Аялагчийн үнэлгээ' : roleCopy[role].reviews;
   const base = role === 'sender' ? '/dashboard/sender' : roleCopy[role].base;
-  return (
-    <DashboardFrame role={role === 'sender' ? undefined : role} sender={role === 'sender'} active="reviews">
-      <PageTop badge={role === 'sender' ? 'Дайвар ачааны самбар' : roleCopy[role].badge} title={title} description="Үнэлгээ зөвхөн бодит дууссан аялал, бодит захиалга дээр нээгдэнэ." backHref={base} />
-      <Card className="p-8 text-center">
-        <Star className="mx-auto mb-4 h-12 w-12 text-warning" />
-        <h2 className="text-xl font-semibold text-foreground">Одоогоор үнэлгээ алга</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-          Зохиомол оноо, зохиомол сэтгэгдэл харуулахгүй. Аялал дууссаны дараа хэрэглэгчид бие биедээ үнэлгээ өгвөл энд харагдана.
-        </p>
-      </Card>
-    </DashboardFrame>
-  );
+  const [received, setReceived] = useState<ReceivedReview[]>([]);
+  const [pending, setPending] = useState<PendingReview[]>([]);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
+
+  const load = () => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    Promise.all([fetchReceivedReviews(), fetchPendingReviews()])
+      .then(([r, p]) => {
+        setReceived(r);
+        setPending(p);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const avg = received.length
+    ? (received.reduce((s, r) => s + r.rating, 0) / received.length).toFixed(1)
+    : '—';
 
   return (
     <DashboardFrame role={role === 'sender' ? undefined : role} sender={role === 'sender'} active="reviews">
-      <PageTop badge={role === 'sender' ? 'Дайвар ачааны самбар' : roleCopy[role].badge} title={title} description="Итгэлцэл үүсгэдэг үнэлгээ, сэтгэгдэл, дууссан захиалгын тойм." backHref={base} />
-      <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
-        <Card className="p-6 text-center">
-          <Star className="mx-auto h-10 w-10 fill-warning text-warning" />
-          <p className="mt-4 text-5xl font-bold text-foreground">4.8</p>
-          <p className="mt-2 text-muted-foreground">32 үнэлгээнээс</p>
-        </Card>
-        <div className="space-y-4">
-          {['Маш тодорхой мэдээлэлтэй, цагтаа хариу өгсөн.', 'Чиглэл болон авах цэгийн нөхцөл ойлгомжтой байсан.', 'Төлбөрийн баримт, аяллын явц ойлгомжтой байсан.'].map((text, index) => (
-            <Card key={text} className="p-5">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="font-semibold text-foreground">Хэрэглэгч #{index + 1}</p>
-                <Badge variant="success">5.0</Badge>
-              </div>
-              <p className="mt-3 text-muted-foreground">{text}</p>
-            </Card>
-          ))}
+      <PageTop badge={role === 'sender' ? 'Дайвар ачааны самбар' : roleCopy[role].badge} title={title} description="Дууссан аяллын дараа оролцогчид бие биенээ үнэлнэ." backHref={base} />
+
+      {pending.length > 0 && (
+        <div className="mb-8">
+          <h2 className="mb-3 text-lg font-semibold text-foreground">Үнэлгээ өгөх ({pending.length})</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {pending.map((item) => (
+              <PendingReviewCard key={item.bookingId} item={item} onDone={load} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {loading ? (
+        <Card className="p-6 text-sm text-muted-foreground">Үнэлгээг уншиж байна...</Card>
+      ) : received.length === 0 ? (
+        <Card className="p-8 text-center">
+          <Star className="mx-auto mb-4 h-12 w-12 text-warning" />
+          <h2 className="text-xl font-semibold text-foreground">Одоогоор үнэлгээ алга</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            Аялал дууссаны дараа хэрэглэгчид бие биедээ үнэлгээ өгвөл энд харагдана.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+          <Card className="p-6 text-center">
+            <Star className="mx-auto h-10 w-10 fill-warning text-warning" />
+            <p className="mt-4 text-5xl font-bold text-foreground">{avg}</p>
+            <p className="mt-2 text-muted-foreground">{received.length} үнэлгээнээс</p>
+          </Card>
+          <div className="space-y-4">
+            {received.map((r) => (
+              <Card key={r.id} className="p-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="font-semibold text-foreground">{r.reviewerName}</p>
+                  <Badge variant="success">{r.rating.toFixed(1)}</Badge>
+                </div>
+                {r.comment && <p className="mt-3 text-muted-foreground">{r.comment}</p>}
+                <p className="mt-2 text-xs text-muted-foreground">{new Date(r.createdAt).toLocaleDateString('mn-MN')}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </DashboardFrame>
   );
 }
@@ -1670,7 +1762,7 @@ export function SenderCargoPage({ view }: { view: SenderView }) {
                       </p>
                     </div>
                   ) : (
-                    <Button variant="outline" onClick={() => window.location.href = '/dashboard/cargo/requests'}>
+                    <Button variant="outline" onClick={() => window.location.href = `/cargo/${item.id}`}>
                       Дэлгэрэнгүй
                     </Button>
                   )}

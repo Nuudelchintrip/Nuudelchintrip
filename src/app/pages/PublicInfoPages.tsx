@@ -7,6 +7,7 @@ import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { sendPasswordResetEmail, updatePasswordWithRecovery } from '../services/supabaseAuth';
+import { submitSupportRequest } from '../services/supportService';
 
 const values = [
   'NuudelchinTrip нь тээврийн компани биш, аялагч болон жолоочийг ил тод мэдээллээр холбох платформ.',
@@ -87,20 +88,61 @@ export function FaqPage() {
 }
 
 export function SupportPage() {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [bookingRef, setBookingRef] = useState('');
+  const [category, setCategory] = useState('');
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const submit = async () => {
+    setError('');
+    setSuccess('');
+    if (!message.trim()) {
+      setError('Асуудлаа дэлгэрэнгүй бичнэ үү.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await submitSupportRequest({ name, phone, bookingRef, category, message });
+      setSuccess('Таны хүсэлт амжилттай илгээгдлээ. Бид удахгүй холбогдоно.');
+      setName('');
+      setPhone('');
+      setBookingRef('');
+      setCategory('');
+      setMessage('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Хүсэлт илгээхэд алдаа гарлаа.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <InfoFrame>
       <PageHero icon={<MessageCircle />} eyebrow="Дэмжлэг" title="Асуудал гарвал нэг газраас шийдүүлнэ" />
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="p-6">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Нэр" placeholder="Таны нэр" />
-            <Input label="Утас" placeholder="+976 9999 9999" />
-            <Input label="Захиалгын дугаар" placeholder="Захиалгын дугаар" />
-            <Input label="Асуудлын төрөл" placeholder="Төлбөр, баримт, чиглэл..." />
+            <Input label="Нэр" placeholder="Таны нэр" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input label="Утас" placeholder="+976 9999 9999" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <Input label="Захиалгын дугаар" placeholder="Захиалгын дугаар" value={bookingRef} onChange={(e) => setBookingRef(e.target.value)} />
+            <Input label="Асуудлын төрөл" placeholder="Төлбөр, баримт, чиглэл..." value={category} onChange={(e) => setCategory(e.target.value)} />
           </div>
           <label className="mt-4 block text-sm font-medium text-foreground">Дэлгэрэнгүй</label>
-          <textarea className="mt-2 min-h-36 w-full rounded-lg border border-input bg-input-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring" placeholder="Юу болсон талаар бичнэ үү" />
-          <Button className="mt-5">Дэмжлэг рүү илгээх</Button>
+          <textarea
+            className="mt-2 min-h-36 w-full rounded-lg border border-input bg-input-background px-4 py-3 text-foreground outline-none focus:ring-2 focus:ring-ring"
+            placeholder="Юу болсон талаар бичнэ үү"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          />
+          {error && <p className="mt-3 text-sm font-medium text-destructive">{error}</p>}
+          {success && <p className="mt-3 text-sm font-medium text-success">{success}</p>}
+          <Button className="mt-5" disabled={busy} onClick={submit}>
+            {busy ? 'Илгээж байна...' : 'Дэмжлэг рүү илгээх'}
+          </Button>
         </Card>
         <div className="space-y-4">
           {[

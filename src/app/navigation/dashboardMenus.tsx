@@ -53,6 +53,7 @@ export function getDashboardMenu(role: DashboardRole) {
     { icon: <Bus className="h-5 w-5" />, label: 'Захиалгууд', href: '/admin/bookings' },
     { icon: <PackageCheck className="h-5 w-5" />, label: 'Ачааны хүсэлтүүд', href: '/admin/cargo' },
     { icon: <Flag className="h-5 w-5" />, label: 'Гомдол, маргаан', href: '/admin/reports' },
+    { icon: <Bell className="h-5 w-5" />, label: 'Дэмжлэг', href: '/admin/support' },
     { icon: <ListChecks className="h-5 w-5" />, label: 'Үйлдлийн түүх', href: '/admin/logs' },
     { icon: <Settings className="h-5 w-5" />, label: 'Тохиргоо', href: '/admin/settings' },
   ];

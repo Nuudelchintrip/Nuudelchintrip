@@ -31,8 +31,9 @@ import {
   type AdminTripItem,
   type AdminUserItem,
 } from '../services/adminService';
+import { fetchAdminSupportRequests, updateSupportStatus, type AdminSupportItem } from '../services/supportService';
 
-type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings' | 'logs';
+type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings' | 'logs' | 'support';
 
 const pageCopy: Record<AdminView, { title: string; description: string }> = {
   payments: {
@@ -67,6 +68,10 @@ const pageCopy: Record<AdminView, { title: string; description: string }> = {
     title: 'Үйлдлийн түүх',
     description: 'Системийн гол үйлдлүүдийн audit log харах хэсэг.',
   },
+  support: {
+    title: 'Дэмжлэгийн хүсэлт',
+    description: 'Хэрэглэгчдээс ирсэн дэмжлэгийн хүсэлтийг хянах хэсэг.',
+  },
 };
 
 export function AdminQueuePage({ view }: { view: AdminView }) {
@@ -91,6 +96,8 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
           <AdminReportsQueue />
         ) : view === 'logs' ? (
           <AdminLogsQueue />
+        ) : view === 'support' ? (
+          <AdminSupportQueue />
         ) : (
           <ComingSoonQueue view={view} />
         )}
@@ -874,6 +881,82 @@ function AdminLogsQueue() {
                   <p className="mt-1 text-xs text-muted-foreground">
                     {item.actorName ? `${item.actorName} · ` : ''}{new Date(item.createdAt).toLocaleString('mn-MN')}
                   </p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminSupportQueue() {
+  const [items, setItems] = useState<AdminSupportItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [busyId, setBusyId] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminSupportRequests());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Дэмжлэгийн хүсэлт уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const setStatus = async (item: AdminSupportItem, status: 'reviewing' | 'resolved') => {
+    setBusyId(item.id);
+    try {
+      await updateSupportStatus(item.id, status);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Шинэчлэхэд алдаа гарлаа.');
+    } finally {
+      setBusyId('');
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<CreditCard className="h-5 w-5" />} title="Дэмжлэгийн хүсэлт" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Хүсэлтүүдийг уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор дэмжлэгийн хүсэлт алга" text="Хэрэглэгч тусламжийн форм бөглөхөд энд гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.id} className="p-4 sm:p-5">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-start">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={item.status} />
+                    {item.category && <Badge variant="default">{item.category}</Badge>}
+                  </div>
+                  <p className="mt-3 break-words text-foreground">{item.message}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {item.name || 'Нэргүй'}{item.phone ? ` · ${item.phone}` : ''}{item.bookingRef ? ` · ${item.bookingRef}` : ''} · {new Date(item.createdAt).toLocaleString('mn-MN')}
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Button size="sm" variant="outline" disabled={busyId === item.id || item.status === 'reviewing'} onClick={() => setStatus(item, 'reviewing')}>
+                    Шалгаж байна
+                  </Button>
+                  <Button size="sm" disabled={busyId === item.id || item.status === 'resolved'} onClick={() => setStatus(item, 'resolved')}>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Шийдвэрлэх
+                  </Button>
                 </div>
               </div>
             </Card>
