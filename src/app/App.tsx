@@ -35,6 +35,7 @@ const TripFormPage = named(() => import('./pages/DashboardWorkPages'), 'TripForm
 const AdminQueuePage = named(() => import('./pages/AdminQueueRealPage'), 'AdminQueuePage');
 const BookingDetailPage = named(() => import('./pages/BookingDetailPage'), 'BookingDetailPage');
 const CargoDetailPage = named(() => import('./pages/CargoDetailPage'), 'CargoDetailPage');
+const CargoPaymentProofPage = named(() => import('./pages/CargoPaymentProofPage'), 'CargoPaymentProofPage');
 const CargoRulesPage = named(() => import('./pages/CargoRulesPage'), 'CargoRulesPage');
 const DashboardRedirectPage = named(() => import('./pages/DashboardRedirectPage'), 'DashboardRedirectPage');
 const DeliveryProofPage = named(() => import('./pages/DeliveryProofPage'), 'DeliveryProofPage');
@@ -208,6 +209,7 @@ export default function App() {
         <Route path="/cargo/new" element={<RequireAccount roles={['cargo_sender']}><PostCargoPage /></RequireAccount>} />
         <Route path="/cargo/find-routes" element={<RequireAccount roles={['cargo_sender']}><CargoFindRoutesPage /></RequireAccount>} />
         <Route path="/cargo/:id" element={<RequireAccount roles={['cargo_sender']}><CargoDetailPage /></RequireAccount>} />
+        <Route path="/dashboard/cargo/:id/payment-proof" element={<RequireAccount roles={['cargo_sender']}><CargoPaymentProofPage /></RequireAccount>} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
         <Route path="/safety" element={<SafetyPage />} />
         <Route path="/pricing" element={<PricingPage />} />

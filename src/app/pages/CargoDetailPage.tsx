@@ -167,7 +167,7 @@ export function CargoDetailPage() {
               </Card>
 
               {cargo.isSender && ['cargo_accepted', 'waiting_payment'].includes(cargo.status) && (
-                <Button fullWidth onClick={() => window.location.href = '/dashboard/cargo/proof'}>
+                <Button fullWidth onClick={() => window.location.href = `/dashboard/cargo/${cargo.id}/payment-proof`}>
                   Төлбөрийн баримт оруулах
                 </Button>
               )}
