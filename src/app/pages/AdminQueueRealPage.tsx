@@ -32,8 +32,9 @@ import {
   type AdminUserItem,
 } from '../services/adminService';
 import { fetchAdminSupportRequests, updateSupportStatus, type AdminSupportItem } from '../services/supportService';
+import { fetchAdminDriverPayouts, recordDriverPayout, type AdminDriverPayout } from '../services/payoutService';
 
-type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings' | 'logs' | 'support';
+type AdminView = 'payments' | 'users' | 'reports' | 'verifications' | 'cargo' | 'routes' | 'bookings' | 'logs' | 'support' | 'payouts';
 
 const pageCopy: Record<AdminView, { title: string; description: string }> = {
   payments: {
@@ -72,6 +73,10 @@ const pageCopy: Record<AdminView, { title: string; description: string }> = {
     title: 'Дэмжлэгийн хүсэлт',
     description: 'Хэрэглэгчдээс ирсэн дэмжлэгийн хүсэлтийг хянах хэсэг.',
   },
+  payouts: {
+    title: 'Жолоочийн төлбөр',
+    description: 'Жолоочдод шилжүүлэх орлого (90%), шилжүүлсэн дүн, үлдэгдлийг хянаж payout бүртгэнэ.',
+  },
 };
 
 export function AdminQueuePage({ view }: { view: AdminView }) {
@@ -98,6 +103,8 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
           <AdminLogsQueue />
         ) : view === 'support' ? (
           <AdminSupportQueue />
+        ) : view === 'payouts' ? (
+          <AdminPayoutsQueue />
         ) : (
           <ComingSoonQueue view={view} />
         )}
@@ -882,6 +889,84 @@ function AdminLogsQueue() {
                     {item.actorName ? `${item.actorName} · ` : ''}{new Date(item.createdAt).toLocaleString('mn-MN')}
                   </p>
                 </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminPayoutsQueue() {
+  const [items, setItems] = useState<AdminDriverPayout[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [busyId, setBusyId] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setItems(await fetchAdminDriverPayouts());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Жолоочийн төлбөр уншихад алдаа гарлаа.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const pay = async (item: AdminDriverPayout) => {
+    const input = window.prompt(`${item.driverName}-д шилжүүлэх дүн (₮). Үлдэгдэл: ₮${item.pending.toLocaleString()}`, String(item.pending));
+    const amount = Number((input || '').replace(/[^0-9]/g, ''));
+    if (!amount || amount <= 0) return;
+    setBusyId(item.driverId);
+    setError('');
+    setMessage('');
+    try {
+      await recordDriverPayout(item.driverId, amount, 'Админ гараар шилжүүлэв.');
+      setMessage(`${item.driverName}-д ₮${amount.toLocaleString()} payout бүртгэгдлээ.`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Payout бүртгэхэд алдаа гарлаа.');
+    } finally {
+      setBusyId('');
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      <QueueToolbar icon={<CreditCard className="h-5 w-5" />} title="Жолоочийн төлбөр" count={items.length} loading={loading} onRefresh={load} />
+      {error && <Notice tone="danger" text={error} />}
+      {message && <Notice tone="success" text={message} />}
+
+      {loading ? (
+        <Card className="p-6 text-muted-foreground">Уншиж байна...</Card>
+      ) : items.length === 0 ? (
+        <EmptyQueue title="Одоогоор шилжүүлэх орлого алга" text="Аялал дууссаны дараа жолоочийн орлого энд гарч ирнэ." />
+      ) : (
+        <div className="grid gap-4">
+          {items.map((item) => (
+            <Card key={item.driverId} className="p-4 sm:p-5">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_200px] lg:items-center">
+                <div className="min-w-0">
+                  <h2 className="text-lg font-semibold text-foreground">{item.driverName}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{item.phone || 'Утас алга'}</p>
+                  <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                    <span className="text-muted-foreground">Цэвэр орлого: <span className="font-semibold text-foreground">₮{item.netEarned.toLocaleString()}</span></span>
+                    <span className="text-muted-foreground">Шилжүүлсэн: <span className="font-semibold text-foreground">₮{item.paidOut.toLocaleString()}</span></span>
+                    <span className="text-muted-foreground">Үлдэгдэл: <span className="font-semibold text-primary">₮{item.pending.toLocaleString()}</span></span>
+                  </div>
+                </div>
+                <Button disabled={busyId === item.driverId || item.pending <= 0} onClick={() => pay(item)}>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Payout бүртгэх
+                </Button>
               </div>
             </Card>
           ))}

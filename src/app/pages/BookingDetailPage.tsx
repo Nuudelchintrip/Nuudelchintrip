@@ -394,11 +394,11 @@ export function BookingDetailPage() {
               </CardHeader>
               <CardBody>
                 <div className="space-y-3 mb-5">
-                  <PriceRow label="Тохиролцсон үнэ" value={booking.price.agreed} />
-                  <PriceRow label="Үйлчилгээний шимтгэл (10%)" value={booking.price.serviceFee} />
+                  <PriceRow label="Аялалын үнэ" value={booking.price.agreed} />
                   <div className="border-t border-border pt-3">
-                    <PriceRow label="Нийт" value={booking.price.total} strong />
+                    <PriceRow label="Нийт төлөх" value={booking.price.total} strong />
                   </div>
+                  <p className="text-xs leading-5 text-muted-foreground">Платформын 10% шимтгэлийг жолоочийн орлогоос суутгана.</p>
                 </div>
                 <Button variant="primary" fullWidth onClick={() => window.location.href = `/dashboard/bookings/${booking.id}/payment-proof`}>
                   <Upload className="w-4 h-4" />
@@ -602,7 +602,7 @@ function mapRealBooking(detail: PassengerBookingDetail): ReturnType<typeof getBo
     price: {
       agreed,
       serviceFee,
-      total: agreed + serviceFee,
+      total: agreed,
     },
     payment: {
       method: 'Банкны шилжүүлэг',

@@ -102,7 +102,7 @@ export function PaymentProofPage() {
       driverBankAccount: platformPayment.account,
       agreed,
       serviceFee,
-      total: agreed + serviceFee,
+      total: agreed,
       status: realBooking.status,
     };
   }, [realBooking, platformPayment]);
@@ -336,11 +336,12 @@ export function PaymentProofPage() {
                   <SummaryField label="Чиглэл" value={payment.routeLabel} />
                   <SummaryField label="Одоогийн төлөв" value={statusLabels[payment.status] ?? payment.status} />
                   <div className="space-y-3 border-t border-border pt-4">
-                    <PriceRow label="Жолоочийн үнэ" value={payment.agreed} />
-                    <PriceRow label="Үйлчилгээний шимтгэл" value={payment.serviceFee} />
                     <div className="border-t border-border pt-3">
                       <PriceRow label="Нийт төлөх дүн" value={payment.total} strong />
                     </div>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Энэ дүнг платформын данс руу шилжүүлнэ. Платформын 10% шимтгэлийг жолоочийн орлогоос суутган, үлдсэнийг жолоочид шилжүүлнэ.
+                    </p>
                   </div>
                 </div>
               </CardBody>

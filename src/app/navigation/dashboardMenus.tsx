@@ -49,6 +49,7 @@ export function getDashboardMenu(role: DashboardRole) {
     { icon: <UsersRound className="h-5 w-5" />, label: 'Хэрэглэгчид', href: '/admin/users' },
     { icon: <ShieldCheck className="h-5 w-5" />, label: 'Баталгаажуулалт', href: '/admin/verifications' },
     { icon: <CreditCard className="h-5 w-5" />, label: 'Төлбөрүүд', href: '/admin/payments' },
+    { icon: <Banknote className="h-5 w-5" />, label: 'Жолоочийн төлбөр', href: '/admin/payouts' },
     { icon: <Route className="h-5 w-5" />, label: 'Чиглэлүүд', href: '/admin/routes' },
     { icon: <Bus className="h-5 w-5" />, label: 'Захиалгууд', href: '/admin/bookings' },
     { icon: <PackageCheck className="h-5 w-5" />, label: 'Ачааны хүсэлтүүд', href: '/admin/cargo' },

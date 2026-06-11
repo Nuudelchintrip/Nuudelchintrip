@@ -13,6 +13,7 @@ import { getDefaultSeatIds } from '../data/seats';
 import { locationMatchesText } from '../data/locations';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getBookingBadgeVariant, getCargoStatusLabel, getRequestStatusLabel } from '../utils/bookingStatus';
+import { fetchMyDriverEarnings, type DriverEarnings } from '../services/payoutService';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import { refreshLocalProfileFromSupabase } from '../services/supabaseAuth';
 import {
@@ -1425,48 +1426,73 @@ function InfoPill({ icon, label, value }: { icon: ReactNode; label: string; valu
 
 export function EarningsPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
-  return (
-    <DashboardFrame role={role} active="earnings">
-      <PageTop badge={copy.badge} title={copy.earnings} description="Орлого зөвхөн бодит захиалга, бодит төлбөр баталгаажсаны дараа харагдана." backHref={copy.base} />
-      <Card className="p-8 text-center">
-        <Banknote className="mx-auto mb-4 h-12 w-12 text-primary" />
-        <h2 className="text-xl font-semibold text-foreground">Одоогоор орлогын бодит мэдээлэл алга</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-          Зохиомол дүн, зохиомол гүйлгээ харуулахгүй. Жолоочийн аялал эсвэл дайвар ачааны захиалга төлбөртэй баталгаажсаны дараа энд орлого бүртгэгдэнэ.
-        </p>
-      </Card>
-    </DashboardFrame>
-  );
+  const [earnings, setEarnings] = useState<DriverEarnings | null>(null);
+  const [loading, setLoading] = useState(isSupabaseConfigured);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
+    fetchMyDriverEarnings()
+      .then(setEarnings)
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <DashboardFrame role={role} active="earnings">
-      <PageTop badge={copy.badge} title={copy.earnings} description="Хүлээгдэж буй, баталгаажсан, дууссан орлогын тойм." backHref={copy.base} />
-      <div className="grid gap-5 md:grid-cols-3">
-        {[
-          ['Аялагчийн booking', role === 'driver' ? '₮620,000' : '₮450,000', 'success'],
-          ['Дайвар ачаа', '₮84,000', 'warning'],
-          ['Үйлчилгээний шимтгэл', role === 'driver' ? '5-10% / cargo 10%' : '5-10%', 'info'],
-        ].map(([label, value, tone]) => (
-          <Card key={label} className="p-6">
-            <Badge variant={tone as 'success' | 'warning' | 'info'}>{label}</Badge>
-            <p className="mt-4 text-4xl font-bold text-foreground">{value}</p>
-          </Card>
-        ))}
-      </div>
-      <Card className="mt-6 p-6">
-        <h2 className="text-xl font-semibold text-foreground">Гүйлгээний түүх</h2>
-        <div className="mt-5 space-y-3">
-          {routeRows.map((row) => (
-            <div key={row.route} className="flex flex-col gap-2 rounded-lg bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="font-medium text-foreground">{row.route}</p>
-                <p className="text-sm text-muted-foreground">{row.date}</p>
-              </div>
-              <p className="font-semibold text-primary">₮{(row.matches * 15000).toLocaleString()}</p>
+      <PageTop badge={copy.badge} title={copy.earnings} description="Дууссан аяллын орлого, платформын 10% шимтгэл, шилжүүлсэн дүнгийн тойм." backHref={copy.base} />
+
+      {loading ? (
+        <Card className="p-6 text-sm text-muted-foreground">Орлогыг уншиж байна...</Card>
+      ) : !earnings || earnings.completedCount === 0 ? (
+        <Card className="p-8 text-center">
+          <Banknote className="mx-auto mb-4 h-12 w-12 text-primary" />
+          <h2 className="text-xl font-semibold text-foreground">Одоогоор орлого алга</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            Аялал төлбөртэй баталгаажиж дуусмагц орлого энд бодитоор бүртгэгдэнэ.
+          </p>
+        </Card>
+      ) : (
+        <>
+          <div className="grid gap-5 md:grid-cols-4">
+            <Card className="p-6">
+              <Badge variant="success">Цэвэр орлого</Badge>
+              <p className="mt-4 text-3xl font-bold text-foreground">₮{earnings.netEarned.toLocaleString()}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{earnings.completedCount} дууссан аялал</p>
+            </Card>
+            <Card className="p-6">
+              <Badge variant="warning">Шилжүүлэхээр хүлээгдэж буй</Badge>
+              <p className="mt-4 text-3xl font-bold text-primary">₮{earnings.pending.toLocaleString()}</p>
+            </Card>
+            <Card className="p-6">
+              <Badge variant="info">Шилжүүлсэн</Badge>
+              <p className="mt-4 text-3xl font-bold text-foreground">₮{earnings.paidOut.toLocaleString()}</p>
+            </Card>
+            <Card className="p-6">
+              <Badge variant="default">Платформ шимтгэл (10%)</Badge>
+              <p className="mt-4 text-3xl font-bold text-muted-foreground">₮{earnings.commission.toLocaleString()}</p>
+            </Card>
+          </div>
+
+          <Card className="mt-6 p-6">
+            <h2 className="text-xl font-semibold text-foreground">Дууссан аяллын орлого</h2>
+            <div className="mt-5 space-y-3">
+              {earnings.trips.map((t) => (
+                <div key={t.id} className="flex flex-col gap-2 rounded-lg bg-muted/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium text-foreground">{t.route}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(t.date).toLocaleDateString('mn-MN')} · Төлбөр ₮{t.amount.toLocaleString()}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-primary">+₮{t.net.toLocaleString()}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
+        </>
+      )}
     </DashboardFrame>
   );
 }
