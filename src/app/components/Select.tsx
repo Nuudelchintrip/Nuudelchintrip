@@ -12,14 +12,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-foreground mb-2">
+          <label className="mb-1.5 block text-[13px] font-medium text-foreground sm:mb-2 sm:text-sm">
             {label}
           </label>
         )}
         <div className="relative">
           <select
             ref={ref}
-            className={`w-full px-4 py-2.5 bg-input-background border border-input rounded-lg text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${error ? 'border-destructive focus:ring-destructive' : ''} ${className}`}
+            className={`min-h-11 w-full appearance-none rounded-lg border border-input bg-input-background px-3.5 py-2 pr-10 text-base text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring sm:px-4 sm:py-2.5 sm:pr-11 ${error ? 'border-destructive focus:ring-destructive' : ''} ${className}`}
             {...props}
           >
             {options.map((option) => (
@@ -28,10 +28,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
+          <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground sm:right-4 sm:h-5 sm:w-5" />
         </div>
         {error && (
-          <p className="mt-1.5 text-sm text-destructive">{error}</p>
+          <p className="mt-1.5 text-xs leading-5 text-destructive sm:text-sm">{error}</p>
         )}
       </div>
     );

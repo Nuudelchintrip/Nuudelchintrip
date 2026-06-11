@@ -134,6 +134,10 @@
 
   body {
     @apply bg-background text-foreground;
+    min-width: 320px;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   /**
@@ -150,6 +154,85 @@
   @media (max-width: 640px) {
     html {
       font-size: 15px;
+    }
+
+    body {
+      line-height: 1.55;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    main h1 {
+      overflow-wrap: anywhere;
+    }
+
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
+
+    .mobile-page {
+      padding-inline: 0.875rem;
+    }
+
+    .mobile-section {
+      padding-block: 2.5rem;
+    }
+
+    .mobile-stack {
+      gap: 0.875rem;
+    }
+
+    .p-6 {
+      padding: 1rem;
+    }
+
+    .p-8,
+    .p-10 {
+      padding: 1.25rem;
+    }
+
+    .py-12,
+    .py-14,
+    .py-16 {
+      padding-block: 2.5rem;
+    }
+
+    .gap-6,
+    .gap-8,
+    .gap-10 {
+      gap: 1rem;
+    }
+
+    .mb-8 {
+      margin-bottom: 1.25rem;
+    }
+
+    .mt-8,
+    .mt-10 {
+      margin-top: 1.25rem;
+    }
+
+    .text-3xl {
+      font-size: 1.65rem;
+      line-height: 1.2;
+    }
+
+    .text-4xl {
+      font-size: 1.85rem;
+      line-height: 1.15;
+    }
+
+    .text-5xl {
+      font-size: 2.1rem;
+      line-height: 1.12;
+    }
+
+    .min-h-16 {
+      min-height: 0;
     }
   }
 

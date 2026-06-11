@@ -11,21 +11,21 @@ export function TripsPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <section className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
+      <main className="mx-auto max-w-7xl px-3.5 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <section className="grid gap-5 sm:gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
           <div>
             <Badge variant="info">Чиглэл хайх</Badge>
             <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight text-foreground sm:text-5xl">
               Жинхэнэ чиглэлүүд нэвтэрсний дараа харагдана
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-4 sm:text-lg sm:leading-8">
               NuudelchinTrip дээр жолоочийн нийтэлсэн чиглэл, сул суудал, үнэ, утасны мэдээлэл нь хэрэглэгч нэвтэрсний дараа өөрийн төрөлд тохирсон самбарт харагдана.
             </p>
           </div>
 
-          <Card className="border-primary/20 bg-primary/5 p-6">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <LockKeyhole className="h-6 w-6" />
+          <Card className="border-primary/20 bg-primary/5 p-4 sm:p-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:h-12 sm:w-12">
+              <LockKeyhole className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <h2 className="mt-4 text-xl font-semibold text-foreground">Яагаад public жагсаалт байхгүй вэ?</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -34,10 +34,10 @@ export function TripsPage() {
           </Card>
         </section>
 
-        <Card className="mt-8 p-5 md:p-6">
-          <div className="mb-5 flex items-center gap-2">
+        <Card className="mt-5 p-4 sm:mt-8 sm:p-5 md:p-6">
+          <div className="mb-4 flex items-center gap-2 sm:mb-5">
             <Search className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-semibold text-foreground">Хайлтын талбар</h2>
+            <h2 className="text-lg font-semibold text-foreground sm:text-xl">Хайлтын талбар</h2>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -72,7 +72,7 @@ export function TripsPage() {
           </div>
         </Card>
 
-        <section className="mt-8 grid gap-5 md:grid-cols-3">
+        <section className="mt-5 grid gap-4 sm:mt-8 sm:gap-5 md:grid-cols-3">
           {[
             ['Аялагч', 'Нэвтэрсний дараа боломжтой жолоочийн чиглэл хайна.'],
             ['Жолооч', 'Баталгаажсаны дараа өөрийн чиглэлээ нийтэлнэ.'],

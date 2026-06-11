@@ -94,17 +94,17 @@ export function PostCargoPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Badge variant="info" className="mb-4">Дайвар ачааны нэмэлт боломж</Badge>
-          <h1 className="mb-2 text-3xl font-bold text-foreground">Дайвар ачаа илгээх хүсэлт</h1>
-          <p className="text-muted-foreground">
+      <main className="mx-auto max-w-6xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mb-5 sm:mb-8">
+          <Badge variant="info" className="mb-3 sm:mb-4">Дайвар ачааны нэмэлт боломж</Badge>
+          <h1 className="mb-2 text-2xl font-bold leading-tight text-foreground sm:text-3xl">Дайвар ачаа илгээх хүсэлт</h1>
+          <p className="text-sm leading-6 text-muted-foreground sm:text-base">
             Дайвар ачаа нь зөвхөн жолоочийн нийтэлсэн чиглэл дээр суурилна. Эхлээд ачаа авч болох чиглэл сонгоод, дараа нь жижиг ачааны хүсэлт илгээнэ.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+          <div className="space-y-4 sm:space-y-6 lg:col-span-2">
             {!tripId && (
               <Card className="border-warning/30 bg-warning/5">
                 <CardBody className="p-5">
@@ -208,11 +208,11 @@ export function PostCargoPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <Card className="border-primary/20 bg-primary/5">
-              <CardBody className="p-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Box className="h-6 w-6" />
+              <CardBody className="p-4 sm:p-6">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary sm:mb-4 sm:h-12 sm:w-12">
+                  <Box className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
                 <h2 className="mb-2 text-xl font-semibold text-foreground">Дараагийн алхам</h2>
                 <p className="mb-5 text-sm text-muted-foreground">
@@ -230,7 +230,7 @@ export function PostCargoPage() {
             </Card>
 
             <Card className="border-warning/30 bg-warning/5">
-              <CardBody className="p-6">
+              <CardBody className="p-4 sm:p-6">
                 <h3 className="mb-3 font-semibold text-foreground">Дүрэм зөвшөөрөх</h3>
                 <label className="flex items-start gap-3 text-sm text-foreground">
                   <input

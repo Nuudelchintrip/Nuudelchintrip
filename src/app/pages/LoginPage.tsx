@@ -35,22 +35,22 @@ export function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-background px-3.5 py-6 sm:px-4 sm:py-12">
       <div className="w-full max-w-md">
-        <a href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6">
+        <a href="/" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary sm:mb-6">
           <ArrowLeft className="w-4 h-4" />
           Буцах
         </a>
 
-        <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
-          <Logo size="lg" />
+        <a href="/" className="mb-5 flex justify-center sm:mb-8" aria-label="NuudelchinTrip нүүр">
+          <Logo size="md" />
         </a>
 
         <Card>
-          <CardBody className="p-8">
-            <div className="mb-7">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Нэвтрэх</h1>
-              <p className="text-muted-foreground">
+          <CardBody className="p-5 sm:p-8">
+            <div className="mb-5 sm:mb-7">
+              <h1 className="mb-1.5 text-2xl font-bold text-foreground sm:mb-2 sm:text-3xl">Нэвтрэх</h1>
+              <p className="text-sm leading-6 text-muted-foreground sm:text-base">
                 Захиалга, чиглэл, төлбөрийн явцаа нэг dashboard-аас хянаарай.
               </p>
             </div>

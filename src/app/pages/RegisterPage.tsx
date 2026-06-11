@@ -85,10 +85,10 @@ export function RegisterPage() {
 
   if (pendingEmail) {
     return (
-      <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-4 py-12">
+      <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-3.5 py-6 sm:px-4 sm:py-12">
         <div className="min-w-0" style={{ width: 'min(100%, 28rem)' }}>
           <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
-            <Logo size="lg" />
+            <Logo size="md" />
           </a>
           <Card className="overflow-hidden">
             <CardBody className="p-6 text-center md:p-8">
@@ -123,25 +123,25 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-4 py-12">
-      <div className="min-w-0 max-w-3xl" style={{ width: 'min(100%, calc(100vw - 3rem))' }}>
-        <a href="/" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
+    <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-3.5 py-6 sm:px-4 sm:py-12">
+      <div className="w-full min-w-0 max-w-3xl">
+        <a href="/" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary sm:mb-6">
           <ArrowLeft className="h-4 w-4" />
           Буцах
         </a>
 
-        <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
-          <Logo size="lg" />
+        <a href="/" className="mb-5 flex justify-center sm:mb-8" aria-label="NuudelchinTrip нүүр">
+          <Logo size="md" />
         </a>
 
         <Card className="min-w-0 max-w-full overflow-hidden">
-          <CardBody className="min-w-0 p-5 md:p-8">
-            <div className="mb-7">
-              <h1 className="mb-2 text-3xl font-bold text-foreground">Бүртгүүлэх</h1>
-              <p className="text-muted-foreground">Ашиглах төрлөө сонгоод үндсэн мэдээллээ оруулна уу.</p>
+          <CardBody className="min-w-0 p-4 sm:p-5 md:p-8">
+            <div className="mb-5 sm:mb-7">
+              <h1 className="mb-1.5 text-2xl font-bold text-foreground sm:mb-2 sm:text-3xl">Бүртгүүлэх</h1>
+              <p className="text-sm leading-6 text-muted-foreground sm:text-base">Ашиглах төрлөө сонгоод үндсэн мэдээллээ оруулна уу.</p>
             </div>
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-4 sm:space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="mb-3 block text-sm font-medium text-foreground">Ашиглах төрөл сонгох</label>
                 <div className="grid min-w-0 gap-3 md:grid-cols-3">
@@ -155,17 +155,19 @@ export function RegisterPage() {
                           setRole(type.id);
                           setError('');
                         }}
-                        className={`w-full min-w-0 rounded-lg border p-4 text-left transition-all hover:-translate-y-0.5 ${
+                        className={`flex w-full min-w-0 gap-3 rounded-lg border p-3 text-left transition-all hover:-translate-y-0.5 md:block md:p-4 ${
                           selected ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card hover:border-primary/50'
                         }`}
                       >
-                        <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg md:mb-3 md:h-10 md:w-10 ${
                           selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                         }`}>
                           {type.icon}
                         </div>
-                        <p className="font-semibold text-foreground">{type.title}</p>
-                        <p className="mt-1 break-words text-sm leading-6 text-muted-foreground">{type.description}</p>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-foreground">{type.title}</p>
+                          <p className="mt-0.5 break-words text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">{type.description}</p>
+                        </div>
                       </button>
                     );
                   })}

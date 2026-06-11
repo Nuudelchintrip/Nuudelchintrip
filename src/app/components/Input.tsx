@@ -10,17 +10,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-foreground mb-2">
+          <label className="mb-1.5 block text-[13px] font-medium text-foreground sm:mb-2 sm:text-sm">
             {label}
           </label>
         )}
         <input
           ref={ref}
-          className={`w-full px-4 py-2.5 bg-input-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent ${error ? 'border-destructive focus:ring-destructive' : ''} ${className}`}
+          className={`min-h-11 w-full rounded-lg border border-input bg-input-background px-3.5 py-2 text-base text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring sm:px-4 sm:py-2.5 ${error ? 'border-destructive focus:ring-destructive' : ''} ${className}`}
           {...props}
         />
         {error && (
-          <p className="mt-1.5 text-sm text-destructive">{error}</p>
+          <p className="mt-1.5 text-xs leading-5 text-destructive sm:text-sm">{error}</p>
         )}
       </div>
     );

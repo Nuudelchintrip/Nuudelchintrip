@@ -15,9 +15,9 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-8">
+      <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between gap-3 sm:h-16 sm:gap-4">
+          <div className="flex min-w-0 items-center gap-6 lg:gap-8">
             <a href="/" aria-label="NuudelchinTrip нүүр">
               <Logo size="md" />
             </a>
@@ -42,25 +42,25 @@ export function Navbar() {
 
           <button
             type="button"
-            className="rounded-lg border border-border p-2 md:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground md:hidden"
             onClick={() => setMobileMenuOpen((open) => !open)}
             aria-label={mobileMenuOpen ? 'Цэс хаах' : 'Цэс нээх'}
             aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
       {mobileMenuOpen && (
         <div className="border-t border-border bg-card md:hidden">
-          <div className="space-y-2 px-4 py-4">
+          <div className="space-y-1 px-3.5 py-3">
             {publicLinks.map((link) => (
-              <a key={link.href} href={link.href} className="block rounded-lg px-3 py-2 font-medium text-foreground hover:bg-secondary">
+              <a key={link.href} href={link.href} className="block min-h-11 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-secondary">
                 {link.label}
               </a>
             ))}
-            <div className="space-y-2 border-t border-border pt-4">
+            <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
               <Button variant="ghost" fullWidth onClick={() => { window.location.href = '/auth/login'; }}>
                 Нэвтрэх
               </Button>

@@ -83,7 +83,7 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('admin')} accountRole="admin" />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <PageHeader view={view} />
         {view === 'payments' ? (
           <AdminPaymentsQueue />

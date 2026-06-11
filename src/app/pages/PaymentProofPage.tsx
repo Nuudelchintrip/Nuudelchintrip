@@ -192,20 +192,20 @@ export function PaymentProofPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
         <button
           type="button"
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+          className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary sm:mb-6"
           onClick={() => window.location.href = `/dashboard/bookings/${payment.bookingId}`}
         >
           <ArrowLeft className="h-4 w-4" />
           Захиалга руу буцах
         </button>
 
-        <section className="mb-8 rounded-lg border border-warning/20 bg-warning/5 p-5 md:p-6">
-          <Badge variant="warning" className="mb-4">Төлбөрийн баталгаажуулалт</Badge>
-          <h1 className="mb-3 text-2xl font-bold text-foreground md:text-3xl">Төлбөрийн баримт илгээх</h1>
-          <p className="max-w-3xl leading-7 text-muted-foreground">
+        <section className="mb-5 rounded-lg border border-warning/20 bg-warning/5 p-4 sm:mb-8 sm:p-5 md:p-6">
+          <Badge variant="warning" className="mb-3 sm:mb-4">Төлбөрийн баталгаажуулалт</Badge>
+          <h1 className="mb-2 text-2xl font-bold leading-tight text-foreground sm:mb-3 md:text-3xl">Төлбөрийн баримт илгээх</h1>
+          <p className="max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
             Төлбөрөө шилжүүлсний дараа зураг, PDF эсвэл гүйлгээний код оруулна.
             Баримт илгээгдмэгц захиалгын төлөв <strong>шалгаж байна</strong> болж админы баталгаажуулалтад орно.
           </p>
@@ -229,8 +229,8 @@ export function PaymentProofPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -246,8 +246,8 @@ export function PaymentProofPage() {
                     'Төлбөрийн зураг эсвэл гүйлгээний кодоо энэ хуудсанд оруулна.',
                     'Админ баталгаажуулсны дараа аялал баталгаажсан төлөв рүү шилжинэ.',
                   ].map((item, index) => (
-                    <div key={item} className="rounded-lg border border-border bg-muted/30 p-4">
-                      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">
+                    <div key={item} className="rounded-lg border border-border bg-muted/30 p-3.5 sm:p-4">
+                      <div className="mb-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground sm:mb-3 sm:h-9 sm:w-9 sm:text-base">
                         {index + 1}
                       </div>
                       <p className="text-sm leading-6 text-foreground">{item}</p>
@@ -268,7 +268,7 @@ export function PaymentProofPage() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <BankField label="Хүлээн авагч" value={payment.driverName} />
                   <BankField label="Төлөх суваг" value={payment.driverBankName} />
-                  <div className="rounded-lg border border-border bg-muted/30 p-4">
+                  <div className="rounded-lg border border-border bg-muted/30 p-3.5 sm:p-4">
                     <p className="mb-1 text-sm text-muted-foreground">Данс эсвэл тэмдэглэл</p>
                     <div className="flex items-center justify-between gap-2">
                       <p className="font-semibold text-foreground">{payment.driverBankAccount}</p>
@@ -298,9 +298,9 @@ export function PaymentProofPage() {
                       className="sr-only"
                       onChange={(event) => setFile(event.target.files?.[0] || null)}
                     />
-                    <div className="cursor-pointer rounded-lg border-2 border-dashed border-border bg-muted/20 p-8 text-center transition-colors hover:border-primary">
-                      <Upload className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                      <p className="mb-2 text-foreground">{file ? file.name : 'Файл сонгох эсвэл энд дарна уу'}</p>
+                    <div className="cursor-pointer rounded-lg border-2 border-dashed border-border bg-muted/20 p-5 text-center transition-colors hover:border-primary sm:p-8">
+                      <Upload className="mx-auto mb-3 h-9 w-9 text-muted-foreground sm:mb-4 sm:h-12 sm:w-12" />
+                      <p className="mb-1.5 break-all text-sm text-foreground sm:mb-2 sm:text-base">{file ? file.name : 'Файл сонгох эсвэл энд дарна уу'}</p>
                       <p className="text-sm text-muted-foreground">PNG, JPG эсвэл PDF. Дээд хэмжээ 10MB.</p>
                     </div>
                   </label>
@@ -325,7 +325,7 @@ export function PaymentProofPage() {
             </Card>
           </div>
 
-          <aside className="space-y-6">
+          <aside className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <h3 className="font-semibold text-foreground">Төлбөрийн хураангуй</h3>

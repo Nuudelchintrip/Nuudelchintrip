@@ -46,19 +46,19 @@ export function TravelerDashboard() {
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('traveler')} />
 
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <div className="mb-6 md:mb-8">
           <Badge variant="info" className="mb-3">Аялагчийн самбар</Badge>
-          <h1 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">
+          <h1 className="text-2xl font-bold leading-tight text-foreground sm:text-4xl">
             {user?.full_name ? `${user.full_name}, жолооч хайж эхлээрэй` : 'Жолооч хайж эхлээрэй'}
           </h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:text-base">
             Энэ самбар дээр зөвхөн таны бодитоор үүсгэсэн захиалга, төлбөрийн баримт, аяллын төлөв харагдана.
           </p>
         </div>
 
-        <Card className="mb-8 border-primary/20 bg-primary/5">
-          <CardBody className="p-6">
+        <Card className="mb-5 border-primary/20 bg-primary/5 sm:mb-8">
+          <CardBody className="p-4 sm:p-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -120,7 +120,7 @@ export function TravelerDashboard() {
           ) : error ? (
             <Card className="border-destructive/20 bg-destructive/5 p-6 text-sm font-medium text-destructive">{error}</Card>
           ) : recentBookings.length === 0 ? (
-            <Card className="p-8 text-center">
+            <Card className="p-5 text-center sm:p-8">
               <Bus className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
               <h3 className="text-lg font-semibold text-foreground">Аяллын захиалга хараахан алга</h3>
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
@@ -167,7 +167,7 @@ export function TravelerDashboard() {
           )}
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
           <EmptyPanel
             icon={<ShieldCheck className="h-6 w-6" />}
             title="Итгэлцэл"

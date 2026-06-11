@@ -15,19 +15,19 @@ export function PricingPage() {
       <Navbar />
 
       <main>
-        <section className="bg-primary/5 py-16">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <Badge variant="info" className="mb-5">10% үйлчилгээний шимтгэл</Badge>
-            <h1 className="text-4xl font-bold text-foreground mb-4">Ил тод, ойлгомжтой үнэ</h1>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+        <section className="bg-primary/5 py-9 sm:py-16">
+          <div className="mx-auto max-w-5xl px-3.5 text-center sm:px-6 lg:px-8">
+            <Badge variant="info" className="mb-3 sm:mb-5">10% үйлчилгээний шимтгэл</Badge>
+            <h1 className="mb-3 text-3xl font-bold leading-tight text-foreground sm:mb-4 sm:text-4xl">Ил тод, ойлгомжтой үнэ</h1>
+            <p className="mx-auto max-w-3xl text-sm leading-6 text-muted-foreground sm:text-lg sm:leading-7">
               Эхний хувилбарт NuudelchinTrip нь жолоочийн суудлын үнээс 10% үйлчилгээний шимтгэл авна. Автомат QPay холболт дараагийн шатанд орно.
             </p>
           </div>
         </section>
 
-        <section className="py-14">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section className="py-9 sm:py-14">
+          <div className="mx-auto max-w-6xl px-3.5 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export function PricingPage() {
                         <p className="font-semibold text-foreground">Аялагчийн нийт төлөх</p>
                         <p className="text-sm text-muted-foreground">Жолоочийн үнэ + үйлчилгээний шимтгэл</p>
                       </div>
-                      <p className="text-3xl font-bold text-primary">₮{total.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-primary sm:text-3xl">₮{total.toLocaleString()}</p>
                     </div>
                   </div>
                 </CardBody>

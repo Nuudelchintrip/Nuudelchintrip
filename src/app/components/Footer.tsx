@@ -28,21 +28,21 @@ const footerGroups = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t border-border bg-card">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr_1fr]">
+    <footer className="mt-12 border-t border-border bg-card sm:mt-20">
+      <div className="mx-auto max-w-7xl px-3.5 py-8 sm:px-6 sm:py-12 lg:px-8">
+        <div className="grid gap-7 sm:gap-10 lg:grid-cols-[1.2fr_2fr_1fr]">
           <div>
-            <Logo size="md" className="mb-4" />
+            <Logo size="sm" className="mb-3 sm:mb-4" />
             <p className="max-w-sm text-sm leading-6 text-muted-foreground">
               Орон нутгийн аялагчийг сул суудалтай жолоочтой холбох унаа хуваалцах платформ.
             </p>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-7 sm:grid-cols-3 sm:gap-8">
             {footerGroups.map((group) => (
               <div key={group.title}>
-                <h2 className="mb-4 text-base font-semibold text-foreground">{group.title}</h2>
-                <ul className="space-y-2">
+                <h2 className="mb-3 text-sm font-semibold text-foreground sm:mb-4 sm:text-base">{group.title}</h2>
+                <ul className="space-y-1.5 sm:space-y-2">
                   {group.links.map((link) => (
                     <li key={link.href}>
                       <a href={link.href} className="text-sm text-muted-foreground hover:text-primary">
@@ -65,7 +65,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-border pt-6 text-sm text-muted-foreground">
+        <div className="mt-7 border-t border-border pt-5 text-xs text-muted-foreground sm:mt-10 sm:pt-6 sm:text-sm">
           <p>© 2026 NuudelchinTrip. Бүх эрх хуулиар хамгаалагдсан.</p>
         </div>
       </div>
@@ -75,13 +75,13 @@ export function Footer() {
 
 export function AppFooter() {
   return (
-    <footer className="mt-10 border-t border-border pt-6">
-      <div className="flex flex-col gap-4 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
+    <footer className="mt-8 border-t border-border pt-5 sm:mt-10 sm:pt-6">
+      <div className="flex flex-col gap-3 text-xs leading-5 text-muted-foreground sm:text-sm lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="font-semibold text-foreground">NuudelchinTrip</p>
           <p className="mt-1">Аялагч, жолооч болон чиглэл дээр суурилсан дайвар ачааг холбох платформ.</p>
         </div>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-x-5">
           <a href="/how-it-works" className="hover:text-primary">Хэрхэн ажилладаг</a>
           <a href="/safety" className="hover:text-primary">Аюулгүй байдал</a>
           <a href="/support" className="hover:text-primary">Тусламж</a>

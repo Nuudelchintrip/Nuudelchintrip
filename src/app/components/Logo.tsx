@@ -11,19 +11,19 @@ interface LogoProps {
 
 const sizeClasses: Record<LogoSize, { mark: string; text: string; route: string }> = {
   sm: {
-    mark: 'h-9 w-9',
-    text: 'text-[15px]',
-    route: 'h-4 w-4',
+    mark: 'h-8 w-8 sm:h-9 sm:w-9',
+    text: 'text-sm sm:text-[15px]',
+    route: 'h-3.5 w-3.5 sm:h-4 sm:w-4',
   },
   md: {
-    mark: 'h-10 w-10',
-    text: 'text-xl',
-    route: 'h-5 w-5',
+    mark: 'h-9 w-9 sm:h-10 sm:w-10',
+    text: 'text-base sm:text-xl',
+    route: 'h-4 w-4 sm:h-5 sm:w-5',
   },
   lg: {
-    mark: 'h-11 w-11',
-    text: 'text-2xl',
-    route: 'h-5 w-5',
+    mark: 'h-10 w-10 sm:h-11 sm:w-11',
+    text: 'text-xl sm:text-2xl',
+    route: 'h-4.5 w-4.5 sm:h-5 sm:w-5',
   },
 };
 
@@ -31,7 +31,7 @@ export function Logo({ size = 'md', showText = true, className, textClassName }:
   const sizes = sizeClasses[size];
 
   return (
-    <span className={cn('flex min-w-0 items-center gap-3', className)} aria-label="NuudelchinTrip">
+    <span className={cn('flex min-w-0 items-center gap-2.5 sm:gap-3', className)} aria-label="NuudelchinTrip">
       <span
         className={cn(
           'relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl bg-primary text-primary-foreground shadow-sm',

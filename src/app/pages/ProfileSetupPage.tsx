@@ -120,15 +120,15 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <Badge variant={isDriver ? 'success' : isCargo ? 'warning' : 'info'} className="mb-4">
+      <main className="mx-auto max-w-5xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mb-5 sm:mb-8">
+          <Badge variant={isDriver ? 'success' : isCargo ? 'warning' : 'info'} className="mb-3 sm:mb-4">
             Анхны тохиргоо
           </Badge>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-2xl font-bold leading-tight text-foreground sm:text-3xl">
             {isTraveler ? 'Аялагчийн мэдээлэл' : isDriver ? 'Жолоочийн баталгаажуулалт' : 'Дайвар ачааны дүрэм'}
           </h1>
-          <p className="mt-3 max-w-3xl text-muted-foreground">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:mt-3 sm:text-base">
             {isTraveler && 'Үндсэн бүртгэл дууссан. Яаралтай холбоо барих мэдээллээ нэмээд самбар руу орно.'}
             {isDriver && 'Машин болон жолоочийн баталгаажуулалтын мэдээллээ илгээсний дараа админ шалгана.'}
             {isCargo && 'Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж тул ачааны дүрмийг зөвшөөрөх шаардлагатай.'}
@@ -150,8 +150,8 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
               </div>
             </CardHeader>
             <CardBody>
-              <div className="mb-5 rounded-lg border-2 border-dashed border-border bg-muted/20 p-6 text-center">
-                <Camera className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+              <div className="mb-4 rounded-lg border-2 border-dashed border-border bg-muted/20 p-4 text-center sm:mb-5 sm:p-6">
+                <Camera className="mx-auto mb-2 h-8 w-8 text-muted-foreground sm:mb-3 sm:h-10 sm:w-10" />
                 <p className="font-medium text-foreground">Профайл зураг</p>
                 <p className="text-sm text-muted-foreground">Дараа нь тохиргоо хэсгээс сольж болно.</p>
               </div>
@@ -164,7 +164,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
         )}
 
         {isDriver && (
-          <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_340px]">
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -178,10 +178,10 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
                   <Input label="Улсын дугаар" placeholder="УБА 1234" value={plateNumber} onChange={(event) => setPlateNumber(event.target.value)} />
                   <Input label="Суудлын тоо" placeholder="4" value={seats} onChange={(event) => setSeats(event.target.value)} />
                 </div>
-                <p className="mt-6 text-sm text-muted-foreground">
+                <p className="mt-4 text-sm text-muted-foreground sm:mt-6">
                   Доорх 3 бичиг баримтыг тод зургаар оруулна уу (JPG, PNG, WEBP эсвэл PDF, 10MB хүртэл).
                 </p>
-                <div className="mt-3 grid gap-4 md:grid-cols-3">
+                <div className="mt-3 grid gap-3 sm:gap-4 md:grid-cols-3">
                   <DocumentUploadField title="Жолооны үнэмлэх" file={licenseFile} onSelect={setLicenseFile} />
                   <DocumentUploadField title="Машины гэрчилгээ" file={certificateFile} onSelect={setCertificateFile} />
                   <DocumentUploadField title="Машины зураг" file={photoFile} onSelect={setPhotoFile} />
@@ -190,9 +190,9 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
             </Card>
 
             <Card className="border-warning/20 bg-warning/5">
-              <CardBody className="p-6">
-                <AlertTriangle className="h-8 w-8 text-warning" />
-                <h2 className="mt-4 text-xl font-semibold text-foreground">Админ шалгалт</h2>
+              <CardBody className="p-4 sm:p-6">
+                <AlertTriangle className="h-7 w-7 text-warning sm:h-8 sm:w-8" />
+                <h2 className="mt-3 text-lg font-semibold text-foreground sm:mt-4 sm:text-xl">Админ шалгалт</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Таны мэдээллийг админ шалгасны дараа чиглэл нэмэх боломж нээгдэнэ.
                 </p>

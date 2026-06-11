@@ -24,7 +24,7 @@ export function Card({ children, className = '', hover = false, onClick, style }
 
   return (
     <div
-      className={`bg-card border border-border/70 rounded-lg shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_16px_-8px_rgba(15,23,42,0.08)] ${hover ? 'hover:shadow-[0_8px_28px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer' : ''} ${className}`}
+      className={`rounded-lg border border-border/70 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_3px_12px_-8px_rgba(15,23,42,0.1)] ${hover ? 'cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_28px_-10px_rgba(15,23,42,0.18)]' : ''} ${className}`}
       onClick={onClick}
       style={style}
       {...interactiveProps}
@@ -36,7 +36,7 @@ export function Card({ children, className = '', hover = false, onClick, style }
 
 export function CardHeader({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`p-4 pb-3 sm:p-6 sm:pb-4 ${className}`}>
+    <div className={`p-3.5 pb-2.5 sm:p-6 sm:pb-4 ${className}`}>
       {children}
     </div>
   );
@@ -44,7 +44,7 @@ export function CardHeader({ children, className = '' }: { children: ReactNode; 
 
 export function CardBody({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`p-4 pt-0 sm:p-6 sm:pt-0 ${className}`}>
+    <div className={`p-3.5 pt-0 sm:p-6 sm:pt-0 ${className}`}>
       {children}
     </div>
   );
@@ -52,7 +52,7 @@ export function CardBody({ children, className = '' }: { children: ReactNode; cl
 
 export function CardFooter({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`border-t border-border p-4 pt-3 sm:p-6 sm:pt-4 ${className}`}>
+    <div className={`border-t border-border p-3.5 pt-2.5 sm:p-6 sm:pt-4 ${className}`}>
       {children}
     </div>
   );

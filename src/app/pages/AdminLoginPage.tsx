@@ -27,28 +27,28 @@ export function AdminLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-background px-3.5 py-6 sm:px-4 sm:py-10">
       <div className="w-full max-w-md">
         <a
           href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
+          className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary sm:mb-6"
         >
           <ArrowLeft className="h-4 w-4" />
           Нүүр хуудас
         </a>
 
-        <div className="mb-7 flex justify-center">
+        <div className="mb-5 flex justify-center sm:mb-7">
           <Logo size="lg" />
         </div>
 
         <Card>
-          <CardBody className="p-6 sm:p-8">
-            <div className="mb-7">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <CardBody className="p-5 sm:p-8">
+            <div className="mb-5 sm:mb-7">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary sm:mb-4 sm:h-11 sm:w-11">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h1 className="text-3xl font-bold text-foreground">Админ нэвтрэх</h1>
-              <p className="mt-2 text-muted-foreground">
+              <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Админ нэвтрэх</h1>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-base">
                 NuudelchinTrip-ийн хяналтын самбарт зөвхөн админ эрхтэй хэрэглэгч нэвтэрнэ.
               </p>
             </div>

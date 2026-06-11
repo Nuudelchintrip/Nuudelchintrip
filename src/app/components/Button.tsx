@@ -8,7 +8,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', fullWidth = false, className = '', children, ...props }, ref) => {
-    const baseStyles = 'inline-flex min-w-0 items-center justify-center gap-2 rounded-lg text-center font-semibold leading-tight transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed';
+    const baseStyles = 'inline-flex min-w-0 items-center justify-center gap-1.5 rounded-lg text-center font-semibold leading-tight transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2';
 
     const variants = {
       primary: 'bg-primary text-primary-foreground shadow-sm shadow-primary/20 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25',
@@ -19,9 +19,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-sm',
-      md: 'px-5 py-2.5 text-sm sm:text-base',
-      lg: 'px-6 py-3 text-base sm:text-lg',
+      sm: 'min-h-10 px-3 py-2 text-[13px] sm:min-h-9 sm:py-1.5 sm:text-sm',
+      md: 'min-h-11 px-4 py-2 text-sm sm:px-5 sm:py-2.5 sm:text-base',
+      lg: 'min-h-11 px-4 py-2.5 text-sm sm:min-h-12 sm:px-6 sm:py-3 sm:text-lg',
     };
 
     return (

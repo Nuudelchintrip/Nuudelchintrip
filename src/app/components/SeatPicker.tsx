@@ -39,20 +39,20 @@ export function SeatPicker({
   const rows = ['front', 'rear', 'extra'] as const;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-3 sm:rounded-xl sm:p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-foreground">{label}</p>
-          {description ? <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p> : null}
+          {description ? <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">{description}</p> : null}
         </div>
         <span className="text-sm font-medium text-primary">{selectedSeats.length} сонгосон</span>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-2.5 sm:mt-4 sm:space-y-3">
         {rows.map((row) => {
           const rowSeats = seatOptions.filter((seat) => seat.row === row);
           return (
-            <div key={row} className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div key={row} className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2">
               {rowSeats.map((seat) => {
                 const isAvailable = availableSet.has(seat.id);
                 const isSelected = selectedSeats.includes(seat.id);
@@ -65,7 +65,7 @@ export function SeatPicker({
                     disabled={isDisabled}
                     onClick={() => toggleSeat(seat.id)}
                     className={[
-                      'flex min-h-14 items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition',
+                      'flex min-h-12 items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs transition sm:min-h-14 sm:px-3 sm:text-sm',
                       isSelected
                         ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                         : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5',

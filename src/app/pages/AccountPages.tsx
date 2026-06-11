@@ -357,8 +357,8 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
           </Card>
         </aside>
 
-        <section className="space-y-6">
-          <div className="rounded-lg border border-border bg-card p-6 md:p-8">
+        <section className="space-y-4 sm:space-y-6">
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6 md:p-8">
             <div className="flex flex-wrap items-center gap-3">
               <Button size="sm" variant="outline" onClick={() => window.location.href = getVerificationHref(role)}>
                 <BadgeCheck className="h-4 w-4" />
@@ -370,7 +370,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             <h2 className="mt-5 max-w-4xl text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl">
               {details.headline}
             </h2>
-            <div className="mt-6 flex flex-wrap gap-6 border-b border-border text-sm font-semibold text-muted-foreground">
+            <div className="mt-4 flex gap-5 overflow-x-auto border-b border-border text-sm font-semibold text-muted-foreground [scrollbar-width:none] sm:mt-6 sm:flex-wrap sm:gap-6 [&::-webkit-scrollbar]:hidden">
               {['Хувийн мэдээлэл', 'Итгэлцэл', 'Үйлдлийн түүх'].map((tab, index) => (
                 <span key={tab} className={`pb-3 ${index === 0 ? 'border-b-2 border-foreground text-foreground' : ''}`}>
                   {tab}
@@ -379,10 +379,10 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </div>
           </div>
 
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-foreground">Хувийн мэдээлэл</h2>
+                <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Хувийн мэдээлэл</h2>
                 <p className="mt-1 text-sm text-muted-foreground">Хувийн мэдээлэл зөвхөн тухайн хэрэглэгч болон админд харагдана.</p>
               </div>
               <Button variant="outline" size="sm" disabled={saving} onClick={saveName}>
@@ -411,9 +411,9 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </div>
           </Card>
 
-          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <Card className="p-6">
-              <h2 className="text-2xl font-semibold text-foreground">{details.primaryCardTitle}</h2>
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_320px]">
+            <Card className="p-4 sm:p-6">
+              <h2 className="text-xl font-semibold text-foreground sm:text-2xl">{details.primaryCardTitle}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{details.primaryCardText}</p>
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 {details.infoCards.map((item) => (
@@ -422,7 +422,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
               </div>
             </Card>
 
-            <Card className="border-success/20 bg-success/5 p-6">
+            <Card className="border-success/20 bg-success/5 p-4 sm:p-6">
               <h2 className="text-xl font-semibold text-foreground">Итгэлцлийн тойм</h2>
               <div className="mt-5 grid gap-3">
                 <Metric label="Үнэлгээ" value={details.rating} />
@@ -432,8 +432,8 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </Card>
           </div>
 
-          <Card className="p-6">
-            <h2 className="text-2xl font-semibold text-foreground">Сүүлийн үйлдлүүд</h2>
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Сүүлийн үйлдлүүд</h2>
             <div className="mt-5 grid gap-3">
               {details.activity.length > 0 ? (
                 details.activity.map((item) => (
@@ -669,13 +669,13 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
           </p>
         </div>
 
-        <nav className="mb-8 overflow-x-auto border-b border-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="mb-5 overflow-x-auto border-b border-border [scrollbar-width:none] sm:mb-8 [&::-webkit-scrollbar]:hidden">
           <div className="flex min-w-max gap-1">
             {settingsTabs.map((tab, index) => (
               <a
                 key={tab.href}
                 href={tab.href}
-                className={`whitespace-nowrap px-4 py-4 text-sm font-medium transition ${
+                className={`min-h-11 whitespace-nowrap px-3 py-3 text-sm font-medium transition sm:px-4 sm:py-4 ${
                   index === 0
                     ? 'border-b-2 border-primary text-foreground'
                     : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
@@ -687,7 +687,7 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
           </div>
         </nav>
 
-        <div className="space-y-10">
+        <div className="space-y-6 sm:space-y-10">
           <section id="details" className="scroll-mt-6">
             <SettingsSection
               title="Миний мэдээлэл"
@@ -1468,7 +1468,7 @@ function AccountFrame({ role, children }: { role: AccountRole; children: ReactNo
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu(role)} accountRole={role} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         {children}
         <AppFooter />
       </main>

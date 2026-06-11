@@ -82,7 +82,7 @@ export function CargoDetailPage() {
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('sender')} />
 
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <button
           type="button"
           className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"

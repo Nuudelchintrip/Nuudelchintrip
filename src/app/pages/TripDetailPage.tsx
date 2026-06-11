@@ -165,25 +165,25 @@ export function TripDetailPage() {
         )}
 
         {route && (
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          <div className="space-y-6">
+        <div className="grid gap-5 sm:gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="space-y-4 sm:space-y-6">
             <Card className="overflow-hidden">
-              <div className="bg-primary/5 p-6 md:p-8">
+              <div className="bg-primary/5 p-4 sm:p-6 md:p-8">
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="success">Баталгаажсан жолооч</Badge>
                   <Badge variant="default">{route.vehicle}</Badge>
                   {route.allowsCargo && <Badge variant="warning">Дайвар ачаа авна</Badge>}
                 </div>
-                <h1 className="mt-5 flex flex-wrap items-center gap-3 text-3xl font-bold text-foreground">
+                <h1 className="mt-4 flex flex-wrap items-center gap-2 text-2xl font-bold leading-tight text-foreground sm:mt-5 sm:gap-3 sm:text-3xl">
                   <span>{route.from}</span>
                   <ArrowRight className="h-6 w-6 text-muted-foreground" />
                   <span>{route.to}</span>
                 </h1>
-                <p className="mt-4 max-w-3xl text-muted-foreground">
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground sm:mt-4 sm:text-base">
                   Баталгаажсан жолоочийн сул суудал, үнэ, цаг болон дайвар ачаа авах боломжийг нэг дор харуулж байна.
                 </p>
               </div>
-              <CardBody className="p-6 md:p-8">
+              <CardBody className="p-4 sm:p-6 md:p-8">
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <Info icon={<Calendar className="h-5 w-5" />} label="Огноо / цаг" value={`${route.date}, ${route.time}`} />
                   <Info icon={<UsersRound className="h-5 w-5" />} label="Сул суудал" value={`${route.seats} суудал`} />
@@ -194,7 +194,7 @@ export function TripDetailPage() {
                   <p className="text-sm font-semibold text-foreground">Сонгож болох суудал</p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">{formatSeatList(route.availableSeatLabels)}</p>
                 </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                <div className="mt-4 grid gap-3 sm:mt-6 sm:gap-4 md:grid-cols-2">
                   <Info icon={<MapPin className="h-5 w-5" />} label="Авах цэг" value={route.pickup} />
                   <Info icon={<MapPin className="h-5 w-5" />} label="Буулгах цэг" value={route.dropoff} />
                 </div>
@@ -221,12 +221,12 @@ export function TripDetailPage() {
             </Card>
           </div>
 
-          <aside className="space-y-5">
-            <Card className="p-5">
-              <h2 className="text-xl font-semibold text-foreground">Жолоочийн танилцуулга</h2>
-              <div className="mt-5 flex gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Car className="h-7 w-7" />
+          <aside className="space-y-4 sm:space-y-5">
+            <Card className="p-4 sm:p-5">
+              <h2 className="text-lg font-semibold text-foreground sm:text-xl">Жолоочийн танилцуулга</h2>
+              <div className="mt-4 flex gap-3 sm:mt-5">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-14 sm:w-14">
+                  <Car className="h-6 w-6 sm:h-7 sm:w-7" />
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">{route.driver.name}</p>
@@ -244,9 +244,9 @@ export function TripDetailPage() {
               </div>
             </Card>
 
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">Нийт төлбөр</p>
-              <p className="mt-1 text-3xl font-bold text-primary">₮{route.price.toLocaleString()}</p>
+              <p className="mt-1 text-2xl font-bold text-primary sm:text-3xl">₮{route.price.toLocaleString()}</p>
               <p className="mt-1 text-xs text-muted-foreground">Үйлчилгээний шимтгэл төлбөрийн шатанд тусдаа харагдана</p>
               <div className="mt-5 grid gap-3">
                 <Button size="lg" fullWidth onClick={() => setModal('booking')}>
@@ -357,11 +357,11 @@ function RequestModal({
 }) {
   const isCargo = type === 'cargo';
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 px-4">
-      <Card className="w-full max-w-lg p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">{isCargo ? 'Дайвар ачааны хүсэлт' : 'Суудал захиалах хүсэлт'}</h2>
-          <button type="button" onClick={onClose} className="rounded-lg p-2 hover:bg-muted">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-3 sm:p-4">
+      <Card className="max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto p-4 sm:max-h-[calc(100dvh-2rem)] sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+          <h2 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">{isCargo ? 'Дайвар ачааны хүсэлт' : 'Суудал захиалах хүсэлт'}</h2>
+          <button type="button" aria-label="Хаах" onClick={onClose} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg hover:bg-muted">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -381,7 +381,7 @@ function RequestModal({
                 availableSeats={availableSeats}
                 onChange={(nextSeats) => onSelectedSeatsChange?.(nextSeats)}
               />
-              <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <div className="rounded-lg border border-border bg-muted/30 p-3.5 sm:p-4">
                 <div className="flex items-center justify-between gap-4 text-sm">
                   <span className="text-muted-foreground">Суудлын тоо</span>
                   <span className="font-semibold text-foreground">{seats || selectedSeats.length}</span>
@@ -395,7 +395,7 @@ function RequestModal({
             </>
           )}
         </div>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <div className="mt-4 flex flex-col-reverse gap-2 border-t border-border pt-4 sm:mt-6 sm:flex-row sm:justify-end sm:gap-3">
           <Button variant="outline" onClick={onClose}>Болих</Button>
           <Button onClick={onSubmit} disabled={submitting}>{submitting ? 'Илгээж байна...' : 'Илгээх'}</Button>
         </div>
@@ -406,7 +406,7 @@ function RequestModal({
 
 function Info({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-3.5 sm:p-4">
       <div className="mb-2 flex items-center gap-2 text-primary">
         {icon}
         <span className="text-sm font-medium">{label}</span>

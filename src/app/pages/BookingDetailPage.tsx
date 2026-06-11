@@ -149,11 +149,11 @@ export function BookingDetailPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto max-w-7xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
         <button
           type="button"
           onClick={() => window.location.href = '/dashboard/traveler'}
-          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+          className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary sm:mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Самбар руу буцах
@@ -171,14 +171,14 @@ export function BookingDetailPage() {
           </div>
         )}
 
-        <section className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <section className="mb-5 rounded-lg border border-border bg-card p-4 shadow-sm sm:mb-8 sm:rounded-2xl sm:p-6">
+          <div className="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <Badge variant={booking.status === 'waiting_payment' ? 'warning' : 'info'} className="mb-3">
                 {currentStep.label}
               </Badge>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Захиалгын дэлгэрэнгүй</h1>
-              <p className="text-muted-foreground">Захиалгын дугаар: {booking.id}</p>
+              <h1 className="mb-1.5 text-2xl font-bold leading-tight text-foreground sm:mb-2 sm:text-3xl">Захиалгын дэлгэрэнгүй</h1>
+              <p className="break-all text-sm text-muted-foreground sm:text-base">Захиалгын дугаар: {booking.id}</p>
             </div>
 
             <div className="w-full max-w-md rounded-xl bg-muted/40 p-4">
@@ -194,17 +194,17 @@ export function BookingDetailPage() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
+          <div className="space-y-4 sm:space-y-6">
             <Card className="border-primary/20 bg-primary/5">
-              <CardBody className="p-6">
+              <CardBody className="p-4 sm:p-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <div className="flex gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <div className="flex gap-3 sm:gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:h-12 sm:w-12 sm:rounded-xl">
                       {nextAction.icon}
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-foreground">{nextAction.title}</h2>
+                      <h2 className="text-lg font-semibold leading-tight text-foreground sm:text-xl">{nextAction.title}</h2>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">{nextAction.description}</p>
                     </div>
                   </div>
@@ -227,10 +227,10 @@ export function BookingDetailPage() {
                     const current = index === currentIndex;
 
                     return (
-                      <div key={step.code} className="grid grid-cols-[44px_1fr] gap-4">
+                      <div key={step.code} className="grid grid-cols-[36px_1fr] gap-3 sm:grid-cols-[44px_1fr] sm:gap-4">
                         <div className="flex flex-col items-center">
                           <div
-                            className={`w-11 h-11 rounded-full flex items-center justify-center ${
+                            className={`flex h-9 w-9 items-center justify-center rounded-full sm:h-11 sm:w-11 ${
                               completed
                                 ? 'bg-success text-success-foreground'
                                 : current
@@ -241,10 +241,10 @@ export function BookingDetailPage() {
                             {completed ? <CheckCircle className="w-5 h-5" /> : current ? <Clock className="w-5 h-5" /> : <div className="w-2 h-2 bg-current rounded-full" />}
                           </div>
                           {index < bookingStatusSteps.length - 1 && (
-                            <div className={`w-0.5 h-12 ${completed ? 'bg-success' : 'bg-muted'}`} />
+                            <div className={`h-10 w-0.5 sm:h-12 ${completed ? 'bg-success' : 'bg-muted'}`} />
                           )}
                         </div>
-                        <div className={`rounded-xl border p-4 ${current ? 'border-warning/30 bg-warning/5' : 'border-border bg-card'}`}>
+                        <div className={`rounded-lg border p-3.5 sm:rounded-xl sm:p-4 ${current ? 'border-warning/30 bg-warning/5' : 'border-border bg-card'}`}>
                           <div className="flex flex-wrap items-center gap-2">
                             <p className={`font-semibold ${completed || current ? 'text-foreground' : 'text-muted-foreground'}`}>{step.label}</p>
                           </div>
@@ -285,7 +285,7 @@ export function BookingDetailPage() {
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="rounded-xl border border-border bg-muted/30 p-5">
+                  <div className="rounded-lg border border-border bg-muted/30 p-4 sm:rounded-xl sm:p-5">
                     <div className="mb-4 flex items-center gap-2 text-primary">
                       <MapPin className="w-5 h-5" />
                       <span className="font-semibold">Чиглэл</span>
@@ -304,7 +304,7 @@ export function BookingDetailPage() {
                     <p className="mt-4 text-sm text-muted-foreground">{booking.route.date} · {booking.route.time}</p>
                   </div>
 
-                  <div className="rounded-xl border border-border bg-muted/30 p-5">
+                  <div className="rounded-lg border border-border bg-muted/30 p-4 sm:rounded-xl sm:p-5">
                     <div className="mb-4 flex items-center gap-2 text-accent">
                       <User className="w-5 h-5" />
                       <span className="font-semibold">Аялагчийн хүсэлт</span>
@@ -344,7 +344,7 @@ export function BookingDetailPage() {
               <CardBody>
                 <div className="space-y-4">
                   {booking.messages.map((message) => (
-                    <div key={`${message.author}-${message.time}`} className={`${message.own ? 'bg-primary/10 ml-8' : 'bg-muted/50'} p-4 rounded-lg`}>
+                    <div key={`${message.author}-${message.time}`} className={`${message.own ? 'ml-3 bg-primary/10 sm:ml-8' : 'bg-muted/50'} rounded-lg p-3.5 sm:p-4`}>
                       <p className="text-sm font-medium text-foreground mb-1">{message.author}</p>
                       <p className="text-sm text-muted-foreground">{message.body}</p>
                       <p className="text-xs text-muted-foreground mt-2">{message.time}</p>
@@ -358,7 +358,7 @@ export function BookingDetailPage() {
             </Card>
           </div>
 
-          <aside className="space-y-6">
+          <aside className="space-y-4 sm:space-y-6">
             <Card>
               <CardHeader>
                 <h3 className="font-semibold text-foreground">Оролцогчид</h3>
@@ -382,7 +382,7 @@ export function BookingDetailPage() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Аялал дуусах үед аялагч энэ кодоор баталгаажуулна.
                 </p>
-                <div className="rounded-xl bg-card border border-border py-5 text-center text-4xl font-bold tracking-widest text-primary">
+                <div className="rounded-lg border border-border bg-card py-4 text-center text-3xl font-bold tracking-widest text-primary sm:rounded-xl sm:py-5 sm:text-4xl">
                   {booking.tripCode}
                 </div>
               </CardBody>

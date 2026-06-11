@@ -377,10 +377,10 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   return (
     <DashboardFrame role={role} active="routes">
       <PageTop badge={copy.badge} title={copy.title} description={copy.createText} backHref={copy.base} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <Card className="p-6">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
+        <Card className="p-4 sm:p-6">
           {driverBlocked && !permissionLoading && (
-            <div className="mb-5 rounded-lg border border-warning/30 bg-warning/10 p-4">
+            <div className="mb-4 rounded-lg border border-warning/30 bg-warning/10 p-3.5 sm:mb-5 sm:p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-semibold text-foreground">Жолоочийн баталгаажуулалт хүлээгдэж байна</p>
@@ -422,7 +422,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               </div>
             </div>
           )}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
             <LocationSelectGroup
               label="Хаанаас"
               aimag={fromAimag}
@@ -475,7 +475,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
             )}
           </div>
           <label className="mt-4 block text-sm font-medium text-foreground">Тайлбар</label>
-          <textarea className="mt-2 min-h-32 w-full rounded-lg border border-input bg-input-background px-4 py-3 outline-none focus:ring-2 focus:ring-ring" placeholder="Нэмэлт тайлбар..." value={formNote} onChange={(event) => setFormNote(event.target.value)} />
+          <textarea className="mt-2 min-h-24 w-full rounded-lg border border-input bg-input-background px-3.5 py-3 text-base outline-none focus:ring-2 focus:ring-ring sm:min-h-32 sm:px-4" placeholder="Нэмэлт тайлбар..." value={formNote} onChange={(event) => setFormNote(event.target.value)} />
           <div className="mt-5 flex flex-col gap-3 sm:flex-row">
             <Button disabled={driverBlocked || permissionLoading || submitting} onClick={handleSubmit}>
               <Plus className="h-4 w-4" />
@@ -495,9 +495,9 @@ export function TripFormPage({ role }: { role: WorkRole }) {
             </div>
           )}
         </Card>
-        <Card className="p-6 bg-primary/5 border-primary/20">
-          <h2 className="text-xl font-semibold text-foreground">Нийтлэхээс өмнө</h2>
-          <div className="mt-5 space-y-4">
+        <Card className="border-primary/20 bg-primary/5 p-4 sm:p-6">
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Нийтлэхээс өмнө</h2>
+          <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
             {['Хэрэглэгчийн төрөл тодорхой харагдана', 'Аялагч/жолоочийн тохирол эхэнд гарна', 'Үнэ, суудал, цагийн мэдээлэл тодорхой байна', role === 'driver' ? 'Дайвар ачаа авч болох чиглэл дээр ачааны хүсэлт авах боломжтой' : 'Дайвар ачаа нь чиглэл дээр суурилсан нэмэлт боломж хэвээр байна'].map((item) => (
               <div key={item} className="flex gap-3">
                 <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
@@ -769,10 +769,10 @@ export function FindDriversPage() {
         backHref="/dashboard/traveler"
       />
 
-      <Card className="mb-6 p-6">
-        <div className="mb-5 flex items-center gap-2">
+      <Card className="mb-4 p-4 sm:mb-6 sm:p-6">
+        <div className="mb-4 flex items-center gap-2 sm:mb-5">
           <Search className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Хайлт ба шүүлтүүр</h2>
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Хайлт ба шүүлтүүр</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
@@ -790,7 +790,7 @@ export function FindDriversPage() {
             onSoumChange={setToSoum}
           />
         </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-[1fr_170px]">
+        <div className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 md:grid-cols-[1fr_170px]">
           <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
           <Select
             value={passengers}
@@ -802,8 +802,8 @@ export function FindDriversPage() {
             ]}
           />
         </div>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+        <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between">
+          <label className="flex min-h-10 items-center gap-2 text-sm font-medium text-foreground">
             <input
               type="checkbox"
               checked={cargoOnly}
@@ -824,8 +824,8 @@ export function FindDriversPage() {
         </div>
       </Card>
 
-      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-muted-foreground">{filteredOffers.length} боломжит жолооч олдлоо</p>
+      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+        <p className="text-sm text-muted-foreground sm:text-base">{filteredOffers.length} боломжит жолооч олдлоо</p>
         <Badge variant="info">Баталгаажсан эхэнд</Badge>
       </div>
 
@@ -848,10 +848,10 @@ export function FindDriversPage() {
       </div>
 
       {filteredOffers.length === 0 && (
-        <Card className="mt-6 p-10 text-center">
-          <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="text-xl font-semibold text-foreground">Тохирох унаа олдсонгүй</h2>
-          <p className="mt-2 text-muted-foreground">Шүүлтүүрээ сулруулаад дахин хайгаарай.</p>
+        <Card className="mt-5 p-6 text-center sm:mt-6 sm:p-10">
+          <Search className="mx-auto mb-3 h-9 w-9 text-muted-foreground sm:mb-4 sm:h-12 sm:w-12" />
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Тохирох унаа олдсонгүй</h2>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">Шүүлтүүрээ сулруулаад дахин хайгаарай.</p>
         </Card>
       )}
     </DashboardFrame>
@@ -935,10 +935,10 @@ export function CargoFindRoutesPage() {
         backHref="/dashboard/cargo"
       />
 
-      <Card className="mb-6 p-6">
-        <div className="mb-5 flex items-center gap-2">
+      <Card className="mb-4 p-4 sm:mb-6 sm:p-6">
+        <div className="mb-4 flex items-center gap-2 sm:mb-5">
           <Search className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-semibold text-foreground">Чиглэл шүүх</h2>
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Чиглэл шүүх</h2>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
@@ -958,7 +958,7 @@ export function CargoFindRoutesPage() {
         </div>
         <Button
           variant="outline"
-          className="mt-4"
+          className="mt-4 w-full sm:w-auto"
           onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); }}
         >
           Шүүлтүүр цэвэрлэх
@@ -977,10 +977,10 @@ export function CargoFindRoutesPage() {
         </Card>
       )}
 
-      <div className="mb-6 grid gap-4 md:grid-cols-1">
-        <Card className="p-5">
+      <div className="mb-4 grid gap-4 sm:mb-6 md:grid-cols-1">
+        <Card className="p-4 sm:p-5">
           <Badge variant="warning">Дайвар ачаа авч болно</Badge>
-          <p className="mt-3 text-3xl font-bold text-foreground">{cargoRoutes.length}</p>
+          <p className="mt-2 text-2xl font-bold text-foreground sm:mt-3 sm:text-3xl">{cargoRoutes.length}</p>
           <p className="text-sm text-muted-foreground">чиглэл боломжтой</p>
         </Card>
       </div>
@@ -992,10 +992,10 @@ export function CargoFindRoutesPage() {
       </div>
 
       {cargoRoutes.length === 0 && (
-        <Card className="mt-6 p-10 text-center">
-          <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="text-xl font-semibold text-foreground">Дайвар ачаа авах чиглэл олдсонгүй</h2>
-          <p className="mt-2 text-muted-foreground">Аймаг, сумын шүүлтүүрээ өөрчлөөд дахин шалгаарай.</p>
+        <Card className="mt-5 p-6 text-center sm:mt-6 sm:p-10">
+          <Search className="mx-auto mb-3 h-9 w-9 text-muted-foreground sm:mb-4 sm:h-12 sm:w-12" />
+          <h2 className="text-lg font-semibold text-foreground sm:text-xl">Дайвар ачаа авах чиглэл олдсонгүй</h2>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">Аймаг, сумын шүүлтүүрээ өөрчлөөд дахин шалгаарай.</p>
         </Card>
       )}
     </DashboardFrame>
@@ -1353,7 +1353,7 @@ function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer:
   const isCargoMode = mode === 'cargo';
 
   return (
-    <Card className={`p-6 ${featured ? 'border-primary/30 bg-primary/5' : ''}`}>
+    <Card className={`p-4 sm:p-6 ${featured ? 'border-primary/30 bg-primary/5' : ''}`}>
       <div className="grid gap-5 xl:grid-cols-[1fr_230px] xl:items-center">
         <div>
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -1727,14 +1727,14 @@ function getCargoBadgeVariant(status: string): 'success' | 'warning' | 'danger' 
 
 function PageTop({ badge, title, description, backHref }: { badge: string; title: string; description: string; backHref: string }) {
   return (
-    <div className="mb-6 md:mb-8">
-      <button className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground" onClick={() => window.location.href = backHref}>
+    <div className="mb-5 md:mb-8">
+      <button className="mb-3 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:mb-5" onClick={() => window.location.href = backHref}>
         <ArrowLeft className="h-4 w-4" />
         Самбар руу буцах
       </button>
       <Badge variant="info">{badge}</Badge>
-      <h1 className="mt-4 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{title}</h1>
-      <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">{description}</p>
+      <h1 className="mt-3 text-2xl font-bold leading-tight text-foreground sm:mt-4 sm:text-4xl">{title}</h1>
+      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:mt-3 sm:text-base sm:leading-7">{description}</p>
     </div>
   );
 }
@@ -1745,7 +1745,7 @@ function DashboardFrame({ children, role, sender, admin }: { children: ReactNode
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={menuItems} accountRole={accountRole} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-4 md:p-8">
+      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         {children}
         <AppFooter />
       </main>
