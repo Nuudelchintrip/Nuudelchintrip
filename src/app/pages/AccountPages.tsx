@@ -1,26 +1,20 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  AlertCircle,
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
   Bell,
   Camera,
-  Car,
   CheckCircle2,
-  FileCheck2,
   KeyRound,
   LockKeyhole,
   Mail,
   MapPin,
-  PackageCheck,
   Phone,
   ShieldCheck,
   Star,
   Trash2,
-  Upload,
   UserCircle,
-  XCircle,
 } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -31,16 +25,16 @@ import { Navbar } from '../components/Navbar';
 import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
-import { changePassword, fetchMyAvatarUrl, updateProfileInfo, uploadAvatar } from '../services/supabaseAuth';
 import {
-  getActionLogs,
-  getIdentityRequests,
-  getStoredUser,
-  upsertIdentityRequest,
-  type IdentityVerificationRequest,
-  type MarketplaceRole,
-  type VerificationStatus,
-} from '../utils/auth';
+  changePassword,
+  fetchMyAvatarUrl,
+  fetchMyDriverVerification,
+  refreshLocalProfileFromSupabase,
+  updateProfileInfo,
+  uploadAvatar,
+  type MyDriverVerification,
+} from '../services/supabaseAuth';
+import { getStoredUser } from '../utils/auth';
 
 type AccountRole = 'sender' | 'traveler' | 'driver' | 'admin';
 
@@ -803,294 +797,174 @@ function LegacyAccountSettingsPage({ role }: { role: AccountRole }) {
 }
 
 export function AccountVerificationPage({ role }: { role: AccountRole }) {
-  const isDriver = role === 'driver';
-  const isSender = role === 'sender';
-  const storedUser = getStoredUser();
   const profile = profiles[role];
-  const marketplaceRole = mapAccountRole(role);
-  const initialRequest = useMemo(() => {
-    const requests = getIdentityRequests();
-    return requests.find((request) => {
-      const sameEmail = storedUser?.email && request.email === storedUser.email;
-      const samePhone = storedUser?.phone && request.phone === storedUser.phone;
-      return sameEmail || samePhone;
-    });
-  }, [storedUser?.email, storedUser?.phone]);
-  const [request, setRequest] = useState<IdentityVerificationRequest | undefined>(initialRequest);
-  const [familyName, setFamilyName] = useState(initialRequest?.familyName || '');
-  const [fullName, setFullName] = useState(initialRequest?.fullName || storedUser?.full_name || profile.name);
-  const [registerNumber, setRegisterNumber] = useState(initialRequest?.registerNumber || '');
-  const [documentName, setDocumentName] = useState(initialRequest?.documentName || '');
-  const [selfieName, setSelfieName] = useState(initialRequest?.selfieName || '');
-  const [formError, setFormError] = useState('');
-  const [formSuccess, setFormSuccess] = useState('');
+  const [storedUser, setStoredUser] = useState(getStoredUser());
+  const [driverVerification, setDriverVerification] = useState<MyDriverVerification | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
 
-  const identityStatus = request?.status || storedUser?.identity_verification?.status || 'not_submitted';
-  const relatedLogs = getActionLogs()
-    .filter((log) => {
-      const target = `${log.user} ${log.actor} ${log.details}`.toLowerCase();
-      return [storedUser?.email, storedUser?.phone, fullName].some((item) => item && target.includes(item.toLowerCase()));
-    })
-    .slice(0, 4);
+  useEffect(() => {
+    let active = true;
 
-  const handleSubmitIdentity = () => {
-    setFormError('');
-    setFormSuccess('');
+    const load = async () => {
+      setLoading(true);
+      setLoadError('');
+      try {
+        const user = await refreshLocalProfileFromSupabase();
+        const verification = role === 'driver' ? await fetchMyDriverVerification() : null;
+        if (!active) return;
+        setStoredUser(user);
+        setDriverVerification(verification);
+      } catch (error) {
+        if (!active) return;
+        setLoadError(error instanceof Error ? error.message : 'Баталгаажуулалтын төлөв уншихад алдаа гарлаа.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
 
-    if (!familyName.trim()) {
-      setFormError('Овгоо оруулна уу.');
-      return;
-    }
-    if (!fullName.trim()) {
-      setFormError('Нэрээ оруулна уу.');
-      return;
-    }
-    if (registerNumber.trim().length < 8) {
-      setFormError('Регистрийн дугаараа зөв оруулна уу. Жишээ: УБ99112233');
-      return;
-    }
-    if (!documentName) {
-      setFormError('Иргэний үнэмлэхний зураг эсвэл PDF файлын нэр сонгоно уу.');
-      return;
-    }
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [role]);
 
-    const nextRequest = upsertIdentityRequest({
-      role: marketplaceRole,
-      userName: fullName.trim(),
-      phone: storedUser?.phone || profile.phone,
-      email: storedUser?.email || profile.email,
-      familyName: familyName.trim(),
-      fullName: fullName.trim(),
-      registerNumber: registerNumber.trim().toUpperCase(),
-      documentName,
-      selfieName: selfieName || undefined,
-    });
+  const phoneVerified = Boolean(storedUser?.phone_verified);
+  const onboardingCompleted = Boolean(storedUser?.onboarding_completed);
+  const cargoPolicyAccepted = Boolean(storedUser?.cargo_policy_accepted);
+  const driverStatus = driverVerification?.status || storedUser?.verification_status || 'not_submitted';
+  const driverStatusCopy = {
+    not_submitted: { label: 'Илгээгээгүй', variant: 'default' as const, item: 'placeholder' as const },
+    pending: { label: 'Админ шалгаж байна', variant: 'warning' as const, item: 'review' as const },
+    approved: { label: 'Баталгаажсан', variant: 'success' as const, item: 'approved' as const },
+    rejected: { label: 'Буцаагдсан', variant: 'danger' as const, item: 'placeholder' as const },
+  }[driverStatus];
 
-    setRequest(nextRequest);
-    setFormSuccess('Баталгаажуулалтын хүсэлт админ руу илгээгдлээ.');
-  };
+  const roleStatus = role === 'driver'
+    ? driverStatus === 'approved'
+    : role === 'sender'
+      ? cargoPolicyAccepted
+      : onboardingCompleted;
+  const completionItems = role === 'driver'
+    ? [phoneVerified, onboardingCompleted, driverStatus === 'approved']
+    : role === 'sender'
+      ? [phoneVerified, onboardingCompleted, cargoPolicyAccepted]
+      : [phoneVerified, onboardingCompleted];
+  const completion = Math.round((completionItems.filter(Boolean).length / completionItems.length) * 100);
+
+  const action = role === 'driver'
+    ? {
+        label: driverStatus === 'approved' ? 'Жолоочийн самбар руу орох' : 'Жолоочийн мэдээлэл шинэчлэх',
+        href: driverStatus === 'approved' ? profile.dashboardHref : '/onboarding/driver',
+      }
+    : role === 'sender'
+      ? {
+          label: cargoPolicyAccepted ? 'Ачаа илгээгчийн самбар руу орох' : 'Ачааны дүрэмтэй танилцах',
+          href: cargoPolicyAccepted ? profile.dashboardHref : '/onboarding/cargo',
+        }
+      : {
+          label: onboardingCompleted ? 'Аялагчийн самбар руу орох' : 'Профайлаа гүйцээх',
+          href: onboardingCompleted ? profile.dashboardHref : '/onboarding/traveler',
+        };
 
   return (
     <AccountFrame role={role}>
       <div className="mb-8">
-        <Badge variant="success">Баталгаажуулалт</Badge>
-        <h1 className="mt-4 text-3xl font-bold text-foreground">Баталгаажуулалтын төв</h1>
+        <Badge variant={roleStatus ? 'success' : 'warning'}>Бүртгэлийн төлөв</Badge>
+        <h1 className="mt-4 text-3xl font-bold text-foreground">Баталгаажуулалт</h1>
         <p className="mt-3 max-w-3xl text-muted-foreground">
-          Утас, иргэний үнэмлэх, жолоочийн бичиг баримт болон ачааны дүрмийн төлвийг нэг дор хянана.
+          Таны утас, профайл болон хэрэглэгчийн төрөлд шаардлагатай баталгаажуулалтын төлөв.
         </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
-          <Card className="p-5 sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">Үндсэн баталгаажуулалт</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Marketplace дээр жолооч, аялагч, ачаа илгээгч бүгд утас болон иргэний үнэмлэхний үндсэн шалгалттай байна.
-                </p>
-              </div>
-              <IdentityStatusBadge status={identityStatus} />
-            </div>
-
-            {identityStatus === 'rejected' && request?.rejectionReason && (
-              <div className="mt-5 flex gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
-                <XCircle className="mt-0.5 h-5 w-5 shrink-0" />
-                <div>
-                  <p className="font-semibold">Хүсэлт буцаагдсан</p>
-                  <p className="mt-1 leading-6">{request.rejectionReason}</p>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              <VerificationItem title="Утас баталгаажсан" status={storedUser?.phone_verified === false ? 'review' : 'approved'} icon={<Phone />} />
-              <VerificationItem title="И-мэйл бүртгэлтэй" status="approved" icon={<Mail />} />
-              <VerificationItem title="Иргэний үнэмлэх" status={toVerificationItemStatus(identityStatus)} icon={<FileCheck2 />} />
-            </div>
-
-            <div className="mt-6 grid gap-5 md:grid-cols-2">
-              <Input label="Овог" value={familyName} onChange={(event) => setFamilyName(event.target.value)} placeholder="Жишээ: Бат" />
-              <Input label="Нэр" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Жишээ: Болд" />
-              <Input
-                label="Регистрийн дугаар"
-                value={registerNumber}
-                onChange={(event) => setRegisterNumber(event.target.value.toUpperCase())}
-                placeholder="Жишээ: УБ99112233"
-              />
-              <Input label="Утас" value={storedUser?.phone || profile.phone} readOnly />
-            </div>
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <FileSelectBox
-                label="Иргэний үнэмлэхний зураг / PDF"
-                value={documentName}
-                required
-                onChange={setDocumentName}
-              />
-              <FileSelectBox
-                label="Нүүрний зураг (сонголтоор)"
-                value={selfieName}
-                onChange={setSelfieName}
-              />
-            </div>
-
-            <div className="mt-5 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
-              <div className="flex gap-3">
-                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                <p>
-                  Файл бодитоор хадгалах холболт бүрэн идэвхжих хүртэл зөвхөн файлын нэр хадгалж админы шалгалтын урсгалыг харуулна. Бодит хувилбар дээр хамгаалалттай хадгалалт ашиглана.
-                </p>
-              </div>
-            </div>
-
-            {formError && (
-              <div className="mt-5 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
-                {formError}
-              </div>
-            )}
-            {formSuccess && (
-              <div className="mt-5 rounded-lg border border-success/20 bg-success/10 px-4 py-3 text-sm font-medium text-success">
-                {formSuccess}
-              </div>
-            )}
-
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={handleSubmitIdentity}>
-                <Upload className="h-4 w-4" />
-                Хүсэлт илгээх
-              </Button>
-              <Button variant="outline" onClick={() => window.location.href = profile.dashboardHref}>
-                Самбар руу буцах
-              </Button>
-            </div>
-          </Card>
-
-          {isDriver && (
-            <Card className="p-5 sm:p-6">
-              <h2 className="text-xl font-semibold text-foreground">Жолоочийн баталгаажуулалт</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Машин, жолооны үнэмлэхний мэдээлэл админ зөвшөөрсний дараа чиглэл нийтлэх эрх нээгдэнэ.
-              </p>
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <VerificationItem title="Жолооны үнэмлэх" status="review" icon={<FileCheck2 />} />
-                <VerificationItem title="Машины гэрчилгээ" status="review" icon={<Car />} />
-                <VerificationItem title="Машины зураг" status="approved" icon={<Camera />} />
-              </div>
-            </Card>
-          )}
-
-          {(isDriver || isSender) && (
-            <Card className="p-5 sm:p-6">
-              <h2 className="text-xl font-semibold text-foreground">Дайвар ачааны эрх</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Дайвар ачаа нь жолоочийн чиглэл дээр суурилсан нэмэлт боломж тул дүрэм зөвшөөрсөн хэрэглэгчид л харагдана.
-              </p>
-              <div className="mt-5 grid gap-4 md:grid-cols-3">
-                <VerificationItem title="Ачааны дүрэм зөвшөөрөх" status="approved" icon={<PackageCheck />} />
-                <VerificationItem title="Хориглосон барааны дүрэм" status="approved" icon={<ShieldCheck />} />
-                <VerificationItem title="Дайвар ачааны эрхийн төлөв" status={isDriver ? 'approved' : 'review'} icon={<BadgeCheck />} />
-              </div>
-            </Card>
-          )}
+      {loadError && (
+        <div className="mb-6 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+          {loadError}
         </div>
+      )}
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <Card className="p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">{profile.label}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {loading ? 'Төлөвийг шинэчилж байна...' : 'Доорх мэдээлэл Supabase бүртгэлээс шинэчлэгдэн харагдана.'}
+              </p>
+            </div>
+            {role === 'driver' && <Badge variant={driverStatusCopy.variant}>{driverStatusCopy.label}</Badge>}
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <VerificationItem
+              title="Утасны дугаар"
+              status={phoneVerified ? 'approved' : 'review'}
+              icon={<Phone />}
+            />
+            <VerificationItem
+              title="Профайлын мэдээлэл"
+              status={onboardingCompleted ? 'approved' : 'review'}
+              icon={<UserCircle />}
+            />
+            {role === 'driver' ? (
+              <VerificationItem title="Жолоочийн эрх" status={driverStatusCopy.item} icon={<BadgeCheck />} />
+            ) : role === 'sender' ? (
+              <VerificationItem
+                title="Ачааны дүрэм"
+                status={cargoPolicyAccepted ? 'approved' : 'review'}
+                icon={<ShieldCheck />}
+              />
+            ) : (
+              <VerificationItem title="Аялагчийн бүртгэл" status={onboardingCompleted ? 'approved' : 'review'} icon={<CheckCircle2 />} />
+            )}
+          </div>
+
+          {role === 'driver' && driverStatus === 'rejected' && driverVerification?.rejectionReason && (
+            <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
+              <p className="font-semibold">Админы тайлбар</p>
+              <p className="mt-1 leading-6">{driverVerification.rejectionReason}</p>
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Button disabled={loading} onClick={() => window.location.href = action.href}>
+              {action.label}
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            {!phoneVerified && (
+              <Button variant="outline" onClick={() => window.location.href = '/auth/verify-phone'}>
+                Утсаа баталгаажуулах
+              </Button>
+            )}
+          </div>
+        </Card>
 
         <aside className="space-y-6">
           <Card className="border-primary/20 bg-primary/5 p-5">
-            <h2 className="text-xl font-semibold text-foreground">Шалгалтын төлөв</h2>
-            <div className="mt-5 space-y-4">
-              <ProgressRow label="Утас" value={storedUser?.phone_verified === false ? 40 : 100} />
-              <ProgressRow label="Профайл" value={storedUser?.onboarding_completed === false ? 60 : 90} />
-              <ProgressRow label="Иргэний үнэмлэх" value={identityStatus === 'approved' ? 100 : identityStatus === 'pending' ? 65 : identityStatus === 'rejected' ? 30 : 10} />
-              <ProgressRow label="Ачааны дүрэм" value={isDriver || isSender ? 100 : 0} />
+            <h2 className="text-xl font-semibold text-foreground">Бүрдүүлэлт</h2>
+            <div className="mt-5">
+              <ProgressRow label="Нийт явц" value={completion} />
             </div>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              {roleStatus
+                ? 'Таны энэ төрлийн үндсэн тохиргоо бэлэн байна.'
+                : 'Дутуу алхмаа гүйцээсний дараа тухайн самбарын үндсэн үйлдлүүд нээгдэнэ.'}
+            </p>
           </Card>
 
           <Card className="p-5">
             <h2 className="text-xl font-semibold text-foreground">Дараагийн алхам</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {identityStatus === 'approved'
-                ? 'Таны үндсэн баталгаажуулалт дууссан. Role-д тохирсон үйлдлүүдээ үргэлжлүүлнэ.'
-                : identityStatus === 'pending'
-                  ? 'Админ таны мэдээллийг шалгаж байна. Шалгалтын хариу энд шинэчлэгдэнэ.'
-                  : identityStatus === 'rejected'
-                    ? 'Буцаасан шалтгааныг засаж, хүсэлтээ дахин илгээнэ үү.'
-                    : 'Иргэний үнэмлэхний мэдээллээ илгээж үндсэн баталгаажуулалтаа эхлүүлнэ үү.'}
+              {role === 'driver'
+                ? 'Жолоочийн мэдээллээ илгээсний дараа админ шалгаж чиглэл нийтлэх эрхийг нээнэ.'
+                : role === 'sender'
+                  ? 'Дайвар ачаа нь жолоочийн нийтэлсэн чиглэл дээр суурилна. Эхлээд ачааны дүрмийг зөвшөөрнө.'
+                  : 'Профайлаа гүйцээгээд жолоочийн нийтэлсэн чиглэлүүдээс хайлт хийнэ.'}
             </p>
-            {role === 'admin' ? (
-              <Button className="mt-5" fullWidth onClick={() => window.location.href = '/admin/verifications'}>
-                Админы жагсаалт харах
-              </Button>
-            ) : (
-              <Button className="mt-5" variant="outline" fullWidth onClick={() => window.location.href = profile.dashboardHref}>
-                Самбар руу буцах
-              </Button>
-            )}
-          </Card>
-
-          <Card className="p-5">
-            <h2 className="text-xl font-semibold text-foreground">Сүүлийн үйлдэл</h2>
-            <div className="mt-4 space-y-3">
-              {relatedLogs.length ? (
-                relatedLogs.map((log) => (
-                  <div key={log.id} className="rounded-lg border border-border p-3">
-                    <p className="text-sm font-semibold text-foreground">{log.actionType}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{log.details}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm leading-6 text-muted-foreground">Одоогоор үйлдлийн түүх алга.</p>
-              )}
-            </div>
           </Card>
         </aside>
       </div>
     </AccountFrame>
-  );
-}
-
-function mapAccountRole(role: AccountRole): MarketplaceRole {
-  if (role === 'sender') return 'cargo_sender';
-  return role;
-}
-
-function toVerificationItemStatus(status: VerificationStatus) {
-  if (status === 'approved') return 'approved';
-  if (status === 'pending') return 'review';
-  if (status === 'rejected') return 'placeholder';
-  return 'placeholder';
-}
-
-function IdentityStatusBadge({ status }: { status: VerificationStatus }) {
-  const copy = {
-    not_submitted: { label: 'Баталгаажуулаагүй', variant: 'default' as const },
-    pending: { label: 'Шалгаж байна', variant: 'warning' as const },
-    approved: { label: 'Баталгаажсан', variant: 'success' as const },
-    rejected: { label: 'Татгалзсан', variant: 'danger' as const },
-  }[status];
-
-  return <Badge variant={copy.variant}>{copy.label}</Badge>;
-}
-
-function FileSelectBox({ label, value, required, onChange }: { label: string; value: string; required?: boolean; onChange: (value: string) => void }) {
-  return (
-    <label className="block">
-      <span className="text-sm font-semibold text-foreground">
-        {label}
-        {required ? <span className="text-destructive"> *</span> : null}
-      </span>
-      <span className="mt-2 flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-4 py-5 text-center transition hover:border-primary hover:bg-primary/5">
-        <Upload className="h-6 w-6 text-primary" />
-        <span className="mt-2 text-sm font-medium text-foreground">{value || 'Файл сонгох'}</span>
-        <span className="mt-1 text-xs text-muted-foreground">Зураг эсвэл PDF файлын нэр</span>
-      </span>
-      <input
-        className="sr-only"
-        type="file"
-        accept="image/*,.pdf"
-        onChange={(event) => onChange(event.target.files?.[0]?.name || '')}
-      />
-    </label>
   );
 }
 
