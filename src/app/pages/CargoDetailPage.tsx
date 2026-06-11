@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Clock, MapPin, PackageCheck, Phone, Star, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, MapPin, PackageCheck, Phone, Star, User } from 'lucide-react';
 import { useParams } from 'react-router';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -7,7 +7,11 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { AppFooter } from '../components/Footer';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
-import { fetchCargoRequestById, type CargoRequestDetail } from '../services/tripService';
+import {
+  fetchCargoRequestById,
+  updateCargoRequestStatus,
+  type CargoRequestDetail,
+} from '../services/tripService';
 import { getCargoStatusLabel } from '../utils/bookingStatus';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -25,6 +29,8 @@ export function CargoDetailPage() {
   const [cargo, setCargo] = useState<CargoRequestDetail | null>(null);
   const [loading, setLoading] = useState(Boolean(id && UUID_PATTERN.test(id)));
   const [error, setError] = useState('');
+  const [completing, setCompleting] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -52,6 +58,25 @@ export function CargoDetailPage() {
   }, [id]);
 
   const showCode = cargo && ['picked_up', 'in_transit'].includes(cargo.status);
+
+  const confirmCargoReceived = async () => {
+    if (!cargo || cargo.status !== 'delivered') return;
+    if (!window.confirm('Ачаагаа бүрэн хүлээн авснаа баталгаажуулах уу?')) return;
+
+    setCompleting(true);
+    setError('');
+    setActionMessage('');
+    try {
+      await updateCargoRequestStatus(cargo.id, 'completed');
+      const refreshed = await fetchCargoRequestById(cargo.id);
+      setCargo(refreshed || { ...cargo, status: 'completed' });
+      setActionMessage('Ачаа хүлээн авсан нь баталгаажиж, захиалга дууслаа.');
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : 'Ачааны захиалгыг дуусгахад алдаа гарлаа.');
+    } finally {
+      setCompleting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
@@ -81,6 +106,17 @@ export function CargoDetailPage() {
         ) : (
           <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1fr_340px]">
             <div className="space-y-6">
+              {error && (
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+                  {error}
+                </div>
+              )}
+              {actionMessage && (
+                <div className="flex items-start gap-3 rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm font-medium text-success">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+                  {actionMessage}
+                </div>
+              )}
               <Card>
                 <CardBody className="p-6">
                   <div className="flex flex-wrap items-center gap-2">
@@ -170,6 +206,29 @@ export function CargoDetailPage() {
                 <Button fullWidth onClick={() => window.location.href = `/dashboard/cargo/${cargo.id}/payment-proof`}>
                   Төлбөрийн баримт оруулах
                 </Button>
+              )}
+
+              {cargo.isSender && cargo.status === 'delivered' && (
+                <Card className="border-success/20 bg-success/5 p-5">
+                  <CheckCircle2 className="h-7 w-7 text-success" />
+                  <h3 className="mt-3 font-semibold text-foreground">Ачаа хүргэгдсэн</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Ачаагаа бүрэн хүлээн авсан бол захиалгыг дуусгаж баталгаажуулна уу.
+                  </p>
+                  <Button className="mt-4" fullWidth disabled={completing} onClick={confirmCargoReceived}>
+                    {completing ? 'Баталгаажуулж байна...' : 'Ачаагаа хүлээн авсан'}
+                  </Button>
+                </Card>
+              )}
+
+              {cargo.status === 'completed' && (
+                <Card className="border-success/20 bg-success/5 p-5">
+                  <CheckCircle2 className="h-7 w-7 text-success" />
+                  <h3 className="mt-3 font-semibold text-foreground">Ачааны захиалга дууссан</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Илгээгч ачаагаа хүлээн авснаа баталгаажуулсан.
+                  </p>
+                </Card>
               )}
             </aside>
           </div>

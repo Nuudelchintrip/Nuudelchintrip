@@ -26,6 +26,12 @@ import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import {
+  DEFAULT_ACCOUNT_PREFERENCES,
+  fetchAccountPreferences,
+  saveAccountPreferences,
+  type AccountPreferences,
+} from '../services/accountPreferencesService';
+import {
   changePassword,
   fetchMyAvatarUrl,
   fetchMyDriverVerification,
@@ -576,9 +582,14 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
   const isDriver = role === 'driver';
   const isSender = role === 'sender';
   const roleLabel = role === 'traveler' ? 'Аялагч' : role === 'driver' ? 'Жолооч' : role === 'sender' ? 'Дайвар ачаа илгээгч' : 'Админ';
-  const displayName = storedUser?.full_name || '';
+  const [displayName, setDisplayName] = useState(storedUser?.full_name || '');
   const displayPhone = storedUser?.phone || '';
   const displayEmail = storedUser?.email || '';
+  const [preferences, setPreferences] = useState<AccountPreferences>(DEFAULT_ACCOUNT_PREFERENCES);
+  const [preferencesLoading, setPreferencesLoading] = useState(true);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [preferencesError, setPreferencesError] = useState('');
+  const [preferencesSuccess, setPreferencesSuccess] = useState('');
   const settingsTabs = [
     { href: '#details', label: 'Миний мэдээлэл' },
     { href: '#password', label: 'Нууц үг' },
@@ -586,6 +597,66 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
     { href: '#privacy', label: 'Нууцлал' },
     { href: '#notifications', label: 'Мэдэгдэл' },
   ];
+
+  useEffect(() => {
+    let active = true;
+    fetchAccountPreferences()
+      .then((result) => {
+        if (active) setPreferences(result);
+      })
+      .catch((error) => {
+        if (active) {
+          setPreferencesError(error instanceof Error ? error.message : 'Тохиргоо уншихад алдаа гарлаа.');
+        }
+      })
+      .finally(() => {
+        if (active) setPreferencesLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const updateNotificationPreference = (
+    key: keyof AccountPreferences['notifications'],
+    value: boolean,
+  ) => {
+    setPreferences((current) => ({
+      ...current,
+      notifications: { ...current.notifications, [key]: value },
+    }));
+    setPreferencesSuccess('');
+  };
+
+  const updatePrivacyPreference = <Key extends keyof AccountPreferences['privacy']>(
+    key: Key,
+    value: AccountPreferences['privacy'][Key],
+  ) => {
+    setPreferences((current) => ({
+      ...current,
+      privacy: { ...current.privacy, [key]: value },
+    }));
+    setPreferencesSuccess('');
+  };
+
+  const handleSaveSettings = async () => {
+    setPreferencesSaving(true);
+    setPreferencesError('');
+    setPreferencesSuccess('');
+    try {
+      if (displayName.trim() && displayName.trim() !== storedUser?.full_name) {
+        await updateProfileInfo({ fullName: displayName.trim() });
+      }
+      const saved = await saveAccountPreferences(preferences);
+      setPreferences(saved);
+      setPreferencesSuccess('Тохиргоо амжилттай хадгалагдлаа.');
+    } catch (error) {
+      setPreferencesError(error instanceof Error ? error.message : 'Тохиргоо хадгалахад алдаа гарлаа.');
+    } finally {
+      setPreferencesSaving(false);
+    }
+  };
 
   return (
     <AccountFrame role={role}>
@@ -623,10 +694,10 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
               description="NuudelchinTrip дээр ашиглагдах үндсэн мэдээлэл."
             >
               <div className="grid gap-5 md:grid-cols-2">
-                <Input label="Нэр" defaultValue={displayName} />
-                <Input label="Утасны дугаар" defaultValue={displayPhone} />
-                <Input label="И-мэйл" defaultValue={displayEmail} />
-                <Select label="Хэрэглэгчийн төрөл" defaultValue={role} options={[{ value: role, label: roleLabel }]} />
+                <Input label="Нэр" value={displayName} onChange={(event) => setDisplayName(event.target.value)} />
+                <Input label="Утасны дугаар" value={displayPhone} readOnly />
+                <Input label="И-мэйл" value={displayEmail} readOnly />
+                <Select label="Хэрэглэгчийн төрөл" value={role} disabled options={[{ value: role, label: roleLabel }]} />
               </div>
             </SettingsSection>
           </section>
@@ -663,17 +734,39 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
               description="Утас, хүсэлт, үнэлгээ ямар үед харагдахыг тохируулна."
             >
               <div className="grid gap-5 md:grid-cols-2">
-                <Select label="Утас хэзээ харагдах вэ?" defaultValue="accepted" options={[
+                <Select
+                  label="Утас хэзээ харагдах вэ?"
+                  value={preferences.privacy.phoneVisibility}
+                  disabled={preferencesLoading}
+                  onChange={(event) => updatePrivacyPreference('phoneVisibility', event.target.value as AccountPreferences['privacy']['phoneVisibility'])}
+                  options={[
                   { value: 'accepted', label: 'Хүсэлт зөвшөөрсний дараа' },
                   { value: 'confirmed', label: 'Төлбөр баталгаажсаны дараа' },
                   { value: 'admin', label: 'Зөвхөн админд' },
-                ]} />
-                <Select label="Чиглэлийн хүсэлтийн нууцлал" defaultValue="matched" options={[
+                ]}
+                />
+                <Select
+                  label="Чиглэлийн хүсэлтийн нууцлал"
+                  value={preferences.privacy.requestVisibility}
+                  disabled={preferencesLoading}
+                  onChange={(event) => updatePrivacyPreference('requestVisibility', event.target.value as AccountPreferences['privacy']['requestVisibility'])}
+                  options={[
                   { value: 'matched', label: 'Зөвхөн тохирсон хэрэглэгчид' },
                   { value: 'admin', label: 'Админд нэмэлтээр харагдана' },
-                ]} />
-                <ToggleRow label="Үнэлгээ нийтэд харагдана" checked />
-                <ToggleRow label="Гомдлын түүх хувийн байна" checked />
+                ]}
+                />
+                <ToggleRow
+                  label="Үнэлгээ нийтэд харагдана"
+                  checked={preferences.privacy.reviewsPublic}
+                  disabled={preferencesLoading}
+                  onChange={(value) => updatePrivacyPreference('reviewsPublic', value)}
+                />
+                <ToggleRow
+                  label="Гомдлын түүх хувийн байна"
+                  checked={preferences.privacy.reportsPrivate}
+                  disabled={preferencesLoading}
+                  onChange={(value) => updatePrivacyPreference('reportsPrivate', value)}
+                />
               </div>
             </SettingsSection>
           </section>
@@ -684,15 +777,28 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
               description="Захиалга, төлбөр, аялал болон ачааны төлөвийн мэдэгдэл."
             >
               <div className="grid gap-3 md:grid-cols-2">
-                <ToggleRow label="Захиалгын хүсэлтийн мэдэгдэл" checked />
-                <ToggleRow label="Жолооч зөвшөөрсөн мэдэгдэл" checked />
-                <ToggleRow label="Төлбөр баталгаажсан мэдэгдэл" checked />
-                <ToggleRow label="Аяллын сануулга" checked />
-                <ToggleRow label="Үнэлгээ өгөх сануулга" checked />
-                <ToggleRow label="Ачааны төлөвийн мэдэгдэл" checked={isDriver || isSender} />
+                <ToggleRow label="Захиалгын хүсэлтийн мэдэгдэл" checked={preferences.notifications.bookingRequests} disabled={preferencesLoading} onChange={(value) => updateNotificationPreference('bookingRequests', value)} />
+                <ToggleRow label="Жолоочийн хариу мэдэгдэл" checked={preferences.notifications.driverResponses} disabled={preferencesLoading} onChange={(value) => updateNotificationPreference('driverResponses', value)} />
+                <ToggleRow label="Төлбөр баталгаажсан мэдэгдэл" checked={preferences.notifications.paymentUpdates} disabled={preferencesLoading} onChange={(value) => updateNotificationPreference('paymentUpdates', value)} />
+                <ToggleRow label="Аяллын сануулга" checked={preferences.notifications.tripReminders} disabled={preferencesLoading} onChange={(value) => updateNotificationPreference('tripReminders', value)} />
+                <ToggleRow label="Үнэлгээ өгөх сануулга" checked={preferences.notifications.reviewReminders} disabled={preferencesLoading} onChange={(value) => updateNotificationPreference('reviewReminders', value)} />
+                {(isDriver || isSender) && (
+                  <ToggleRow label="Ачааны төлөвийн мэдэгдэл" checked={preferences.notifications.cargoUpdates} disabled={preferencesLoading} onChange={(value) => updateNotificationPreference('cargoUpdates', value)} />
+                )}
               </div>
             </SettingsSection>
           </section>
+
+          {preferencesError && (
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
+              {preferencesError}
+            </div>
+          )}
+          {preferencesSuccess && (
+            <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm font-medium text-success">
+              {preferencesSuccess}
+            </div>
+          )}
 
           <section className="border-t border-border pt-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -709,8 +815,8 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
           <div className="sticky bottom-0 -mx-4 border-t border-border bg-background/95 p-4 backdrop-blur sm:static sm:mx-0 sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button variant="outline" onClick={() => window.location.href = getSettingsHref(role)}>Болих</Button>
-              <Button>
-                Өөрчлөлт хадгалах
+              <Button disabled={preferencesLoading || preferencesSaving} onClick={handleSaveSettings}>
+                {preferencesSaving ? 'Хадгалж байна...' : 'Өөрчлөлт хадгалах'}
                 <CheckCircle2 className="h-4 w-4" />
               </Button>
             </div>
@@ -1234,11 +1340,27 @@ function SettingsLine({ icon, title, text, action, badge, onClick }: { icon: Rea
   );
 }
 
-function ToggleRow({ label, checked }: { label: string; checked?: boolean }) {
+function ToggleRow({
+  label,
+  checked = false,
+  disabled = false,
+  onChange,
+}: {
+  label: string;
+  checked?: boolean;
+  disabled?: boolean;
+  onChange?: (checked: boolean) => void;
+}) {
   return (
     <label className="flex items-center justify-between rounded-lg border border-border p-4">
       <span className="font-medium text-foreground">{label}</span>
-      <input type="checkbox" defaultChecked={checked} className="h-5 w-5 rounded border-border text-primary focus:ring-primary" />
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) => onChange?.(event.target.checked)}
+        className="h-5 w-5 rounded border-border text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+      />
     </label>
   );
 }
