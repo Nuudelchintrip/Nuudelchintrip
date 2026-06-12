@@ -294,16 +294,10 @@ export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> 
     if (payload?.error && OTP_ERROR_MESSAGES[payload.error]) {
       throw new Error(OTP_ERROR_MESSAGES[payload.error]);
     }
-    if (import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true') {
-      return requestOtpViaRpc(phone);
-    }
-    throw mapOtpError(error, 'Баталгаажуулах код илгээж чадсангүй. Түр хүлээгээд дахин оролдоно уу.');
-  }
-
-  if (import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true') {
     return requestOtpViaRpc(phone);
   }
-  throw new Error('Баталгаажуулах код илгээж чадсангүй. Түр хүлээгээд дахин оролдоно уу.');
+
+  return requestOtpViaRpc(phone);
 }
 
 export async function verifyPhoneOtp(phone: string, code: string) {
