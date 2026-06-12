@@ -45,50 +45,49 @@
   --sidebar-ring: #2563EB;
 }
 
-/* Premium true-black dark theme: neutral grays (no blue cast) with a warm amber
-   brand accent. Separation comes from subtle borders + layered near-black tones. */
+/* Premium monochrome dark theme with a restrained warm accent. */
 .dark {
   color-scheme: dark;
-  --background: #080808;
-  --foreground: #F4F4F5;
-  --card: #141414;
-  --card-foreground: #F4F4F5;
-  --popover: #181818;
-  --popover-foreground: #F4F4F5;
-  --primary: #D6A24A;
-  --primary-foreground: #171006;
-  --secondary: #111111;
-  --secondary-foreground: #E7E5E4;
-  --muted: #0D0D0D;
-  --muted-foreground: #A1A1AA;
-  --accent: #D97745;
-  --accent-foreground: #190D07;
+  --background: #050505;
+  --foreground: #F7F7F7;
+  --card: #101010;
+  --card-foreground: #F7F7F7;
+  --popover: #141414;
+  --popover-foreground: #F7F7F7;
+  --primary: #F5F5F5;
+  --primary-foreground: #090909;
+  --secondary: #101010;
+  --secondary-foreground: #E5E5E5;
+  --muted: #0B0B0B;
+  --muted-foreground: #A3A3A3;
+  --accent: #D6A24A;
+  --accent-foreground: #171006;
   --destructive: #F87171;
   --destructive-foreground: #1C0A0A;
-  --border: #2A2A2A;
+  --border: #262626;
   --input: #303030;
-  --input-background: #0D0D0D;
-  --switch-background: #333333;
+  --input-background: #0A0A0A;
+  --switch-background: #303030;
   --success: #4ADE80;
   --success-foreground: #06130A;
   --warning: #FBBF24;
   --warning-foreground: #1C1403;
-  --ring: #D6A24A;
+  --ring: #A3A3A3;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: #D6A24A;
+  --chart-1: #F5F5F5;
   --chart-2: #4ADE80;
-  --chart-3: #FB923C;
+  --chart-3: #D6A24A;
   --chart-4: #A3A3A3;
   --chart-5: #F87171;
-  --sidebar: #0D0D0D;
-  --sidebar-foreground: #F4F4F5;
-  --sidebar-primary: #D6A24A;
-  --sidebar-primary-foreground: #171006;
-  --sidebar-accent: #1A1A1A;
-  --sidebar-accent-foreground: #F4F4F5;
-  --sidebar-border: #232323;
-  --sidebar-ring: #D6A24A;
+  --sidebar: #080808;
+  --sidebar-foreground: #F7F7F7;
+  --sidebar-primary: #F5F5F5;
+  --sidebar-primary-foreground: #090909;
+  --sidebar-accent: #151515;
+  --sidebar-accent-foreground: #F7F7F7;
+  --sidebar-border: #242424;
+  --sidebar-ring: #A3A3A3;
 }
 
 @theme inline {
@@ -150,11 +149,15 @@
   }
 
   .dark body {
-    background-color: #080808;
+    background-color: #050505;
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.022) 1px, transparent 1px);
+    background-size: 72px 72px;
   }
 
   .dark ::selection {
-    background: rgb(214 162 74 / 0.32);
+    background: rgb(255 255 255 / 0.2);
     color: #FAFAFA;
   }
 
@@ -165,13 +168,13 @@
   .dark :is(input, textarea):-webkit-autofill,
   .dark :is(input, textarea):-webkit-autofill:hover,
   .dark :is(input, textarea):-webkit-autofill:focus {
-    -webkit-text-fill-color: #F4F4F5;
-    box-shadow: 0 0 0 1000px #0D0D0D inset;
-    caret-color: #F4F4F5;
+    -webkit-text-fill-color: #F7F7F7;
+    box-shadow: 0 0 0 1000px #0A0A0A inset;
+    caret-color: #F7F7F7;
   }
 
   .dark {
-    scrollbar-color: #3A3A3A #0D0D0D;
+    scrollbar-color: #383838 #080808;
   }
 
   .dark ::-webkit-scrollbar {
@@ -180,11 +183,11 @@
   }
 
   .dark ::-webkit-scrollbar-track {
-    background: #0D0D0D;
+    background: #080808;
   }
 
   .dark ::-webkit-scrollbar-thumb {
-    border: 2px solid #0D0D0D;
+    border: 2px solid #080808;
     border-radius: 999px;
     background: #3A3A3A;
   }
@@ -286,6 +289,10 @@
 
     .min-h-16 {
       min-height: 0;
+    }
+
+    .dark body {
+      background-size: 48px 48px;
     }
   }
 
