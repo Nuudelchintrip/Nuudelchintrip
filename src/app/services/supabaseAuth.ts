@@ -125,8 +125,11 @@ export async function loginWithSupabase(email: string, password: string) {
 export async function sendPasswordResetEmail(email: string) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
+  const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const siteOrigin = isLocalhost ? window.location.origin : 'https://nuudelchintrip.com';
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${siteOrigin}/reset-password`,
   });
 
   if (error) throw error;
