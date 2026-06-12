@@ -309,40 +309,20 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     ].join(' | '));
   }
 
-  const tripPayload = {
-      driver_id: userId,
-      from_location: input.fromLocation,
-      to_location: input.toLocation,
-      departure_at: input.departureAt,
-      seats_total: input.seatsTotal,
-      seats_available: input.seatsTotal,
-      available_seat_labels: normalizeSeatIds(input.availableSeatLabels, input.seatsTotal),
-      price_per_seat: input.pricePerSeat,
-      pickup_note: input.pickupNote || null,
-      dropoff_note: input.dropoffNote || null,
-      allows_cargo: input.allowsCargo,
-      cargo_capacity_kg: input.allowsCargo ? input.cargoCapacityKg ?? null : null,
-      allowed_cargo_types: input.allowsCargo ? input.allowedCargoTypes ?? [] : null,
-      cargo_price_note: input.allowsCargo ? input.cargoPriceNote || null : null,
-      status: 'active',
-  };
-
-  let { data, error } = await supabase
-    .from('trips')
-    .insert(tripPayload)
-    .select('id')
-    .single();
-
-  if (error && toError(error, '').message.includes('available_seat_labels')) {
-    const { available_seat_labels: _seatLabels, ...legacyTripPayload } = tripPayload;
-    const retry = await supabase
-      .from('trips')
-      .insert(legacyTripPayload)
-      .select('id')
-      .single();
-    data = retry.data;
-    error = retry.error;
-  }
+  const { data: tripId, error } = await supabase.rpc('create_driver_trip', {
+    p_from_location: input.fromLocation,
+    p_to_location: input.toLocation,
+    p_departure_at: input.departureAt,
+    p_seats_total: input.seatsTotal,
+    p_available_seat_labels: normalizeSeatIds(input.availableSeatLabels, input.seatsTotal),
+    p_price_per_seat: input.pricePerSeat,
+    p_pickup_note: input.pickupNote || null,
+    p_dropoff_note: input.dropoffNote || null,
+    p_allows_cargo: input.allowsCargo,
+    p_cargo_capacity_kg: input.allowsCargo ? input.cargoCapacityKg ?? null : null,
+    p_allowed_cargo_types: input.allowsCargo ? input.allowedCargoTypes ?? [] : null,
+    p_cargo_price_note: input.allowsCargo ? input.cargoPriceNote || null : null,
+  });
 
   if (error) {
     const [{ data: profile }, { data: driverProfile }] = await Promise.all([
@@ -369,7 +349,7 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
       `driver_verification=${driverProfile?.verification_status || 'missing'}`,
     ].join(' | '));
   }
-  return data;
+  return { id: tripId };
 }
 
 export async function fetchCurrentDriverTrips() {
