@@ -51,7 +51,7 @@ export function Logo({ size = 'md', showText = true, className, textClassName }:
             strokeWidth="2.3"
             strokeLinecap="round"
           />
-          <circle cx="5" cy="17.5" r="2.2" fill="#F59E0B" stroke="white" strokeWidth="1.4" />
+          <circle className="fill-warning stroke-white dark:fill-[#080808] dark:stroke-[#080808]" cx="5" cy="17.5" r="2.2" strokeWidth="1.4" />
           <circle cx="19" cy="14.7" r="2.2" fill="white" stroke="currentColor" strokeWidth="1.4" />
         </svg>
       </span>

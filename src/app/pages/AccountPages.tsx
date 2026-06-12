@@ -284,7 +284,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
         <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
           <Card className="overflow-hidden p-6">
-            <div className="relative mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/20 via-white to-warning/20 text-primary shadow-inner">
+            <div className="relative mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/20 via-white to-warning/20 text-primary shadow-inner dark:via-card">
               {avatarUrl ? (
                 <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
               ) : (

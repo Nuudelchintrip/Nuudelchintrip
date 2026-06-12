@@ -45,48 +45,50 @@
   --sidebar-ring: #2563EB;
 }
 
+/* Premium true-black dark theme: neutral grays (no blue cast) with a warm amber
+   brand accent. Separation comes from subtle borders + layered near-black tones. */
 .dark {
   color-scheme: dark;
-  --background: #090D14;
-  --foreground: #F8FAFC;
-  --card: #111827;
-  --card-foreground: #F8FAFC;
-  --popover: #111827;
-  --popover-foreground: #F8FAFC;
-  --primary: #3B82F6;
-  --primary-foreground: #FFFFFF;
-  --secondary: #172033;
-  --secondary-foreground: #F8FAFC;
-  --muted: #172033;
-  --muted-foreground: #94A3B8;
-  --accent: #FB923C;
-  --accent-foreground: #0F172A;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: #273244;
-  --input: #334155;
-  --input-background: #0F172A;
-  --switch-background: #334155;
-  --success: #22C55E;
-  --success-foreground: #052E16;
-  --warning: #FACC15;
-  --warning-foreground: #422006;
-  --ring: #60A5FA;
+  --background: #080808;
+  --foreground: #F4F4F5;
+  --card: #141414;
+  --card-foreground: #F4F4F5;
+  --popover: #181818;
+  --popover-foreground: #F4F4F5;
+  --primary: #D6A24A;
+  --primary-foreground: #171006;
+  --secondary: #111111;
+  --secondary-foreground: #E7E5E4;
+  --muted: #0D0D0D;
+  --muted-foreground: #A1A1AA;
+  --accent: #D97745;
+  --accent-foreground: #190D07;
+  --destructive: #F87171;
+  --destructive-foreground: #1C0A0A;
+  --border: #2A2A2A;
+  --input: #303030;
+  --input-background: #0D0D0D;
+  --switch-background: #333333;
+  --success: #4ADE80;
+  --success-foreground: #06130A;
+  --warning: #FBBF24;
+  --warning-foreground: #1C1403;
+  --ring: #D6A24A;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #0B111C;
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #2563EB;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #172033;
-  --sidebar-accent-foreground: #F8FAFC;
-  --sidebar-border: #273244;
-  --sidebar-ring: #60A5FA;
+  --chart-1: #D6A24A;
+  --chart-2: #4ADE80;
+  --chart-3: #FB923C;
+  --chart-4: #A3A3A3;
+  --chart-5: #F87171;
+  --sidebar: #0D0D0D;
+  --sidebar-foreground: #F4F4F5;
+  --sidebar-primary: #D6A24A;
+  --sidebar-primary-foreground: #171006;
+  --sidebar-accent: #1A1A1A;
+  --sidebar-accent-foreground: #F4F4F5;
+  --sidebar-border: #232323;
+  --sidebar-ring: #D6A24A;
 }
 
 @theme inline {
@@ -145,6 +147,50 @@
     overflow-x: hidden;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+  }
+
+  .dark body {
+    background-color: #080808;
+  }
+
+  .dark ::selection {
+    background: rgb(214 162 74 / 0.32);
+    color: #FAFAFA;
+  }
+
+  .dark :is(input, textarea, select) {
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.025) inset;
+  }
+
+  .dark :is(input, textarea):-webkit-autofill,
+  .dark :is(input, textarea):-webkit-autofill:hover,
+  .dark :is(input, textarea):-webkit-autofill:focus {
+    -webkit-text-fill-color: #F4F4F5;
+    box-shadow: 0 0 0 1000px #0D0D0D inset;
+    caret-color: #F4F4F5;
+  }
+
+  .dark {
+    scrollbar-color: #3A3A3A #0D0D0D;
+  }
+
+  .dark ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #0D0D0D;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    border: 2px solid #0D0D0D;
+    border-radius: 999px;
+    background: #3A3A3A;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #4A4A4A;
   }
 
   /**
@@ -328,6 +374,16 @@
   }
 }
 
+@keyframes route-pulse-dark {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(214 162 74 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgb(214 162 74 / 0);
+  }
+}
+
 @keyframes hero-image-zoom {
   from {
     transform: scale(1.02);
@@ -362,6 +418,10 @@
 
 .route-pulse {
   animation: route-pulse 2.4s ease-in-out infinite;
+}
+
+.dark .route-pulse {
+  animation-name: route-pulse-dark;
 }
 
 .hero-image-zoom {
