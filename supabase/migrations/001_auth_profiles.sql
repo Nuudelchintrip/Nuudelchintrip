@@ -74,35 +74,35 @@ security definer
 set search_path = public
 as $$
 declare
-  current_user auth.users%rowtype;
+  auth_user_row auth.users%rowtype;
   profile_row public.profiles%rowtype;
 begin
   if auth.uid() is null then
     raise exception 'not_authenticated';
   end if;
 
-  select * into current_user
+  select * into auth_user_row
   from auth.users
   where id = auth.uid();
 
-  if current_user.id is null then
+  if auth_user_row.id is null then
     raise exception 'auth_user_not_found';
   end if;
 
   insert into public.profiles (id, role, full_name, phone, email)
   values (
-    current_user.id,
-    case current_user.raw_user_meta_data->>'role'
+    auth_user_row.id,
+    case auth_user_row.raw_user_meta_data->>'role'
       when 'driver' then 'driver'::public.user_role
       when 'cargo_sender' then 'cargo_sender'::public.user_role
       else 'traveler'::public.user_role
     end,
     coalesce(
-      nullif(current_user.raw_user_meta_data->>'full_name', ''),
-      split_part(coalesce(current_user.email, ''), '@', 1)
+      nullif(auth_user_row.raw_user_meta_data->>'full_name', ''),
+      split_part(coalesce(auth_user_row.email, ''), '@', 1)
     ),
-    coalesce(nullif(current_user.raw_user_meta_data->>'phone', ''), current_user.phone),
-    current_user.email
+    coalesce(nullif(auth_user_row.raw_user_meta_data->>'phone', ''), auth_user_row.phone),
+    auth_user_row.email
   )
   on conflict (id) do update
     set email = excluded.email,
