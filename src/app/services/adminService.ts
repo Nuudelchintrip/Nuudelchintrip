@@ -365,11 +365,7 @@ export interface AdminTripItem {
 export async function fetchAdminTrips(): Promise<AdminTripItem[]> {
   if (!supabase) return [];
 
-  const { data: trips, error } = await supabase
-    .from('trips')
-    .select('id, driver_id, from_location, to_location, departure_at, seats_total, seats_available, price_per_seat, allows_cargo, status, created_at')
-    .order('created_at', { ascending: false })
-    .limit(200);
+  const { data: trips, error } = await supabase.rpc('admin_list_trips');
 
   if (error) throw toError(error, 'Чиглэлийн жагсаалт уншихад алдаа гарлаа.');
   if (!trips?.length) return [];

@@ -360,27 +360,7 @@ export async function fetchCurrentDriverTrips() {
   const userId = userData.user?.id;
   if (!userId) throw new Error('Жолоочийн route харахын тулд дахин нэвтэрнэ үү.');
 
-  const { data: tripRows, error: tripError } = await supabase
-    .from('trips')
-    .select(`
-      id,
-      driver_id,
-      from_location,
-      to_location,
-      departure_at,
-      seats_total,
-      seats_available,
-      price_per_seat,
-      pickup_note,
-      dropoff_note,
-      allows_cargo,
-      cargo_capacity_kg,
-      allowed_cargo_types,
-      cargo_price_note,
-      status
-    `)
-    .eq('driver_id', userId)
-    .order('departure_at', { ascending: false });
+  const { data: tripRows, error: tripError } = await supabase.rpc('list_my_driver_trips');
 
   if (tripError) throw toError(tripError, 'Driver trips request failed.');
   if (!tripRows?.length) return [];
