@@ -215,6 +215,11 @@ function readableError(error: unknown, fallback: string) {
   return fallback;
 }
 
+function getLocalDateInputValue(date = new Date()) {
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+}
+
 export function TripFormPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
   const [permissionProfile, setPermissionProfile] = useState<MockUserProfile | null>(() => getStoredUser());
@@ -330,6 +335,12 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       return;
     }
 
+    const departure = new Date(`${departureDate}T${departureTime}`);
+    if (Number.isNaN(departure.getTime()) || departure.getTime() <= Date.now()) {
+      setError('Өнгөрсөн огноо, цаг сонгох боломжгүй. Ирээдүйн огноо, цаг сонгоно уу.');
+      return;
+    }
+
     const seats = role === 'driver' && availableSeatLabels.length ? availableSeatLabels.length : Number(seatsTotal);
     const price = Number(pricePerSeat);
     if (!Number.isFinite(seats) || seats < 1) {
@@ -352,7 +363,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       const result = await createDriverTrip({
         fromLocation: formatLocation(fromAimag, fromSoum),
         toLocation: formatLocation(toAimag, toSoum),
-        departureAt: new Date(`${departureDate}T${departureTime}`).toISOString(),
+        departureAt: departure.toISOString(),
         seatsTotal: seats,
         availableSeatLabels: availableSeatLabels.length ? availableSeatLabels : getDefaultSeatIds(seats),
         pricePerSeat: price,
@@ -368,7 +379,12 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       });
       setSubmittedTripId(result.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Чиглэл хадгалахад алдаа гарлаа.');
+      const message = readableError(err, 'Чиглэл хадгалахад алдаа гарлаа.');
+      setError(
+        message.includes('future_departure_required')
+          ? 'Өнгөрсөн огноо, цаг сонгох боломжгүй. Ирээдүйн огноо, цаг сонгоно уу.'
+          : message,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -439,7 +455,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               onSoumChange={setToSoum}
               className="md:col-span-2"
             />
-            <Input label="Огноо" type="date" value={departureDate} onChange={(event) => setDepartureDate(event.target.value)} />
+            <Input label="Огноо" type="date" min={getLocalDateInputValue()} value={departureDate} onChange={(event) => setDepartureDate(event.target.value)} />
             <Input label="Хөдлөх цаг" type="time" value={departureTime} onChange={(event) => setDepartureTime(event.target.value)} />
             <Select label="Төрөл" options={[
               { value: 'car', label: copy.routeName },
