@@ -3,6 +3,9 @@ dist
 .vercel
 .env
 .env.local
+.env.*
+!.env.example
+supabase/.env
 .DS_Store
 
 # temp / tooling junk

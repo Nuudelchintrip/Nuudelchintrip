@@ -556,6 +556,9 @@ export async function createPassengerBooking(input: {
 
   const rpcMessage = rpcResult.error ? toError(rpcResult.error, '').message : '';
   if (rpcResult.error && !rpcMessage.includes('create_passenger_booking_with_seats')) {
+    if (rpcMessage.includes('request_rate_limited')) {
+      throw new Error('Хэт олон захиалгын хүсэлт илгээлээ. Түр хүлээгээд дахин оролдоно уу.');
+    }
     throw toError(rpcResult.error, 'Seat booking request failed.');
   }
 
@@ -804,14 +807,22 @@ export async function createBookingReport(input: { bookingId: string; tripId?: s
   if (!userId) throw new Error('Дахин нэвтэрнэ үү.');
   if (!input.reason.trim()) throw new Error('Асуудлын талаар бичнэ үү.');
 
-  const { error } = await supabase.from('reports').insert({
-    reporter_id: userId,
-    booking_id: input.bookingId,
-    trip_id: input.tripId || null,
-    reason: input.reason.trim(),
-    details: input.details?.trim() || null,
+  const { error } = await supabase.rpc('create_booking_report', {
+    p_booking_id: input.bookingId,
+    p_reason: input.reason.trim(),
+    p_details: input.details?.trim() || null,
   });
-  if (error) throw toError(error, 'Гомдол илгээхэд алдаа гарлаа.');
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      request_rate_limited: 'Хэт олон хүсэлт илгээлээ. Түр хүлээгээд дахин оролдоно уу.',
+      report_already_open: 'Энэ захиалгын нээлттэй гомдол аль хэдийн байна.',
+      not_a_booking_participant: 'Та зөвхөн өөрийн оролцсон захиалгын талаар мэдэгдэл илгээнэ.',
+      report_reason_too_short: 'Асуудлаа арай дэлгэрэнгүй бичнэ үү.',
+      report_reason_too_long: 'Тайлбар хэт урт байна.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Гомдол илгээхэд алдаа гарлаа.');
+  }
 }
 
 export interface BookingStatusLog {
@@ -956,6 +967,7 @@ export async function createCargoRequest(input: CreateCargoRequestInput) {
       receiver_phone_required: 'Хүлээн авагчийн утсыг оруулна уу.',
       cargo_sender_required: 'Зөвхөн дүрэм зөвшөөрсөн, утсаа баталгаажуулсан ачаа илгээгч хүсэлт үүсгэнэ.',
       trip_not_cargo_enabled: 'Энэ чиглэл дайвар ачаа авах боломжгүй байна.',
+      request_rate_limited: 'Хэт олон ачааны хүсэлт илгээлээ. Түр хүлээгээд дахин оролдоно уу.',
     };
     const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
     throw known ? new Error(known) : toError(error, 'Cargo request хадгалахад алдаа гарлаа.');

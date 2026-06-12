@@ -882,6 +882,7 @@ function AdminLogsQueue() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={item.status} />
+                    {item.source === 'security' && <Badge variant="warning">Хамгаалалт</Badge>}
                     {item.cargoRequestId ? <Badge variant="default">Ачаа</Badge> : item.bookingId ? <Badge variant="default">Захиалга</Badge> : null}
                   </div>
                   {item.note && <p className="mt-2 text-sm text-foreground">{item.note}</p>}

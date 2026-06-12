@@ -606,32 +606,65 @@ export interface AdminAuditLogItem {
   bookingId?: string;
   cargoRequestId?: string;
   actorName?: string;
+  source?: 'marketplace' | 'security';
   createdAt: string;
 }
 
 export async function fetchAdminAuditLogs(): Promise<AdminAuditLogItem[]> {
   if (!supabase) return [];
 
-  const { data: logs, error } = await supabase
-    .from('trip_status_logs')
-    .select('id, status, note, booking_id, cargo_request_id, changed_by, created_at')
-    .order('created_at', { ascending: false })
-    .limit(200);
+  const [marketplaceResult, securityResult] = await Promise.all([
+    supabase
+      .from('trip_status_logs')
+      .select('id, status, note, booking_id, cargo_request_id, changed_by, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200),
+    supabase
+      .from('security_events')
+      .select('id, event_type, severity, actor_user_id, route, metadata, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200),
+  ]);
 
-  if (error) throw toError(error, 'Үйлдлийн түүх уншихад алдаа гарлаа.');
-  if (!logs?.length) return [];
+  if (marketplaceResult.error) {
+    throw toError(marketplaceResult.error, 'Үйлдлийн түүх уншихад алдаа гарлаа.');
+  }
 
-  const actorIds = Array.from(new Set(logs.map((l) => l.changed_by).filter(Boolean) as string[]));
+  const logs = marketplaceResult.data || [];
+  const securityLogs = securityResult.error ? [] : securityResult.data || [];
+  const actorIds = Array.from(new Set([
+    ...logs.map((item) => item.changed_by),
+    ...securityLogs.map((item) => item.actor_user_id),
+  ].filter(Boolean) as string[]));
   const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', actorIds);
   const namesById = new Map((profiles || []).map((p) => [p.id, p.full_name]));
 
-  return logs.map((l) => ({
+  const marketplaceItems: AdminAuditLogItem[] = logs.map((l) => ({
     id: l.id as string,
     status: l.status as string,
     note: (l.note as string) || undefined,
     bookingId: (l.booking_id as string) || undefined,
     cargoRequestId: (l.cargo_request_id as string) || undefined,
     actorName: l.changed_by ? namesById.get(l.changed_by as string) || undefined : undefined,
+    source: 'marketplace',
     createdAt: l.created_at as string,
   }));
+
+  const securityItems: AdminAuditLogItem[] = securityLogs.map((item) => ({
+    id: item.id as string,
+    status: item.event_type as string,
+    note: [
+      item.severity ? `Түвшин: ${item.severity}` : '',
+      item.route ? `Зам: ${item.route}` : '',
+    ].filter(Boolean).join(' · ') || undefined,
+    actorName: item.actor_user_id
+      ? namesById.get(item.actor_user_id as string) || undefined
+      : undefined,
+    source: 'security',
+    createdAt: item.created_at as string,
+  }));
+
+  return [...marketplaceItems, ...securityItems]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 200);
 }

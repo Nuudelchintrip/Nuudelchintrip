@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { safeUploadFileName, validateUploadFile } from '../utils/fileValidation';
 
 type PaymentTarget = 'booking' | 'cargo';
 
@@ -26,19 +27,6 @@ function toError(error: unknown, fallback: string) {
   return new Error(fallback);
 }
 
-function safeFileName(name: string) {
-  const extension = name.includes('.') ? `.${name.split('.').pop()}` : '';
-  const base = name
-    .replace(extension, '')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 48);
-
-  return `${base || 'payment-proof'}${extension.toLowerCase()}`;
-}
-
 export async function uploadPaymentProof(input: UploadPaymentProofInput): Promise<UploadPaymentProofResult> {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
@@ -48,11 +36,15 @@ export async function uploadPaymentProof(input: UploadPaymentProofInput): Promis
   const userId = userData.user?.id;
   if (!userId) throw new Error('Төлбөрийн баримт илгээхийн тулд дахин нэвтэрнэ үү.');
 
-  if (input.file.size > 10 * 1024 * 1024) {
-    throw new Error('Файлын хэмжээ 10MB-аас бага байх ёстой.');
-  }
+  validateUploadFile(input.file, {
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.pdf'],
+    maxBytes: 10 * 1024 * 1024,
+    typeError: 'Зөвхөн JPG, PNG, WEBP эсвэл PDF баримт оруулна уу.',
+    sizeError: 'Файлын хэмжээ 10MB-аас бага байх ёстой.',
+  });
 
-  const path = `${userId}/${input.target}/${input.targetId}/${Date.now()}-${safeFileName(input.file.name)}`;
+  const path = `${userId}/${input.target}/${input.targetId}/${Date.now()}-${safeUploadFileName(input.file.name, 'payment-proof')}`;
 
   const { error: uploadError } = await supabase.storage
     .from('payment-proofs')
@@ -87,43 +79,32 @@ export async function uploadPaymentProof(input: UploadPaymentProofInput): Promis
     return { paymentId: paymentId as string, proofId: '', proofPath: storedPath };
   }
 
-  // Cargo path (refined in Phase 9) — keep the direct inserts for now.
-  const { data: payment, error: paymentError } = await supabase
-    .from('payments')
-    .insert({
-      user_id: userId,
-      cargo_request_id: input.targetId,
-      amount,
-      status: 'proof_uploaded',
-      proof_url: storedPath,
-    })
-    .select('id')
-    .single();
-  if (paymentError) throw toError(paymentError, 'Төлбөрийн мөр хадгалахад алдаа гарлаа.');
-
-  const { data: proof, error: proofError } = await supabase
-    .from('proofs')
-    .insert({
-      user_id: userId,
-      cargo_request_id: input.targetId,
-      proof_type: 'payment',
-      file_url: storedPath,
-      note: input.note || null,
-    })
-    .select('id')
-    .single();
-  if (proofError) throw toError(proofError, 'Proof timeline хадгалахад алдаа гарлаа.');
-
-  const { error: statusError } = await supabase.rpc('set_cargo_request_status', {
+  const { data, error: cargoPaymentError } = await supabase.rpc('submit_cargo_payment_proof', {
     p_cargo_id: input.targetId,
-    p_status: 'payment_review',
-    p_note: 'Илгээгч төлбөрийн баримт илгээв.',
+    p_amount: amount,
+    p_proof_url: storedPath,
+    p_note: input.note || null,
   });
-  if (statusError) throw toError(statusError, 'Ачааны төлөв шинэчлэхэд алдаа гарлаа.');
+  if (cargoPaymentError) {
+    const messageByCode: Record<string, string> = {
+      not_your_cargo: 'Энэ ачааны хүсэлт таных биш байна.',
+      cargo_not_payable: 'Энэ ачааны хүсэлт одоо төлбөр хүлээж авах төлөвт байхгүй байна.',
+      invalid_amount: 'Төлбөрийн дүн буруу байна.',
+      proof_required: 'Төлбөрийн баримтаа оруулна уу.',
+    };
+    const known = Object.entries(messageByCode)
+      .find(([code]) => toError(cargoPaymentError, '').message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(cargoPaymentError, 'Ачааны төлбөрийн баримт хадгалахад алдаа гарлаа.');
+  }
+
+  const result = (data || {}) as { payment_id?: string; proof_id?: string };
+  if (!result.payment_id || !result.proof_id) {
+    throw new Error('Ачааны төлбөрийн баримтын хариу буруу байна.');
+  }
 
   return {
-    paymentId: payment.id as string,
-    proofId: proof.id as string,
+    paymentId: result.payment_id,
+    proofId: result.proof_id,
     proofPath: storedPath,
   };
 }

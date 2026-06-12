@@ -6,24 +6,51 @@ export interface SupportRequestInput {
   bookingRef?: string;
   category?: string;
   message: string;
+  website?: string;
+  startedAt: number;
 }
 
 export async function submitSupportRequest(input: SupportRequestInput) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
-  if (!input.message.trim()) throw new Error('Асуудлаа дэлгэрэнгүй бичнэ үү.');
+  if (!supabase) throw new Error('Supabase тохируулагдаагүй байна.');
+  if (input.message.trim().length < 10) {
+    throw new Error('Асуудлаа дор хаяж 10 тэмдэгтээр дэлгэрэнгүй бичнэ үү.');
+  }
+  if (input.message.trim().length > 4000) {
+    throw new Error('Тайлбар 4000 тэмдэгтээс урт байж болохгүй.');
+  }
 
-  const { data: userData } = await supabase.auth.getUser();
-  const userId = userData.user?.id ?? null;
-
-  const { error } = await supabase.from('support_requests').insert({
-    user_id: userId,
-    name: input.name?.trim() || null,
-    phone: input.phone?.trim() || null,
-    booking_ref: input.bookingRef?.trim() || null,
-    category: input.category?.trim() || null,
-    message: input.message.trim(),
+  const { data, error } = await supabase.functions.invoke('submit-support', {
+    body: {
+      name: input.name?.trim() || '',
+      phone: input.phone?.trim() || '',
+      bookingRef: input.bookingRef?.trim() || '',
+      category: input.category?.trim() || '',
+      message: input.message.trim(),
+      website: input.website || '',
+      startedAt: input.startedAt,
+    },
   });
-  if (error) throw error;
+
+  if (error) {
+    let payload: { error?: string; retry_after_seconds?: number } | null = null;
+    try {
+      payload = await (error as { context?: { json?: () => Promise<{ error?: string; retry_after_seconds?: number }> } })
+        .context?.json?.() ?? null;
+    } catch {
+      payload = null;
+    }
+
+    if (payload?.error === 'support_rate_limited') {
+      const minutes = Math.max(1, Math.ceil((payload.retry_after_seconds || 60) / 60));
+      throw new Error(`Хэт олон хүсэлт илгээлээ. ${minutes} минутын дараа дахин оролдоно уу.`);
+    }
+    if (payload?.error === 'message_too_short') {
+      throw new Error('Асуудлаа дор хаяж 10 тэмдэгтээр дэлгэрэнгүй бичнэ үү.');
+    }
+    throw new Error('Хүсэлт илгээж чадсангүй. Түр хүлээгээд дахин оролдоно уу.');
+  }
+
+  if (!data?.ok) throw new Error('Хүсэлт илгээж чадсангүй.');
 }
 
 export interface AdminSupportItem {

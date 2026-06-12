@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { safeUploadFileName, validateUploadFile } from '../utils/fileValidation';
 import {
   clearStoredUser,
   getStoredUser,
@@ -164,15 +165,15 @@ export async function uploadAvatar(file: File): Promise<string> {
   const userId = sessionData.session?.user.id;
   if (!userId) throw new Error('Дахин нэвтэрнэ үү.');
 
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-    throw new Error('Зөвхөн JPG, PNG, WEBP зураг оруулна уу.');
-  }
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error('Зургийн хэмжээ 5MB-аас бага байх ёстой.');
-  }
+  validateUploadFile(file, {
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp'],
+    maxBytes: 5 * 1024 * 1024,
+    typeError: 'Зөвхөн JPG, PNG, WEBP зураг оруулна уу.',
+    sizeError: 'Зургийн хэмжээ 5MB-аас бага байх ёстой.',
+  });
 
-  const ext = file.name.includes('.') ? file.name.split('.').pop() : 'jpg';
-  const path = `${userId}/avatar-${Date.now()}.${ext}`;
+  const path = `${userId}/${Date.now()}-${safeUploadFileName(file.name, 'avatar')}`;
   const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
   if (uploadError) throw toError(uploadError, 'Зураг upload хийхэд алдаа гарлаа.');
 
@@ -244,7 +245,7 @@ function mapOtpError(error: { message?: string } | null, fallback: string) {
 export interface RequestOtpResult {
   resendAfterSeconds: number;
   expiresInSeconds: number;
-  /** Present only while otp_dev_mode is on (no SMS provider connected yet). */
+  /** Present only during local development. */
   devCode: string | null;
 }
 
@@ -261,8 +262,10 @@ async function requestOtpViaRpc(phone: string): Promise<RequestOtpResult> {
 
 export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> {
   if (!supabase) {
-    // Local fallback when Supabase env is not configured.
-    return { resendAfterSeconds: 60, expiresInSeconds: 300, devCode: '123456' };
+    if (import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true') {
+      return { resendAfterSeconds: 60, expiresInSeconds: 300, devCode: '123456' };
+    }
+    throw new Error('Утас баталгаажуулах үйлчилгээ тохируулагдаагүй байна.');
   }
 
   // Production: the send-otp edge function generates the code and delivers it by SMS.
@@ -288,15 +291,23 @@ export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> 
     if (payload?.error && OTP_ERROR_MESSAGES[payload.error]) {
       throw new Error(OTP_ERROR_MESSAGES[payload.error]);
     }
-    // Otherwise the function is likely not deployed yet → fall back to the dev RPC.
-    return requestOtpViaRpc(phone);
+    if (import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true') {
+      return requestOtpViaRpc(phone);
+    }
+    throw mapOtpError(error, 'Баталгаажуулах код илгээж чадсангүй. Түр хүлээгээд дахин оролдоно уу.');
   }
 
-  return requestOtpViaRpc(phone);
+  if (import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true') {
+    return requestOtpViaRpc(phone);
+  }
+  throw new Error('Баталгаажуулах код илгээж чадсангүй. Түр хүлээгээд дахин оролдоно уу.');
 }
 
 export async function verifyPhoneOtp(phone: string, code: string) {
   if (!supabase) {
+    if (!import.meta.env.DEV || import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK !== 'true') {
+      throw new Error('Утас баталгаажуулах үйлчилгээ тохируулагдаагүй байна.');
+    }
     if (code !== '123456') throw new Error(OTP_ERROR_MESSAGES.otp_invalid);
     return updateStoredUser({ phone_verified: true });
   }
@@ -359,12 +370,6 @@ export async function completeTravelerOnboarding(input: {
 
 export type DriverDocumentKind = 'driver_license' | 'vehicle_certificate' | 'vehicle_photo';
 
-function safeFileName(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
-}
-
-const ALLOWED_DOC_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-
 /** Upload one driver document to the private driver-documents bucket; returns the stored path. */
 export async function uploadDriverDocument(file: File, kind: DriverDocumentKind): Promise<string> {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
@@ -373,14 +378,15 @@ export async function uploadDriverDocument(file: File, kind: DriverDocumentKind)
   const userId = sessionData.session?.user.id;
   if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
 
-  if (!ALLOWED_DOC_TYPES.includes(file.type)) {
-    throw new Error('Зөвхөн JPG, PNG, WEBP, PDF файл оруулна уу.');
-  }
-  if (file.size > 10 * 1024 * 1024) {
-    throw new Error('Файлын хэмжээ 10MB-аас бага байх ёстой.');
-  }
+  validateUploadFile(file, {
+    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+    allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.pdf'],
+    maxBytes: 10 * 1024 * 1024,
+    typeError: 'Зөвхөн JPG, PNG, WEBP, PDF файл оруулна уу.',
+    sizeError: 'Файлын хэмжээ 10MB-аас бага байх ёстой.',
+  });
 
-  const path = `${userId}/${kind}/${Date.now()}-${safeFileName(file.name)}`;
+  const path = `${userId}/${kind}/${Date.now()}-${safeUploadFileName(file.name, kind)}`;
   const { error: uploadError } = await supabase.storage
     .from('driver-documents')
     .upload(path, file, { cacheControl: '3600', upsert: true });

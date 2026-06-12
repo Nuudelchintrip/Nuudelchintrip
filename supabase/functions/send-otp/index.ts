@@ -1,76 +1,119 @@
-// Supabase Edge Function: send-otp
-// Generates a one-time code (server-side) and delivers it by SMS via MoceanAPI.
-// Verbose step logging so failures are easy to locate in the function Logs.
-//
-// Required secrets: MOCEAN_API_TOKEN (apit_... Bearer token), MOCEAN_SENDER
-// Auto-provided: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
-
+// Authenticated OTP delivery. Secrets stay in Supabase Edge Function secrets.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import {
+  consumeRateLimit,
+  corsHeaders,
+  getClientIp,
+  hmacHash,
+  jsonResponse,
+  logSecurityEvent,
+} from '../_shared/security.ts';
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-const json = (b: unknown, s = 200) =>
-  new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
+const normalizePhone = (value: unknown) => String(value || '').replace(/\D/g, '');
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
-  console.log('STEP 1: invoked', req.method);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method !== 'POST') return jsonResponse(req, { error: 'method_not_allowed' }, 405);
 
   try {
-    const url = Deno.env.get('SUPABASE_URL')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const url = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const smsToken = Deno.env.get('MOCEAN_API_TOKEN');
+    const smsSender = Deno.env.get('MOCEAN_SENDER');
+    if (!url || !anonKey || !serviceKey || !smsToken || !smsSender) {
+      return jsonResponse(req, { error: 'server_configuration_error' }, 500);
+    }
 
-    const authHeader = req.headers.get('Authorization') ?? '';
-    console.log('STEP 2: auth header?', authHeader ? 'yes' : 'NO');
-
-    const userClient = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
-    const { data: u, error: uerr } = await userClient.auth.getUser();
-    console.log('STEP 3: user =', u?.user?.id ?? 'NONE', '| err:', uerr?.message ?? '');
-    if (!u?.user) return json({ error: 'not_authenticated' }, 401);
-
-    const { phone } = await req.json().catch(() => ({ phone: '' }));
-    console.log('STEP 4: phone =', phone);
-    if (!phone) return json({ error: 'phone_required' }, 400);
-
-    const admin = createClient(url, serviceKey);
-    const { data: code, error: genErr } = await admin.rpc('generate_otp_for_user', {
-      p_user_id: u.user.id,
-      p_phone: phone,
+    const authHeader = req.headers.get('Authorization') || '';
+    const userClient = createClient(url, anonKey, {
+      global: { headers: { Authorization: authHeader } },
     });
-    console.log('STEP 5: gen =', code ? 'OK' : 'NULL', '| err:', genErr?.message ?? '');
-    if (genErr) return json({ error: 'gen_failed', detail: genErr.message }, 400);
+    const { data: userData } = await userClient.auth.getUser();
+    const user = userData.user;
+    if (!user) return jsonResponse(req, { error: 'not_authenticated' }, 401);
 
-    const token = Deno.env.get('MOCEAN_API_TOKEN') ?? '';
-    const sender = Deno.env.get('MOCEAN_SENDER') ?? '';
-    const to = String(phone).replace(/\D/g, '');
-    console.log('STEP 6: mocean token length =', token.length, '| sender =', sender, '| to =', to);
+    const body = await req.json().catch(() => ({}));
+    const phone = normalizePhone((body as { phone?: unknown }).phone);
+    if (!/^976\d{8}$/.test(phone)) {
+      return jsonResponse(req, { error: 'phone_required' }, 400);
+    }
 
-    const smsResp = await fetch('https://rest.moceanapi.com/rest/2/sms', {
+    const admin = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const ipHash = await hmacHash(`ip:${getClientIp(req)}`);
+    const phoneHash = await hmacHash(`phone:${phone}`);
+
+    const [phoneLimit, ipLimit] = await Promise.all([
+      consumeRateLimit(admin, 'otp:phone:hour', phoneHash, 5, 3600, 3600),
+      consumeRateLimit(admin, 'otp:ip:hour', ipHash, 20, 3600, 3600),
+    ]);
+
+    if (!phoneLimit.allowed || !ipLimit.allowed) {
+      const retryAfter = Math.max(phoneLimit.retryAfterSeconds, ipLimit.retryAfterSeconds, 60);
+      await logSecurityEvent(admin, {
+        eventType: 'otp_rate_limited',
+        actorUserId: user.id,
+        subjectHash: phoneHash,
+        ipHash,
+        route: '/functions/v1/send-otp',
+        metadata: { retry_after_seconds: retryAfter },
+      });
+      return jsonResponse(
+        req,
+        { error: 'otp_rate_limited', retry_after_seconds: retryAfter },
+        429,
+        { 'Retry-After': String(retryAfter) },
+      );
+    }
+
+    const { data: code, error: generateError } = await admin.rpc('generate_otp_for_user', {
+      p_user_id: user.id,
+      p_phone: `+${phone}`,
+    });
+    if (generateError || !code) {
+      const knownError = ['otp_rate_limited', 'otp_hourly_limit']
+        .find((name) => generateError?.message?.includes(name));
+      return jsonResponse(req, { error: knownError || 'otp_generation_failed' }, knownError ? 429 : 400);
+    }
+
+    const smsResponse = await fetch('https://rest.moceanapi.com/rest/2/sms', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${smsToken}`,
       },
       body: new URLSearchParams({
-        'mocean-from': sender || 'Nuudelchin',
-        'mocean-to': to,
+        'mocean-from': smsSender,
+        'mocean-to': phone,
         'mocean-text': `NuudelchinTrip код: ${code}`,
         'mocean-resp-format': 'JSON',
       }),
     });
-    const result = await smsResp.json().catch(() => ({}));
-    console.log('STEP 7: MOCEAN RESPONSE', smsResp.status, JSON.stringify(result));
+    const smsResult = await smsResponse.json().catch(() => ({}));
+    const sent = Array.isArray(smsResult?.messages) && Number(smsResult.messages[0]?.status) === 0;
 
-    const ok = Array.isArray(result?.messages) && Number(result.messages[0]?.status) === 0;
-    if (!ok) return json({ error: 'sms_send_failed', detail: result }, 502);
+    if (!sent) {
+      await logSecurityEvent(admin, {
+        eventType: 'otp_delivery_failed',
+        severity: 'warning',
+        actorUserId: user.id,
+        subjectHash: phoneHash,
+        ipHash,
+        route: '/functions/v1/send-otp',
+        metadata: { provider_status: smsResponse.status },
+      });
+      return jsonResponse(req, { error: 'sms_send_failed' }, 502);
+    }
 
-    return json({ ok: true, resend_after_seconds: 60, expires_in_seconds: 300 });
-  } catch (e) {
-    console.error('FUNC ERROR', String(e));
-    return json({ error: String(e) }, 500);
+    return jsonResponse(req, {
+      ok: true,
+      resend_after_seconds: 60,
+      expires_in_seconds: 300,
+    });
+  } catch (error) {
+    console.error('send_otp_failed', error instanceof Error ? error.message : 'unknown_error');
+    return jsonResponse(req, { error: 'internal_error' }, 500);
   }
 });

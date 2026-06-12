@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { ArrowRight, CheckCircle2, FileText, HelpCircle, LockKeyhole, Mail, MapPin, MessageCircle, Phone, ShieldCheck } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -88,11 +88,13 @@ export function FaqPage() {
 }
 
 export function SupportPage() {
+  const startedAt = useRef(Date.now());
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [bookingRef, setBookingRef] = useState('');
   const [category, setCategory] = useState('');
   const [message, setMessage] = useState('');
+  const [website, setWebsite] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -100,19 +102,29 @@ export function SupportPage() {
   const submit = async () => {
     setError('');
     setSuccess('');
-    if (!message.trim()) {
-      setError('Асуудлаа дэлгэрэнгүй бичнэ үү.');
+    if (message.trim().length < 10) {
+      setError('Асуудлаа дор хаяж 10 тэмдэгтээр дэлгэрэнгүй бичнэ үү.');
       return;
     }
     setBusy(true);
     try {
-      await submitSupportRequest({ name, phone, bookingRef, category, message });
+      await submitSupportRequest({
+        name,
+        phone,
+        bookingRef,
+        category,
+        message,
+        website,
+        startedAt: startedAt.current,
+      });
       setSuccess('Таны хүсэлт амжилттай илгээгдлээ. Бид удахгүй холбогдоно.');
       setName('');
       setPhone('');
       setBookingRef('');
       setCategory('');
       setMessage('');
+      setWebsite('');
+      startedAt.current = Date.now();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Хүсэлт илгээхэд алдаа гарлаа.');
     } finally {
@@ -137,7 +149,19 @@ export function SupportPage() {
             placeholder="Юу болсон талаар бичнэ үү"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            maxLength={4000}
           />
+          <div className="sr-only" aria-hidden="true">
+            <label htmlFor="support-website">Website</label>
+            <input
+              id="support-website"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(event) => setWebsite(event.target.value)}
+            />
+          </div>
           {error && <p className="mt-3 text-sm font-medium text-destructive">{error}</p>}
           {success && <p className="mt-3 text-sm font-medium text-success">{success}</p>}
           <Button className="mt-5" disabled={busy} onClick={submit}>
