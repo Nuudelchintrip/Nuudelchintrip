@@ -500,10 +500,7 @@ export async function completeCargoOnboarding() {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна.');
-    const { error } = await supabase
-      .from('profiles')
-      .update({ onboarding_completed: true, cargo_policy_accepted: true })
-      .eq('id', userId);
+    const { error } = await supabase.rpc('complete_cargo_onboarding');
     if (error) throw error;
     return syncCurrentProfileFromSupabase(sessionData.session?.user.email || '');
   }

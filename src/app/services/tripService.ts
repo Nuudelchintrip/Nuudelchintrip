@@ -185,6 +185,14 @@ interface DriverProfileRow {
   completed_trips: number | null;
 }
 
+interface ActiveTripRpcRow extends TripRow {
+  driver_full_name: string | null;
+  driver_car_model: string | null;
+  driver_rating: number | null;
+  driver_completed_trips: number | null;
+  driver_verification_status: TripDriverSummary['verificationStatus'];
+}
+
 interface BookingRow {
   id: string;
   trip_id: string;
@@ -412,52 +420,29 @@ export async function fetchCurrentDriverTrips() {
 export async function fetchActiveTrips() {
   if (!supabase) return [];
 
-  const { data: tripRows, error: tripError } = await supabase
-    .from('trips')
-    .select(`
-      id,
-      driver_id,
-      from_location,
-      to_location,
-      departure_at,
-      seats_total,
-      seats_available,
-      price_per_seat,
-      pickup_note,
-      dropoff_note,
-      allows_cargo,
-      cargo_capacity_kg,
-      allowed_cargo_types,
-      cargo_price_note,
-      status
-    `)
-    .eq('status', 'active')
-    .gt('seats_available', 0)
-    .order('departure_at', { ascending: true });
+  const { data: tripRows, error: tripError } = await supabase.rpc('list_active_marketplace_trips');
 
   if (tripError) throw toError(tripError, 'Trip request failed.');
   if (!tripRows?.length) return [];
 
-  const driverIds = Array.from(new Set(tripRows.map((trip) => trip.driver_id)));
-
-  const [{ data: profileRows, error: profileError }, { data: driverRows, error: driverError }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, full_name, phone')
-      .in('id', driverIds),
-    supabase
-      .from('driver_profiles')
-      .select('user_id, verification_status, car_model, rating, completed_trips')
-      .in('user_id', driverIds),
-  ]);
-
-  if (profileError) throw toError(profileError, 'Profile request failed.');
-  if (driverError) throw toError(driverError, 'Driver profile request failed.');
+  const rows = tripRows as ActiveTripRpcRow[];
+  const profileRows: ProfileRow[] = rows.map((trip) => ({
+    id: trip.driver_id,
+    full_name: trip.driver_full_name,
+    phone: null,
+  }));
+  const driverRows: DriverProfileRow[] = rows.map((trip) => ({
+    user_id: trip.driver_id,
+    verification_status: trip.driver_verification_status,
+    car_model: trip.driver_car_model,
+    rating: trip.driver_rating,
+    completed_trips: trip.driver_completed_trips,
+  }));
 
   return mapTripRows(
-    tripRows as TripRow[],
-    (profileRows || []) as ProfileRow[],
-    (driverRows || []) as DriverProfileRow[],
+    rows,
+    profileRows,
+    driverRows,
   );
 }
 

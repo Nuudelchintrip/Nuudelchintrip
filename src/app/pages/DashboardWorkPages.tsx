@@ -816,7 +816,7 @@ export function FindDriversPage() {
             <Button className="w-full sm:w-auto" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
               Цэвэрлэх
             </Button>
-            <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/dashboard/traveler/offers'}>
+            <Button className="w-full sm:w-auto" onClick={() => document.getElementById('driver-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
               Жолоочийн саналууд
               <UsersRound className="h-4 w-4" />
             </Button>
@@ -824,7 +824,7 @@ export function FindDriversPage() {
         </div>
       </Card>
 
-      <div className="mb-4 flex items-center justify-between gap-3 sm:mb-5">
+      <div id="driver-search-results" className="mb-4 scroll-mt-24 flex items-center justify-between gap-3 sm:mb-5">
         <p className="text-sm text-muted-foreground sm:text-base">{filteredOffers.length} боломжит жолооч олдлоо</p>
         <Badge variant="info">Баталгаажсан эхэнд</Badge>
       </div>

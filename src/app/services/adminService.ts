@@ -320,11 +320,7 @@ export interface AdminUserItem {
 export async function fetchAdminUsers(): Promise<AdminUserItem[]> {
   if (!supabase) return [];
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, phone, email, role, phone_verified, onboarding_completed, is_suspended, created_at')
-    .order('created_at', { ascending: false })
-    .limit(200);
+  const { data, error } = await supabase.rpc('admin_list_users');
 
   if (error) throw toError(error, 'Хэрэглэгчдийн жагсаалт уншихад алдаа гарлаа.');
 
