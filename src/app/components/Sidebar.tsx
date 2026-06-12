@@ -5,6 +5,7 @@ import type { DashboardRole } from '../navigation/dashboardMenus';
 import { logoutFromSupabase } from '../services/supabaseAuth';
 import { getRoleLabel, getStoredUser } from '../utils/auth';
 import { Logo } from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
   menuItems: {
@@ -157,6 +158,7 @@ function SidebarFooter() {
         <ShieldCheck className="h-4 w-4 shrink-0" />
         <span className="font-medium leading-5">Аюулгүй байдал</span>
       </a>
+      <ThemeToggle showLabel className="border-0 bg-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
       <button
         type="button"
         className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] leading-5 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"

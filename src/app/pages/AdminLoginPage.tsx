@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, LockKeyhole, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Mail, ShieldCheck } from 'lucide-react';
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
 import { Logo } from '../components/Logo';
+import { PasswordInput } from '../components/PasswordInput';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { loginWithSupabase, logoutFromSupabase } from '../services/supabaseAuth';
 
 function getAdminLoginError(error: unknown) {
@@ -28,6 +30,7 @@ export function AdminLoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-3.5 py-6 sm:px-4 sm:py-10">
+      <ThemeToggle className="fixed right-3 top-3 z-20 sm:right-5 sm:top-5" />
       <div className="w-full max-w-md">
         <a
           href="/"
@@ -97,17 +100,13 @@ export function AdminLoginPage() {
                 <Mail className="absolute bottom-3 right-4 h-5 w-5 text-muted-foreground" />
               </div>
 
-              <div className="relative">
-                <Input
-                  type="password"
-                  autoComplete="current-password"
-                  label="Нууц үг"
-                  placeholder="Нууц үгээ оруулна уу"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-                <LockKeyhole className="absolute bottom-3 right-4 h-5 w-5 text-muted-foreground" />
-              </div>
+              <PasswordInput
+                autoComplete="current-password"
+                label="Нууц үг"
+                placeholder="Нууц үгээ оруулна уу"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
 
               {error && (
                 <div

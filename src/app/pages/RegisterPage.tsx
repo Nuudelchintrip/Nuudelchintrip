@@ -5,6 +5,8 @@ import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
 import { Input } from '../components/Input';
 import { Logo } from '../components/Logo';
+import { PasswordInput } from '../components/PasswordInput';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { registerWithSupabase } from '../services/supabaseAuth';
 import { formatMongoliaPhone, type MarketplaceRole } from '../utils/auth';
 
@@ -86,6 +88,7 @@ export function RegisterPage() {
   if (pendingEmail) {
     return (
       <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-3.5 py-6 sm:px-4 sm:py-12">
+        <ThemeToggle className="fixed right-3 top-3 z-20 sm:right-5 sm:top-5" />
         <div className="min-w-0" style={{ width: 'min(100%, 28rem)' }}>
           <a href="/" className="mb-8 flex justify-center" aria-label="NuudelchinTrip нүүр">
             <Logo size="md" />
@@ -124,6 +127,7 @@ export function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-3.5 py-6 sm:px-4 sm:py-12">
+      <ThemeToggle className="fixed right-3 top-3 z-20 sm:right-5 sm:top-5" />
       <div className="w-full min-w-0 max-w-3xl">
         <a href="/" className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary sm:mb-6">
           <ArrowLeft className="h-4 w-4" />
@@ -198,8 +202,20 @@ export function RegisterPage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Input type="password" label="Нууц үг" placeholder="••••••••" value={password} onChange={(event) => setPassword(event.target.value)} />
-                <Input type="password" label="Нууц үг баталгаажуулах" placeholder="••••••••" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+                <PasswordInput
+                  label="Нууц үг"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <PasswordInput
+                  label="Нууц үг баталгаажуулах"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                />
               </div>
 
               <label className="flex items-start gap-3 text-sm text-foreground">
