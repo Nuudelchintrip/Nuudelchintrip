@@ -1,4 +1,4 @@
-import { Calculator, CreditCard, ReceiptText } from 'lucide-react';
+import { Calculator, CheckCircle2, CreditCard, ReceiptText, RotateCcw } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
@@ -84,6 +84,46 @@ export function PricingPage() {
                     Нэвтэрч захиалгаа шалгах
                   </Button>
                 </CardBody>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-muted/40 py-9 sm:py-14">
+          <div className="mx-auto max-w-6xl px-3.5 sm:px-6 lg:px-8">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card className="p-5 sm:p-6">
+                <h2 className="text-xl font-semibold text-foreground">Шимтгэлд юу багтах вэ?</h2>
+                <div className="mt-5 space-y-4">
+                  {[
+                    'Захиалгын хүсэлт, төлөв болон суудлын мэдээллийг нэг дор удирдах',
+                    'Төлбөрийн баримтыг админаар шалгуулж баталгаажуулах',
+                    'Аяллын явц, мэдэгдэл, үнэлгээ болон гомдлын түүхийг хадгалах',
+                    'Асуудал гарсан үед захиалгын нотолгоонд тулгуурлан шалгуулах',
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                      <p className="text-sm leading-6 text-foreground">{item}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="p-5 sm:p-6">
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-semibold text-foreground">Цуцлалт ба буцаан олголт</h2>
+                </div>
+                <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                  Буцаан олголтыг захиалгын төлөв, төлбөр баталгаажсан эсэх, аялал эхэлсэн эсэх болон цуцалсан шалтгаанд үндэслэн шалгана.
+                  Маргаантай тохиолдолд төлбөрийн баримт, захиалгын түүх, хоёр талын тайлбарыг админ нягталж шийдвэрлэнэ.
+                </p>
+                <div className="mt-5 rounded-lg border border-border bg-background p-4">
+                  <p className="font-medium text-foreground">Төлбөр хийхээс өмнө</p>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    Жолоочийн тохиролцсон үнэ, 10%-ийн үйлчилгээний шимтгэл, нийт төлөх дүн тус тусдаа харагдана.
+                  </p>
+                </div>
               </Card>
             </div>
           </div>

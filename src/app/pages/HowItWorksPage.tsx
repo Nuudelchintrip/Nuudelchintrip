@@ -1,4 +1,4 @@
-import { CheckCircle2, CreditCard, Route, ShieldCheck, Star, UserRoundCheck } from 'lucide-react';
+import { CheckCircle2, CreditCard, PackageCheck, Route, ShieldCheck, Star, UserRoundCheck } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
@@ -78,7 +78,7 @@ export function HowItWorksPage() {
 
         <section className="bg-muted/40 py-9 sm:py-14">
           <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
               <Card>
                 <CardHeader>
                   <h2 className="text-xl font-semibold text-foreground">Аялагчийн урсгал</h2>
@@ -110,6 +110,22 @@ export function HowItWorksPage() {
                   </div>
                 </CardBody>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <h2 className="text-xl font-semibold text-foreground">Дайвар ачааны урсгал</h2>
+                </CardHeader>
+                <CardBody>
+                  <div className="space-y-4">
+                    {['Ачаа авах боломжтой чиглэл хайна', 'Ачааны төрөл, жин, хүлээн авагчийн мэдээлэл оруулна', 'Жолооч хүсэлтийг зөвшөөрнө', 'Төлбөр болон ачаа авсан баримтыг баталгаажуулна', 'Хүргэлтийн кодоор хүлээлгэн өгснийг батална'].map((item) => (
+                      <div key={item} className="flex items-start gap-3">
+                        <PackageCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+                        <p className="text-foreground">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
             </div>
           </div>
         </section>
@@ -130,6 +146,21 @@ export function HowItWorksPage() {
                 </div>
               </CardBody>
             </Card>
+          </div>
+        </section>
+
+        <section className="bg-muted/40 py-9 sm:py-14">
+          <div className="mx-auto grid max-w-7xl gap-4 px-3.5 sm:px-6 md:grid-cols-3 lg:px-8">
+            {[
+              ['Хүсэлт илгээсний дараа', 'Жолооч хүсэлтийг зөвшөөрөх эсвэл татгалзах хүртэл захиалга хүлээгдэж буй төлөвт байна.'],
+              ['Төлбөр хийсний дараа', 'Баримт админаар шалгагдаж, зөвшөөрөгдвөл суудал баталгаажиж аяллын мэдээлэл нээгдэнэ.'],
+              ['Асуудал гарвал', 'Захиалгын дугаартайгаа тусламжийн хүсэлт илгээж, төлбөр болон аяллын түүхээр шалгуулна.'],
+            ].map(([title, text]) => (
+              <Card key={title} className="p-5">
+                <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
+              </Card>
+            ))}
           </div>
         </section>
       </main>

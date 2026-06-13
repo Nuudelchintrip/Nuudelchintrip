@@ -85,6 +85,34 @@ export function TripsPage() {
             </Card>
           ))}
         </section>
+
+        <section className="mt-5 grid gap-4 sm:mt-8 lg:grid-cols-2">
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-xl font-semibold text-foreground">Чиглэл сонгохдоо шалгах зүйлс</h2>
+            <div className="mt-4 grid gap-3">
+              {[
+                'Явах огноо, цаг, суух болон буух байршил',
+                'Сул суудлын тоо, нэг хүний үнэ, нийт төлөх дүн',
+                'Жолоочийн баталгаажуулалт, машины мэдээлэл, үнэлгээ',
+                'Ачаатай бол тухайн чиглэл дайвар ачаа авах эсэх',
+              ].map((item) => (
+                <div key={item} className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
+                  <p className="text-sm leading-6 text-foreground">{item}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-5 sm:p-6">
+            <h2 className="text-xl font-semibold text-foreground">Хүсэлт илгээсний дараа</h2>
+            <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
+              <p><span className="font-semibold text-foreground">1. Жолооч шийдвэрлэнэ.</span> Хүсэлтийг зөвшөөрөх эсвэл татгалзах хүртэл суудал баталгаажаагүй байна.</p>
+              <p><span className="font-semibold text-foreground">2. Төлбөр баталгаажна.</span> Зөвшөөрөгдсөн хүсэлтийн төлбөрийн баримтыг админ шалгана.</p>
+              <p><span className="font-semibold text-foreground">3. Аяллын мэдээлэл нээгдэнэ.</span> Баталгаажсан захиалгын явц, холбоо барих мэдээлэл, дараагийн алхам самбарт харагдана.</p>
+            </div>
+          </Card>
+        </section>
       </main>
 
       <Footer />
