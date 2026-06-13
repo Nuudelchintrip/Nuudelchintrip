@@ -54,7 +54,7 @@ as $$
     t.departure_at,
     t.seats_total,
     t.seats_available,
-    t.available_seat_labels,
+    null::text[] as available_seat_labels,
     t.price_per_seat,
     t.pickup_note,
     t.dropoff_note,
