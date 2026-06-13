@@ -792,14 +792,14 @@ export function FindDriversPage() {
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
-            label="Хаанаас"
+            label="Суух хаяг"
             aimag={fromAimag}
             soum={fromSoum}
             onAimagChange={setFromAimag}
             onSoumChange={setFromSoum}
           />
           <LocationSelectGroup
-            label="Хаашаа"
+            label="Буух хаяг"
             aimag={toAimag}
             soum={toSoum}
             onAimagChange={setToAimag}
@@ -829,10 +829,10 @@ export function FindDriversPage() {
             Дайвар ачаа авч болох чиглэл
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button className="w-full sm:w-auto" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
+            <Button className="w-full sm:w-auto" size="sm" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
               Цэвэрлэх
             </Button>
-            <Button className="w-full sm:w-auto" onClick={() => document.getElementById('driver-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+            <Button className="w-full sm:w-auto" size="sm" onClick={() => document.getElementById('driver-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
               Жолоочийн саналууд
               <UsersRound className="h-4 w-4" />
             </Button>
