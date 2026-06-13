@@ -491,7 +491,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
           )}
           <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
             <LocationSelectGroup
-              label="Хаанаас"
+              label="Суух байршил"
               aimag={fromAimag}
               soum={fromSoum}
               onAimagChange={setFromAimag}
@@ -499,7 +499,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               className="md:col-span-2"
             />
             <LocationSelectGroup
-              label="Хаашаа"
+              label="Буух байршил"
               aimag={toAimag}
               soum={toSoum}
               onAimagChange={setToAimag}
@@ -843,14 +843,14 @@ export function FindDriversPage() {
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
-            label="Суух"
+            label="Суух байршил"
             aimag={fromAimag}
             soum={fromSoum}
             onAimagChange={setFromAimag}
             onSoumChange={setFromSoum}
           />
           <LocationSelectGroup
-            label="Буух"
+            label="Буух байршил"
             aimag={toAimag}
             soum={toSoum}
             onAimagChange={setToAimag}
@@ -1009,14 +1009,14 @@ export function CargoFindRoutesPage() {
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
-            label="Хаанаас"
+            label="Суух байршил"
             aimag={fromAimag}
             soum={fromSoum}
             onAimagChange={setFromAimag}
             onSoumChange={setFromSoum}
           />
           <LocationSelectGroup
-            label="Хаашаа"
+            label="Буух байршил"
             aimag={toAimag}
             soum={toSoum}
             onAimagChange={setToAimag}

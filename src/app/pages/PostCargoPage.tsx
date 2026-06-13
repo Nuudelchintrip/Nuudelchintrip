@@ -182,8 +182,8 @@ export function PostCargoPage() {
               </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <LocationSelectGroup label="Хаанаас" aimag={fromAimag} soum={fromSoum} onAimagChange={setFromAimag} onSoumChange={setFromSoum} className="md:col-span-2" />
-                  <LocationSelectGroup label="Хаашаа" aimag={toAimag} soum={toSoum} onAimagChange={setToAimag} onSoumChange={setToSoum} className="md:col-span-2" />
+                  <LocationSelectGroup label="Суух байршил" aimag={fromAimag} soum={fromSoum} onAimagChange={setFromAimag} onSoumChange={setFromSoum} className="md:col-span-2" />
+                  <LocationSelectGroup label="Буух байршил" aimag={toAimag} soum={toSoum} onAimagChange={setToAimag} onSoumChange={setToSoum} className="md:col-span-2" />
                   <Input label="Ачаа авах байршил" placeholder="Баянзүрх, 13-р хороолол" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
                   <Input label="Хүргэх байршил" placeholder="Дархан, төв зам дагуу" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
                   <Input label="Явуулах огноо" type="date" value={date} onChange={(event) => setDate(event.target.value)} />

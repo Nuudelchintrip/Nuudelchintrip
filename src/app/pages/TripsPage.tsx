@@ -42,14 +42,14 @@ export function TripsPage() {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <LocationSelectGroup
-              label="Хаанаас"
+              label="Суух байршил"
               aimag=""
               soum=""
               onAimagChange={() => undefined}
               onSoumChange={() => undefined}
             />
             <LocationSelectGroup
-              label="Хаашаа"
+              label="Буух байршил"
               aimag=""
               soum=""
               onAimagChange={() => undefined}
