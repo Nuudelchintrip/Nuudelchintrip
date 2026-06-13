@@ -223,6 +223,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profileMsg, setProfileMsg] = useState('');
+  const [activeTab, setActiveTab] = useState<'profile' | 'trust' | 'activity'>('profile');
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -312,6 +313,18 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
               <p className="mt-1 text-sm font-medium text-muted-foreground">{details.roleLabel}</p>
             </div>
 
+            <Button
+              className="mt-5"
+              variant="outline"
+              fullWidth
+              disabled={uploading}
+              onClick={() => avatarInputRef.current?.click()}
+            >
+              <Camera className="h-4 w-4" />
+              {uploading ? 'Зураг оруулж байна...' : avatarUrl ? 'Профайл зураг солих' : 'Профайл зураг оруулах'}
+            </Button>
+            {profileMsg && <p className="mt-3 text-center text-sm font-medium text-primary">{profileMsg}</p>}
+
             <Button className="mt-6" fullWidth onClick={() => window.location.href = getSettingsHref(role)}>
               <Phone className="h-4 w-4" />
               Холбоо барих мэдээлэл засах
@@ -371,15 +384,26 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
               {details.headline}
             </h2>
             <div className="mt-4 flex gap-5 overflow-x-auto border-b border-border text-sm font-semibold text-muted-foreground [scrollbar-width:none] sm:mt-6 sm:flex-wrap sm:gap-6 [&::-webkit-scrollbar]:hidden">
-              {['Хувийн мэдээлэл', 'Итгэлцэл', 'Үйлдлийн түүх'].map((tab, index) => (
-                <span key={tab} className={`pb-3 ${index === 0 ? 'border-b-2 border-foreground text-foreground' : ''}`}>
-                  {tab}
-                </span>
+              {[
+                { id: 'profile' as const, label: 'Хувийн мэдээлэл' },
+                { id: 'trust' as const, label: 'Итгэлцэл' },
+                { id: 'activity' as const, label: 'Үйлдлийн түүх' },
+              ].map((tab) => (
+                <button
+                  type="button"
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`shrink-0 pb-3 transition-colors ${
+                    activeTab === tab.id ? 'border-b-2 border-primary text-foreground' : 'hover:text-foreground'
+                  }`}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
           </div>
 
-          <Card className="p-4 sm:p-6">
+          <Card className={`p-4 sm:p-6 ${activeTab !== 'profile' ? 'hidden' : ''}`}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Хувийн мэдээлэл</h2>
@@ -389,7 +413,6 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
                 {saving ? 'Хадгалж байна...' : 'Засвар хадгалах'}
               </Button>
             </div>
-            {profileMsg && <p className="mt-3 text-sm font-medium text-primary">{profileMsg}</p>}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <Input label="Нэр" value={editName} onChange={(e) => setEditName(e.target.value)} />
               <Input label="Утас" defaultValue={displayPhone} readOnly />
@@ -411,7 +434,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </div>
           </Card>
 
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_320px]">
+          <div className={`grid gap-4 sm:gap-6 lg:grid-cols-[1fr_320px] ${activeTab !== 'trust' ? 'hidden' : ''}`}>
             <Card className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold text-foreground sm:text-2xl">{details.primaryCardTitle}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{details.primaryCardText}</p>
@@ -432,7 +455,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </Card>
           </div>
 
-          <Card className="p-4 sm:p-6">
+          <Card className={`p-4 sm:p-6 ${activeTab !== 'activity' ? 'hidden' : ''}`}>
             <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Сүүлийн үйлдлүүд</h2>
             <div className="mt-5 grid gap-3">
               {details.activity.length > 0 ? (

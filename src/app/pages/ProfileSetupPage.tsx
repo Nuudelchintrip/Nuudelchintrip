@@ -10,6 +10,8 @@ import {
   completeCargoOnboarding,
   completeTravelerOnboarding,
   submitDriverOnboarding,
+  updateProfileInfo,
+  uploadAvatar,
   uploadDriverDocument,
   type DriverDocumentKind,
 } from '../services/supabaseAuth';
@@ -40,6 +42,8 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState('');
 
@@ -83,6 +87,11 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
 
     try {
       if (normalizedRole === 'traveler') {
+        if (avatarFile) {
+          setProgress('Профайл зураг оруулж байна...');
+          const avatarUrl = await uploadAvatar(avatarFile);
+          await updateProfileInfo({ avatarUrl });
+        }
         await completeTravelerOnboarding({ emergencyContactName, emergencyContactPhone });
       } else if (normalizedRole === 'driver') {
         setProgress('Бичиг баримтыг илгээж байна...');
@@ -150,11 +159,15 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
               </div>
             </CardHeader>
             <CardBody>
-              <div className="mb-4 rounded-lg border-2 border-dashed border-border bg-muted/20 p-4 text-center sm:mb-5 sm:p-6">
-                <Camera className="mx-auto mb-2 h-8 w-8 text-muted-foreground sm:mb-3 sm:h-10 sm:w-10" />
-                <p className="font-medium text-foreground">Профайл зураг</p>
-                <p className="text-sm text-muted-foreground">Дараа нь тохиргоо хэсгээс сольж болно.</p>
-              </div>
+              <AvatarUploadField
+                file={avatarFile}
+                preview={avatarPreview}
+                onSelect={(file) => {
+                  setAvatarFile(file);
+                  setAvatarPreview(file ? URL.createObjectURL(file) : '');
+                  setError('');
+                }}
+              />
               <div className="grid gap-4 md:grid-cols-2">
                 <Input label="Яаралтай холбоо барих хүний нэр" placeholder="Холбоо барих хүний нэр" value={emergencyContactName} onChange={(event) => setEmergencyContactName(event.target.value)} />
                 <Input label="Яаралтай холбоо барих утас" placeholder="+976 99999999" value={emergencyContactPhone} onChange={(event) => setEmergencyContactPhone(event.target.value)} />
@@ -246,6 +259,43 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
 
       <Footer />
     </div>
+  );
+}
+
+function AvatarUploadField({
+  file,
+  preview,
+  onSelect,
+}: {
+  file: File | null;
+  preview: string;
+  onSelect: (file: File | null) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      className="mb-4 flex w-full flex-col items-center rounded-lg border-2 border-dashed border-border bg-muted/20 p-4 text-center transition-colors hover:border-primary/50 sm:mb-5 sm:p-6"
+    >
+      {preview ? (
+        <img src={preview} alt="Сонгосон профайл зураг" className="mb-3 h-20 w-20 rounded-full object-cover" />
+      ) : (
+        <Camera className="mb-2 h-8 w-8 text-muted-foreground sm:mb-3 sm:h-10 sm:w-10" />
+      )}
+      <p className="font-medium text-foreground">{file ? 'Профайл зураг сонгогдлоо' : 'Профайл зураг сонгох'}</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {file ? file.name : 'JPG, PNG эсвэл WEBP, 5MB хүртэл'}
+      </p>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(event) => onSelect(event.target.files?.[0] ?? null)}
+      />
+    </button>
   );
 }
 

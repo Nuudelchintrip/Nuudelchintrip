@@ -806,7 +806,7 @@ export function FindDriversPage() {
             onSoumChange={setToSoum}
           />
         </div>
-        <div className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 md:grid-cols-[1fr_170px]">
+        <div className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 md:grid-cols-[minmax(240px,420px)_150px]">
           <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
           <Select
             value={passengers}
