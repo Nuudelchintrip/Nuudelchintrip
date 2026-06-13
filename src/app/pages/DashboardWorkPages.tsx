@@ -792,14 +792,14 @@ export function FindDriversPage() {
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <LocationSelectGroup
-            label="Суух хаяг"
+            label="Суух"
             aimag={fromAimag}
             soum={fromSoum}
             onAimagChange={setFromAimag}
             onSoumChange={setFromSoum}
           />
           <LocationSelectGroup
-            label="Буух хаяг"
+            label="Буух"
             aimag={toAimag}
             soum={toSoum}
             onAimagChange={setToAimag}
@@ -829,10 +829,10 @@ export function FindDriversPage() {
             Дайвар ачаа авч болох чиглэл
           </label>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button className="w-full sm:w-auto" size="sm" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
+            <Button className="!min-h-9 w-full !px-3 !py-1.5 !text-xs sm:!min-h-8 sm:w-auto sm:!py-1" size="sm" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
               Цэвэрлэх
             </Button>
-            <Button className="w-full sm:w-auto" size="sm" onClick={() => document.getElementById('driver-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+            <Button className="!min-h-9 w-full !px-3 !py-1.5 !text-xs sm:!min-h-8 sm:w-auto sm:!py-1" size="sm" onClick={() => document.getElementById('driver-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
               Жолоочийн саналууд
               <UsersRound className="h-4 w-4" />
             </Button>
