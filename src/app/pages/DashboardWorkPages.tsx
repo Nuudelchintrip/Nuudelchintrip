@@ -489,14 +489,14 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               </div>
             </div>
           )}
-          <div className="grid gap-3.5 sm:gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <LocationSelectGroup
               label="Суух байршил"
               aimag={fromAimag}
               soum={fromSoum}
               onAimagChange={setFromAimag}
               onSoumChange={setFromSoum}
-              className="md:col-span-2"
+              className="col-span-2 md:col-span-1"
             />
             <LocationSelectGroup
               label="Буух байршил"
@@ -504,7 +504,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
               soum={toSoum}
               onAimagChange={setToAimag}
               onSoumChange={setToSoum}
-              className="md:col-span-2"
+              className="col-span-2 md:col-span-1"
             />
             <Input label="Огноо" type="date" min={getLocalDateInputValue()} value={departureDate} onChange={(event) => setDepartureDate(event.target.value)} />
             <Input label="Хөдлөх цаг" type="time" value={departureTime} onChange={(event) => setDepartureTime(event.target.value)} />
