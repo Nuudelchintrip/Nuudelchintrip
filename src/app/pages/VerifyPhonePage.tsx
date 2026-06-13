@@ -119,7 +119,7 @@ export function VerifyPhonePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center overflow-x-hidden bg-background px-4 py-10 sm:py-12">
-      <div className="min-w-0 sm:w-full sm:max-w-lg" style={{ width: '20rem', maxWidth: 'calc(100vw - 2rem)' }}>
+      <div className="w-full min-w-0 max-w-xl">
         <a href="/auth/register" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
           <ArrowLeft className="h-4 w-4" />
           Бүртгэл рүү буцах
@@ -130,19 +130,19 @@ export function VerifyPhonePage() {
         </a>
 
         <Card className="box-border w-full max-w-full overflow-hidden">
-          <CardBody className="p-5 sm:p-8">
-            <div className="mb-7 text-center">
+          <CardBody className="p-5 sm:p-8 lg:p-10">
+            <div className="mb-7 text-center sm:mb-8">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <MessageSquareText className="h-7 w-7" />
               </div>
               <h1 className="text-2xl font-bold text-foreground sm:text-3xl">Утас баталгаажуулах</h1>
-              <p className="mx-auto mt-3 max-w-[30ch] break-words text-sm leading-7 text-muted-foreground sm:max-w-sm sm:text-base">
+              <p className="mx-auto mt-3 max-w-md break-words text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
                 Мессежийн үйлчилгээ холбогдох хүртэл хөгжүүлэлтийн 6 оронтой кодоор баталгаажуулна.
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="grid min-w-0 gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                 <Input
                   label="Утасны дугаар"
                   value={phone}
@@ -153,7 +153,7 @@ export function VerifyPhonePage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full sm:h-12 sm:w-auto"
+                  className="w-full sm:h-12 sm:min-w-44"
                   onClick={handleSendOtp}
                   disabled={sending || (otpSent && secondsLeft > 0 && !isExpired)}
                 >

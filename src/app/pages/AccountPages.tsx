@@ -590,12 +590,12 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [preferencesError, setPreferencesError] = useState('');
   const [preferencesSuccess, setPreferencesSuccess] = useState('');
+  const [activeTab, setActiveTab] = useState('details');
   const settingsTabs = [
-    { href: '#details', label: 'Миний мэдээлэл' },
-    { href: '#password', label: 'Нууц үг' },
-    { href: '#verification', label: 'Баталгаажуулалт' },
-    { href: '#privacy', label: 'Нууцлал' },
-    { href: '#notifications', label: 'Мэдэгдэл' },
+    { id: 'details', label: 'Миний мэдээлэл' },
+    { id: 'security', label: 'Нууц үг ба нууцлал' },
+    { id: 'verification', label: 'Баталгаажуулалт' },
+    { id: 'notifications', label: 'Мэдэгдэл' },
   ];
 
   useEffect(() => {
@@ -671,24 +671,25 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
 
         <nav className="mb-5 overflow-x-auto border-b border-border [scrollbar-width:none] sm:mb-8 [&::-webkit-scrollbar]:hidden">
           <div className="flex min-w-max gap-1">
-            {settingsTabs.map((tab, index) => (
-              <a
-                key={tab.href}
-                href={tab.href}
+            {settingsTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
                 className={`min-h-11 whitespace-nowrap px-3 py-3 text-sm font-medium transition sm:px-4 sm:py-4 ${
-                  index === 0
+                  activeTab === tab.id
                     ? 'border-b-2 border-primary text-foreground'
                     : 'border-b-2 border-transparent text-muted-foreground hover:text-foreground'
                 }`}
               >
                 {tab.label}
-              </a>
+              </button>
             ))}
           </div>
         </nav>
 
         <div className="space-y-6 sm:space-y-10">
-          <section id="details" className="scroll-mt-6">
+          {activeTab === 'details' && <section id="details" className="scroll-mt-6">
             <SettingsSection
               title="Миний мэдээлэл"
               description="NuudelchinTrip дээр ашиглагдах үндсэн мэдээлэл."
@@ -700,9 +701,9 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
                 <Select label="Хэрэглэгчийн төрөл" value={role} disabled options={[{ value: role, label: roleLabel }]} />
               </div>
             </SettingsSection>
-          </section>
+          </section>}
 
-          <section id="password" className="scroll-mt-6">
+          {activeTab === 'security' && <section id="password" className="scroll-mt-6">
             <SettingsSection
               title="Нууц үг ба хамгаалалт"
               description="Нууц үг, утас баталгаажуулалт, нэвтрэлтийн тохиргоо."
@@ -713,9 +714,9 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
                 <SettingsLine icon={<ShieldCheck className="h-5 w-5" />} title="Давхар хамгаалалт" text="Дараагийн хувилбарт нэмэх боломжтой." action="Дараа тохируулах" />
               </div>
             </SettingsSection>
-          </section>
+          </section>}
 
-          <section id="verification" className="scroll-mt-6">
+          {activeTab === 'verification' && <section id="verification" className="scroll-mt-6">
             <SettingsSection
               title="Баталгаажуулалт"
               description="Платформын итгэлцэлд хэрэгтэй баталгаажуулалтын төлөв."
@@ -726,9 +727,9 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
                 <VerificationStatusCard title="Дайвар ачааны эрх" text={isDriver || isSender ? 'Дүрэм зөвшөөрсөн' : 'Шаардлагагүй'} status={isDriver || isSender ? 'Бэлэн' : 'Идэвхгүй'} />
               </div>
             </SettingsSection>
-          </section>
+          </section>}
 
-          <section id="privacy" className="scroll-mt-6">
+          {activeTab === 'security' && <section id="privacy" className="scroll-mt-6">
             <SettingsSection
               title="Нууцлал"
               description="Утас, хүсэлт, үнэлгээ ямар үед харагдахыг тохируулна."
@@ -769,9 +770,9 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
                 />
               </div>
             </SettingsSection>
-          </section>
+          </section>}
 
-          <section id="notifications" className="scroll-mt-6">
+          {activeTab === 'notifications' && <section id="notifications" className="scroll-mt-6">
             <SettingsSection
               title="Мэдэгдэл"
               description="Захиалга, төлбөр, аялал болон ачааны төлөвийн мэдэгдэл."
@@ -787,7 +788,7 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
                 )}
               </div>
             </SettingsSection>
-          </section>
+          </section>}
 
           {preferencesError && (
             <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive">
@@ -800,7 +801,7 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
             </div>
           )}
 
-          <section className="border-t border-border pt-6">
+          {activeTab === 'details' && <section className="border-t border-border pt-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-base font-semibold text-foreground">Бүртгэл идэвхгүй болгох</h2>
@@ -810,7 +811,7 @@ export function AccountSettingsPage({ role }: { role: AccountRole }) {
               </div>
               <Button variant="outline">Идэвхгүй болгох хүсэлт</Button>
             </div>
-          </section>
+          </section>}
 
           <div className="sticky bottom-0 -mx-4 border-t border-border bg-background/95 p-4 backdrop-blur sm:static sm:mx-0 sm:flex sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
             <div className="flex flex-col gap-3 sm:flex-row">
