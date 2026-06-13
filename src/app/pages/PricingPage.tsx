@@ -4,6 +4,7 @@ import { Button } from '../components/Button';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
+import { PublicBackLink } from '../components/PublicBackLink';
 
 const driverPrice = 20000;
 const platformFee = driverPrice * 0.1;
@@ -15,12 +16,15 @@ export function PricingPage() {
       <Navbar />
 
       <main>
+        <div className="mx-auto max-w-5xl px-3.5 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+          <PublicBackLink />
+        </div>
         <section className="bg-primary/5 py-9 sm:py-16">
           <div className="mx-auto max-w-5xl px-3.5 text-center sm:px-6 lg:px-8">
             <Badge variant="info" className="mb-3 sm:mb-5">10% үйлчилгээний шимтгэл</Badge>
             <h1 className="mb-3 text-3xl font-bold leading-tight text-foreground sm:mb-4 sm:text-4xl">Ил тод, ойлгомжтой үнэ</h1>
             <p className="mx-auto max-w-3xl text-sm leading-6 text-muted-foreground sm:text-lg sm:leading-7">
-              Эхний хувилбарт NuudelchinTrip нь жолоочийн суудлын үнээс 10% үйлчилгээний шимтгэл авна. Автомат QPay холболт дараагийн шатанд орно.
+              NuudelchinTrip үйлчилгээний шимтгэлээ жолооч, аялагчийн тохиролцсон үнийн дүнгийн 10%-иар тооцно. Автомат QPay холболт дараагийн шатанд орно.
             </p>
           </div>
         </section>
@@ -47,7 +51,7 @@ export function PricingPage() {
                     <div className="flex items-center justify-between border-b border-border pb-4">
                       <div>
                         <p className="font-medium text-foreground">Үйлчилгээний шимтгэл</p>
-                        <p className="text-sm text-muted-foreground">NuudelchinTrip үйлчилгээний шимтгэл 10%</p>
+                        <p className="text-sm text-muted-foreground">Тохиролцсон үнийн дүнгийн 10%</p>
                       </div>
                       <p className="text-xl font-bold text-primary">₮{platformFee.toLocaleString()}</p>
                     </div>

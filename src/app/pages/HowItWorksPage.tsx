@@ -3,6 +3,7 @@ import { Badge } from '../components/Badge';
 import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
+import { PublicBackLink } from '../components/PublicBackLink';
 
 const flowSteps = [
   {
@@ -43,6 +44,9 @@ export function HowItWorksPage() {
       <Navbar />
 
       <main>
+        <div className="mx-auto max-w-7xl px-3.5 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+          <PublicBackLink />
+        </div>
         <section className="bg-primary/5 py-9 sm:py-16">
           <div className="mx-auto max-w-5xl px-3.5 text-center sm:px-6 lg:px-8">
             <Badge variant="info" className="mb-3 sm:mb-5">Ажиллах зарчим</Badge>

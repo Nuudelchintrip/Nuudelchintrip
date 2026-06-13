@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
+import { PublicBackLink } from '../components/PublicBackLink';
 import { sendPasswordResetEmail, updatePasswordWithRecovery } from '../services/supabaseAuth';
 import { submitSupportRequest } from '../services/supportService';
 
@@ -73,7 +74,7 @@ export function FaqPage() {
   ];
 
   return (
-    <InfoFrame>
+    <InfoFrame showBack>
       <PageHero icon={<HelpCircle />} eyebrow="Түгээмэл асуулт" title="Аялагч, жолоочийн хамгийн их асуудаг зүйлс" />
       <div className="mt-8 grid gap-4">
         {faqs.map(([question, answer]) => (
@@ -133,7 +134,7 @@ export function SupportPage() {
   };
 
   return (
-    <InfoFrame>
+    <InfoFrame showBack>
       <PageHero icon={<MessageCircle />} eyebrow="Дэмжлэг" title="Асуудал гарвал нэг газраас шийдүүлнэ" />
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="p-6">
@@ -324,7 +325,7 @@ export function NotFoundPage() {
 export function LegalPage({ type }: { type: 'terms' | 'privacy' }) {
   const isTerms = type === 'terms';
   return (
-    <InfoFrame>
+    <InfoFrame showBack>
       <PageHero
         icon={isTerms ? <FileText /> : <ShieldCheck />}
         eyebrow={isTerms ? 'Үйлчилгээний нөхцөл' : 'Нууцлалын бодлого'}
@@ -345,7 +346,7 @@ export function LegalPage({ type }: { type: 'terms' | 'privacy' }) {
 const terms = [
   { title: 'Платформын үүрэг', text: 'NuudelchinTrip нь аялагч болон жолоочийг холбох технологийн платформ бөгөөд шууд тээврийн үйлчилгээ үзүүлэгч биш. Жолооч өөрийн тээврийн хэрэгсэл, аяллын аюулгүй байдлыг бие даан хариуцна.' },
   { title: 'Хэрэглэгчийн үүрэг', text: 'Чиглэл, авах болон буулгах цэг, суудал, үнэ, төлбөрийн нотолгоо, профайл мэдээллээ үнэн зөв оруулах шаардлагатай. Худал мэдээлэл, хуурамч баримт оруулсан бүртгэлийг түдгэлзүүлнэ.' },
-  { title: 'Төлбөр ба шимтгэл', text: 'Аялагч төлбөрөө платформын зарласан данс руу шилжүүлж, баримтаа оруулна. Админ баталгаажуулсны дараа захиалга баталгаажна. Үйлчилгээний шимтгэлийг үнэ дээр нэмж тооцно.' },
+  { title: 'Төлбөр ба шимтгэл', text: 'Аялагч төлбөрөө платформын зарласан данс руу шилжүүлж, баримтаа оруулна. Админ баталгаажуулсны дараа захиалга баталгаажна. Үйлчилгээний шимтгэл нь жолооч, аялагчийн тохиролцсон үнийн дүнгийн 10% байна.' },
   { title: 'Цуцлалт ба буцаалт', text: 'Аялагч аялал баталгаажихаас өмнө захиалгаа цуцалж болох ба суудал автоматаар чөлөөлөгдөнө. Төлбөр баталгаажсаны дараа цуцлах тохиолдолд маргааныг админ шалгаж, үндэслэлтэй бол төлбөрийг буцаана (refund). Жолоочийн буруугаас аялал болоогүй бол төлбөрийг бүтэн буцаана.' },
   { title: 'Маргаан шийдвэрлэх', text: 'Төлбөрийн баримт, аяллын төлөв, тэмдэглэл, үйлдлийн түүх (audit log), админы шалгалтын мэдээлэл дээр үндэслэн маргааныг ангилж шийдвэрлэнэ.' },
   { title: 'Хариуцлагын хязгаар', text: 'Платформ нь хэрэглэгчдийн хооронд үүссэн зөрчил, аялалын явцад гарсан хохирлыг шууд хариуцахгүй ч маргаан шийдвэрлэх, нотолгоо хадгалах үүргийг гүйцэтгэнэ.' },
@@ -370,11 +371,16 @@ function PageHero({ icon, eyebrow, title }: { icon: ReactNode; eyebrow: string; 
   );
 }
 
-function InfoFrame({ children, narrow = false }: { children: ReactNode; narrow?: boolean }) {
+function InfoFrame({ children, narrow = false, showBack = false }: { children: ReactNode; narrow?: boolean; showBack?: boolean }) {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className={`${narrow ? 'max-w-xl' : 'max-w-7xl'} mx-auto px-4 py-10 sm:px-6 lg:px-8`}>
+        {showBack && (
+          <div className="mb-5">
+            <PublicBackLink />
+          </div>
+        )}
         {children}
       </main>
       <Footer />
