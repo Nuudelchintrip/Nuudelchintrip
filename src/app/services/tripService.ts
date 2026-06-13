@@ -352,6 +352,37 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
   return { id: tripId };
 }
 
+export async function updateDriverTrip(tripId: string, input: CreateDriverTripInput) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data, error } = await supabase.rpc('update_driver_trip', {
+    p_trip_id: tripId,
+    p_from_location: input.fromLocation,
+    p_to_location: input.toLocation,
+    p_departure_at: input.departureAt,
+    p_seats_total: input.seatsTotal,
+    p_available_seat_labels: normalizeSeatIds(input.availableSeatLabels, input.seatsTotal),
+    p_price_per_seat: input.pricePerSeat,
+    p_pickup_note: input.pickupNote || null,
+    p_dropoff_note: input.dropoffNote || null,
+    p_allows_cargo: input.allowsCargo,
+    p_cargo_capacity_kg: input.allowsCargo ? input.cargoCapacityKg ?? null : null,
+    p_allowed_cargo_types: input.allowsCargo ? input.allowedCargoTypes ?? [] : null,
+    p_cargo_price_note: input.allowsCargo ? input.cargoPriceNote || null : null,
+  });
+
+  if (error) throw toError(error, 'Чиглэл засахад алдаа гарлаа.');
+  return { id: (data as string) || tripId };
+}
+
+export async function deleteDriverTrip(tripId: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data, error } = await supabase.rpc('delete_driver_trip', { p_trip_id: tripId });
+  if (error) throw toError(error, 'Чиглэл устгахад алдаа гарлаа.');
+  return { action: (data as string) || 'deleted' };
+}
+
 export async function fetchCurrentDriverTrips() {
   if (!supabase) return [];
 

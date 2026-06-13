@@ -1,8 +1,10 @@
-import { Menu, X } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './Button';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
+import { getDashboardPath, getStoredUser } from '../utils/auth';
+import { logoutFromSupabase } from '../services/supabaseAuth';
 
 const publicLinks = [
   { href: '/how-it-works', label: 'Хэрхэн ажилладаг' },
@@ -13,6 +15,16 @@ const publicLinks = [
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const user = getStoredUser();
+  const dashboardPath = getDashboardPath(user?.role);
+
+  const handleLogout = async () => {
+    try {
+      await logoutFromSupabase();
+    } finally {
+      window.location.href = '/auth/login';
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
@@ -34,12 +46,25 @@ export function Navbar() {
 
           <div className="hidden items-center gap-3 md:flex">
             <ThemeToggle />
-            <Button variant="ghost" onClick={() => { window.location.href = '/auth/login'; }}>
-              Нэвтрэх
-            </Button>
-            <Button variant="primary" onClick={() => { window.location.href = '/auth/register'; }}>
-              Бүртгүүлэх
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" onClick={() => { window.location.href = dashboardPath; }}>
+                  Самбар
+                </Button>
+                <Button variant="primary" onClick={handleLogout}>
+                  Гарах
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => { window.location.href = '/auth/login'; }}>
+                  Нэвтрэх
+                </Button>
+                <Button variant="primary" onClick={() => { window.location.href = '/auth/register'; }}>
+                  Бүртгүүлэх
+                </Button>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -65,14 +90,26 @@ export function Navbar() {
                 {link.label}
               </a>
             ))}
-            <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
-              <Button variant="ghost" fullWidth onClick={() => { window.location.href = '/auth/login'; }}>
-                Нэвтрэх
-              </Button>
-              <Button variant="primary" fullWidth onClick={() => { window.location.href = '/auth/register'; }}>
-                Бүртгүүлэх
-              </Button>
-            </div>
+            {user ? (
+              <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
+                <Button variant="ghost" fullWidth onClick={() => { window.location.href = dashboardPath; }}>
+                  Самбар
+                </Button>
+                <Button variant="primary" fullWidth onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  Гарах
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
+                <Button variant="ghost" fullWidth onClick={() => { window.location.href = '/auth/login'; }}>
+                  Нэвтрэх
+                </Button>
+                <Button variant="primary" fullWidth onClick={() => { window.location.href = '/auth/register'; }}>
+                  Бүртгүүлэх
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

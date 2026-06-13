@@ -10,10 +10,12 @@ import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { SeatPicker } from '../components/SeatPicker';
 import { formatSeatList, normalizeSeatIds } from '../data/seats';
-import { createPassengerBooking, fetchTripById } from '../services/tripService';
+import { createPassengerBooking, deleteDriverTrip, fetchTripById } from '../services/tripService';
+import { supabase } from '../lib/supabase';
 
 type RouteDetailView = {
   id: string | number;
+  driverId: string;
   from: string;
   to: string;
   date: string;
@@ -49,6 +51,30 @@ export function TripDetailPage() {
   const [bookingSeats, setBookingSeats] = useState('1');
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [bookingNote, setBookingNote] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    supabase?.auth.getUser().then(({ data }) => {
+      if (active) setCurrentUserId(data.user?.id ?? null);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const isOwner = Boolean(route && currentUserId && route.driverId === currentUserId);
+
+  const handleDeleteOwnTrip = async () => {
+    if (!route) return;
+    if (!window.confirm('Энэ чиглэлийг устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
+    try {
+      await deleteDriverTrip(String(route.id));
+      window.location.href = '/dashboard/driver/routes';
+    } catch (error) {
+      setRouteError(error instanceof Error ? error.message : 'Чиглэл устгахад алдаа гарлаа.');
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -72,6 +98,7 @@ export function TripDetailPage() {
         const availableSeatLabels = normalizeSeatIds(trip.availableSeatLabels, trip.seatsAvailable);
         setRoute({
           id: trip.id,
+          driverId: trip.driverId,
           from: trip.fromLocation,
           to: trip.toLocation,
           date: Number.isNaN(departure.getTime()) ? trip.departureAt.slice(0, 10) : departure.toISOString().slice(0, 10),
@@ -249,18 +276,41 @@ export function TripDetailPage() {
               <p className="mt-1 text-2xl font-bold text-primary sm:text-3xl">₮{route.price.toLocaleString()}</p>
               <p className="mt-1 text-xs text-muted-foreground">Үйлчилгээний шимтгэл төлбөрийн шатанд тусдаа харагдана</p>
               <div className="mt-5 grid gap-3">
-                <Button size="lg" fullWidth onClick={() => setModal('booking')}>
-                  Суудал захиалах
-                </Button>
-                {route.allowsCargo && (
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    fullWidth
-                    onClick={() => { window.location.href = `/cargo/new?tripId=${route.id}`; }}
-                  >
-                    Дайвар ачаа илгээх
-                  </Button>
+                {isOwner ? (
+                  <>
+                    <Button
+                      size="lg"
+                      fullWidth
+                      onClick={() => { window.location.href = `/dashboard/driver/routes/new?id=${route.id}`; }}
+                    >
+                      Чиглэл засах
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      fullWidth
+                      className="text-destructive hover:text-destructive"
+                      onClick={handleDeleteOwnTrip}
+                    >
+                      Чиглэл устгах
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button size="lg" fullWidth onClick={() => setModal('booking')}>
+                      Суудал захиалах
+                    </Button>
+                    {route.allowsCargo && (
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        fullWidth
+                        onClick={() => { window.location.href = `/cargo/new?tripId=${route.id}`; }}
+                      >
+                        Дайвар ачаа илгээх
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </Card>

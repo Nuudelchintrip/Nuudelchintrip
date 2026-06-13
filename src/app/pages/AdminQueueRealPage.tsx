@@ -931,10 +931,10 @@ function AdminPayoutsQueue() {
     setMessage('');
     try {
       await recordDriverPayout(item.driverId, amount, 'Админ гараар шилжүүлэв.');
-      setMessage(`${item.driverName}-д ₮${amount.toLocaleString()} payout бүртгэгдлээ.`);
+      setMessage(`${item.driverName}-д ₮${amount.toLocaleString()} төлбөр бүртгэгдлээ.`);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Payout бүртгэхэд алдаа гарлаа.');
+      setError(e instanceof Error ? e.message : 'Төлбөр бүртгэхэд алдаа гарлаа.');
     } finally {
       setBusyId('');
     }

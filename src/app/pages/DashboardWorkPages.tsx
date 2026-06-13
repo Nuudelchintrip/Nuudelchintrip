@@ -19,6 +19,8 @@ import { refreshLocalProfileFromSupabase } from '../services/supabaseAuth';
 import {
   canCurrentDriverCreateTrip,
   createDriverTrip,
+  updateDriverTrip,
+  fetchTripById,
   fetchActiveTrips,
   fetchCargoEnabledTrips,
   fetchCurrentDriverCargoRequests,
@@ -31,6 +33,7 @@ import {
   completeCargoDelivery,
   updateCargoRequestStatus,
   updatePassengerBookingStatus,
+  deleteDriverTrip,
   submitReview,
   fetchReceivedReviews,
   fetchPendingReviews,
@@ -245,6 +248,10 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   const [submitting, setSubmitting] = useState(false);
   const [submittedTripId, setSubmittedTripId] = useState('');
   const [error, setError] = useState('');
+  const [editId] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('id') : null,
+  );
+  const isEditing = Boolean(editId);
   const driverBlocked = role === 'driver' && !canCreateTrip;
   const disabledReason = permissionLoading
     ? 'Жолоочийн эрхийг шалгаж байна...'
@@ -298,6 +305,42 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   useEffect(() => {
     refreshDriverPermission();
   }, [refreshDriverPermission]);
+
+  useEffect(() => {
+    if (!editId || role !== 'driver') return;
+    let active = true;
+    fetchTripById(editId)
+      .then((trip) => {
+        if (!active || !trip) return;
+        const [fromA, ...fromRest] = trip.fromLocation.split(' - ');
+        const [toA, ...toRest] = trip.toLocation.split(' - ');
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const dep = new Date(trip.departureAt);
+        setFromAimag(fromA || '');
+        setFromSoum(fromRest.join(' - '));
+        setToAimag(toA || '');
+        setToSoum(toRest.join(' - '));
+        if (!Number.isNaN(dep.getTime())) {
+          setDepartureDate(`${dep.getFullYear()}-${pad(dep.getMonth() + 1)}-${pad(dep.getDate())}`);
+          setDepartureTime(`${pad(dep.getHours())}:${pad(dep.getMinutes())}`);
+        }
+        setSeatsTotal(String(trip.seatsTotal));
+        setAvailableSeatLabels(trip.availableSeatLabels ?? []);
+        setPricePerSeat(String(trip.pricePerSeat));
+        setPickupNote(trip.pickupNote ?? '');
+        setDropoffNote(trip.dropoffNote ?? '');
+        setAllowsCargo(trip.allowsCargo ? 'yes' : 'no');
+        setCargoCapacityKg(trip.cargoCapacityKg != null ? String(trip.cargoCapacityKg) : '');
+        setAllowedCargoTypes((trip.allowedCargoTypes ?? []).join(', '));
+        setCargoPriceNote(trip.cargoPriceNote ?? '');
+      })
+      .catch(() => {
+        if (active) setError('Засах чиглэлийн мэдээлэл уншихад алдаа гарлаа.');
+      });
+    return () => {
+      active = false;
+    };
+  }, [editId, role]);
 
   const formatLocation = (aimag: string, soum: string) => {
     if (!aimag) return '';
@@ -358,32 +401,40 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       return;
     }
 
+    const payload = {
+      fromLocation: formatLocation(fromAimag, fromSoum),
+      toLocation: formatLocation(toAimag, toSoum),
+      departureAt: departure.toISOString(),
+      seatsTotal: seats,
+      availableSeatLabels: availableSeatLabels.length ? availableSeatLabels : getDefaultSeatIds(seats),
+      pricePerSeat: price,
+      pickupNote: pickupNote || formNote,
+      dropoffNote,
+      allowsCargo: allowsCargo === 'yes',
+      cargoCapacityKg: cargoCapacity,
+      allowedCargoTypes: allowedCargoTypes
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean),
+      cargoPriceNote,
+    };
+
     setSubmitting(true);
     try {
-      const result = await createDriverTrip({
-        fromLocation: formatLocation(fromAimag, fromSoum),
-        toLocation: formatLocation(toAimag, toSoum),
-        departureAt: departure.toISOString(),
-        seatsTotal: seats,
-        availableSeatLabels: availableSeatLabels.length ? availableSeatLabels : getDefaultSeatIds(seats),
-        pricePerSeat: price,
-        pickupNote: pickupNote || formNote,
-        dropoffNote,
-        allowsCargo: allowsCargo === 'yes',
-        cargoCapacityKg: cargoCapacity,
-        allowedCargoTypes: allowedCargoTypes
-          .split(',')
-          .map((item) => item.trim())
-          .filter(Boolean),
-        cargoPriceNote,
-      });
+      const result = editId
+        ? await updateDriverTrip(editId, payload)
+        : await createDriverTrip(payload);
       setSubmittedTripId(result.id);
     } catch (err) {
       const message = readableError(err, 'Чиглэл хадгалахад алдаа гарлаа.');
       setError(
         message.includes('future_departure_required')
           ? 'Өнгөрсөн огноо, цаг сонгох боломжгүй. Ирээдүйн огноо, цаг сонгоно уу.'
-          : message,
+          : message.includes('trip_has_bookings')
+            ? 'Захиалга авсан чиглэлийг засах боломжгүй. Шинэ чиглэл үүсгэнэ үү.'
+            : message.includes('not_trip_owner')
+              ? 'Зөвхөн өөрийн чиглэлээ засах боломжтой.'
+              : message,
       );
     } finally {
       setSubmitting(false);
@@ -392,7 +443,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
 
   return (
     <DashboardFrame role={role} active="routes">
-      <PageTop badge={copy.badge} title={copy.title} description={copy.createText} backHref={copy.base} />
+      <PageTop badge={copy.badge} title={isEditing ? 'Чиглэл засах' : copy.title} description={copy.createText} backHref={copy.base} />
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_360px]">
         <Card className="p-4 sm:p-6">
           {driverBlocked && !permissionLoading && (
@@ -1018,12 +1069,37 @@ export function CargoFindRoutesPage() {
   );
 }
 
+const TRIP_STATUS_LABELS: Record<string, string> = {
+  active: 'Идэвхтэй',
+  full: 'Дүүрсэн',
+  cancelled: 'Цуцлагдсан',
+  completed: 'Дууссан',
+};
+
+function tripStatusLabel(status: string) {
+  return TRIP_STATUS_LABELS[status] ?? status;
+}
+
 export function MyRoutesPage({ role }: { role: WorkRole }) {
   const copy = roleCopy[role];
   const [driverTrips, setDriverTrips] = useState<MarketplaceTrip[]>([]);
   const [travelerBookings, setTravelerBookings] = useState<TravelerBookingSummary[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(isSupabaseConfigured);
   const [routesError, setRoutesError] = useState('');
+
+  const handleDeleteTrip = async (tripId: string) => {
+    if (!window.confirm('Энэ чиглэлийг устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
+    try {
+      const { action } = await deleteDriverTrip(tripId);
+      if (action === 'cancelled') {
+        setDriverTrips((prev) => prev.map((trip) => (trip.id === tripId ? { ...trip, status: 'cancelled' } : trip)));
+      } else {
+        setDriverTrips((prev) => prev.filter((trip) => trip.id !== tripId));
+      }
+    } catch (err) {
+      setRoutesError(err instanceof Error ? err.message : 'Чиглэл устгахад алдаа гарлаа.');
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -1103,9 +1179,13 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
                       {new Date(trip.departureAt).toLocaleString('mn-MN')} · {trip.seatsAvailable}/{trip.seatsTotal} сул · ₮{trip.pricePerSeat.toLocaleString()}
                     </p>
                   </div>
-                  <Badge variant={trip.status === 'active' ? 'success' : trip.status === 'cancelled' ? 'danger' : 'default'}>{trip.status}</Badge>
+                  <Badge variant={trip.status === 'active' ? 'success' : trip.status === 'cancelled' ? 'danger' : 'default'}>{tripStatusLabel(trip.status)}</Badge>
                   <p className="text-sm text-muted-foreground">{trip.allowsCargo ? 'Дайвар ачаа авна' : 'Зөвхөн зорчигч'}</p>
-                  <Button variant="outline" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => window.location.href = `/dashboard/driver/routes/new?id=${trip.id}`}>Засах</Button>
+                    <Button variant="ghost" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteTrip(trip.id)}>Устгах</Button>
+                  </div>
                 </div>
               ))}
             </div>

@@ -1224,8 +1224,8 @@ export function PublicDriverProfilePage() {
 function TravelerProfileFields() {
   return (
     <div className="mt-6 grid gap-4 md:grid-cols-2">
-      <Input label="Emergency contact" defaultValue="+976 9911 2233" />
-      <Select label="Суудлын preference" options={[{ value: 'front', label: 'Урд суудал' }, { value: 'back', label: 'Арын суудал' }]} />
+      <Input label="Яаралтай үед холбоо барих хүн" defaultValue="+976 9911 2233" />
+      <Select label="Суудлын сонголт" options={[{ value: 'front', label: 'Урд суудал' }, { value: 'back', label: 'Арын суудал' }]} />
       <Select label="Тамхи татдаг эсэх" options={[{ value: 'no', label: 'Татдаггүй' }, { value: 'yes', label: 'Татдаг' }]} />
       <Select label="Ачаатай явах эсэх" options={[{ value: 'small', label: 'Жижиг гар тээштэй' }, { value: 'none', label: 'Ачаагүй' }]} />
     </div>
@@ -1235,8 +1235,8 @@ function TravelerProfileFields() {
 function DriverProfileFields() {
   return (
     <div className="mt-6 grid gap-4 md:grid-cols-2">
-      <Input label="Model" defaultValue="Toyota Prius 30" />
-      <Input label="Plate number" defaultValue="УБА 1234" />
+      <Input label="Машины загвар" defaultValue="Toyota Prius 30" />
+      <Input label="Улсын дугаар" defaultValue="УБА 1234" />
       <Input label="Суудлын тоо" defaultValue="4" />
       <Select label="Дайвар ачааны эрх" options={[{ value: 'yes', label: 'Дайвар ачаа авч болно' }, { value: 'no', label: 'Авахгүй' }]} />
     </div>

@@ -205,16 +205,16 @@ export function ForgotPasswordPage() {
       return;
     }
     if (!email.includes('@')) {
-      setError('Одоогоор password reset зөвхөн и-мэйлээр илгээгдэнэ.');
+      setError('Одоогоор нууц үг сэргээх зөвхөн и-мэйлээр илгээгдэнэ.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       await sendPasswordResetEmail(email.trim());
-      setStatus('Password reset холбоос таны и-мэйл рүү илгээгдлээ. Inbox эсвэл spam хавтсаа шалгаарай.');
+      setStatus('Нууц үг сэргээх холбоос таны и-мэйл рүү илгээгдлээ. Ирсэн имэйл болон спам хавтсаа шалгаарай.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Reset email илгээхэд алдаа гарлаа.');
+      setError(err instanceof Error ? err.message : 'Нууц үг сэргээх имэйл илгээхэд алдаа гарлаа.');
     } finally {
       setIsSubmitting(false);
     }
