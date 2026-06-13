@@ -27,9 +27,9 @@ export function TripsPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:h-12 sm:w-12">
               <LockKeyhole className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h2 className="mt-4 text-xl font-semibold text-foreground">Яагаад public жагсаалт байхгүй вэ?</h2>
+            <h2 className="mt-4 text-xl font-semibold text-foreground">Яагаад нийтийн жагсаалт байхгүй вэ?</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Жолооч, аялагчийн утас, захиалга, төлбөрийн баримт, маргааны мэдээлэл privacy-тэй холбоотой тул login-ийн дараа л ажиллана.
+              Жолооч, аялагчийн утас, захиалга, төлбөрийн баримт, маргааны мэдээлэл нууцлалтай холбоотой тул нэвтэрсний дараа л ажиллана.
             </p>
           </Card>
         </section>

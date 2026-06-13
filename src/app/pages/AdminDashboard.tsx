@@ -53,7 +53,7 @@ export function AdminDashboard() {
         </div>
 
         <Card className="mt-5 p-5 text-center sm:mt-8 sm:p-8">
-          <h2 className="text-xl font-semibold text-foreground">Одоогоор хүлээгдэж буй бодит item алга</h2>
+          <h2 className="text-xl font-semibold text-foreground">Одоогоор хүлээгдэж буй бодит зүйл алга</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
             Хэрэглэгч бодит чиглэл, захиалга, баримт, гомдол үүсгэсний дараа эдгээр жагсаалт өгөгдлийн сангаас дүүрнэ.
           </p>

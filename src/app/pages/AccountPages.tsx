@@ -873,7 +873,7 @@ function LegacyAccountSettingsPage({ role }: { role: AccountRole }) {
             </div>
           </SettingCard>
 
-          <SettingCard icon={<LockKeyhole />} title="Хамгаалалтын тохиргоо" description="Нууц үг, session, давхар хамгаалалт, утас баталгаажуулалт.">
+          <SettingCard icon={<LockKeyhole />} title="Хамгаалалтын тохиргоо" description="Нууц үг, нэвтрэлт, давхар хамгаалалт, утас баталгаажуулалт.">
             <div className="grid gap-3 md:grid-cols-4">
               <StatusTile title="Нууц үг" text="32 хоногийн өмнө" />
               <StatusTile title="Нэвтрэлтийн түүх" text="2 төхөөрөмж" />

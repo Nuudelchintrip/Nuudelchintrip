@@ -210,7 +210,7 @@ function AdminPaymentsQueue() {
       {loading ? (
         <Card className="p-6 text-muted-foreground">Төлбөрийн баримтуудыг уншиж байна...</Card>
       ) : items.length === 0 ? (
-        <EmptyQueue title="Одоогоор шалгах төлбөр алга" text="Хэрэглэгч төлбөрийн баримт upload хиймэгц энд бодитоор гарч ирнэ." />
+        <EmptyQueue title="Одоогоор шалгах төлбөр алга" text="Хэрэглэгч төлбөрийн баримт оруулмагц энд бодитоор гарч ирнэ." />
       ) : (
         <div className="grid gap-4">
           {items.map((item) => (
@@ -348,7 +348,7 @@ function AdminVerificationsQueue() {
       {loading ? (
         <Card className="p-6 text-muted-foreground">Баталгаажуулалтын хүсэлтүүдийг уншиж байна...</Card>
       ) : items.length === 0 ? (
-        <EmptyQueue title="Одоогоор жолоочийн хүсэлт алга" text="Жолооч onboarding бөглөхөд энд бодитоор гарч ирнэ." />
+        <EmptyQueue title="Одоогоор жолоочийн хүсэлт алга" text="Жолооч бүртгэлээ бөглөхөд энд бодитоор гарч ирнэ." />
       ) : (
         <div className="grid gap-4">
           {items.map((item) => (
@@ -1057,8 +1057,8 @@ function ComingSoonQueue({ view }: { view: AdminView }) {
   const copy = pageCopy[view];
   return (
     <EmptyQueue
-      title={`${copy.title} хэсэгт одоогоор бодит action нэмэгдээгүй`}
-      text="Энэ хэсгийг дараагийн шатанд Supabase хүснэгттэй бүрэн холбоно. Одоогоор үндсэн MVP-д төлбөрийн баталгаажуулалт болон жолоочийн verification хамгийн түрүүнд ажиллаж байна."
+      title={`${copy.title} хэсэгт одоогоор бодит үйлдэл нэмэгдээгүй`}
+      text="Энэ хэсгийг дараагийн шатанд өгөгдлийн сантай бүрэн холбоно. Одоогоор төлбөрийн баталгаажуулалт болон жолоочийн баталгаажуулалт хамгийн түрүүнд ажиллаж байна."
     />
   );
 }
