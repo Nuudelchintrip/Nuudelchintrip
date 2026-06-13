@@ -836,12 +836,12 @@ export function FindDriversPage() {
         backHref="/dashboard/traveler"
       />
 
-      <Card className="mb-4 p-4 sm:mb-6 sm:p-6">
+      <Card className="mb-4 p-3 sm:mb-6 sm:p-5">
         <div className="mb-4 flex items-center gap-2 sm:mb-5">
           <Search className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">Хайлт ба шүүлтүүр</h2>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid max-w-5xl gap-3 md:grid-cols-2">
           <LocationSelectGroup
             label="Суух байршил"
             aimag={fromAimag}
@@ -857,7 +857,7 @@ export function FindDriversPage() {
             onSoumChange={setToSoum}
           />
         </div>
-        <div className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 md:grid-cols-[minmax(240px,420px)_150px]">
+        <div className="mt-3 grid max-w-xl grid-cols-[minmax(0,1fr)_110px] gap-2.5 sm:mt-4 sm:grid-cols-[minmax(240px,420px)_140px] sm:gap-3">
           <Input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
           <Select
             value={passengers}
@@ -1002,12 +1002,12 @@ export function CargoFindRoutesPage() {
         backHref="/dashboard/cargo"
       />
 
-      <Card className="mb-4 p-4 sm:mb-6 sm:p-6">
+      <Card className="mb-4 p-3 sm:mb-6 sm:p-5">
         <div className="mb-4 flex items-center gap-2 sm:mb-5">
           <Search className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">Чиглэл шүүх</h2>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid max-w-5xl gap-3 md:grid-cols-2">
           <LocationSelectGroup
             label="Суух байршил"
             aimag={fromAimag}
@@ -1024,8 +1024,9 @@ export function CargoFindRoutesPage() {
           />
         </div>
         <Button
+          size="sm"
           variant="outline"
-          className="mt-4 w-full sm:w-auto"
+          className="mt-3 !min-h-9 w-full !px-3 !py-1.5 !text-xs sm:w-auto"
           onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); }}
         >
           Шүүлтүүр цэвэрлэх
