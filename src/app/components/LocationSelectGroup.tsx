@@ -25,7 +25,7 @@ export function LocationSelectGroup({
         <MapPin className="h-3.5 w-3.5 text-primary" />
         {label}
       </p>
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Select
           aria-label={`${label} аймаг/хот`}
           value={aimag}
