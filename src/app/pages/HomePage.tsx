@@ -14,10 +14,19 @@ import {
   ShieldCheck,
   Star,
   UserRound,
+  UsersRound,
 } from 'lucide-react';
+import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
+
+const stats = [
+  { value: '21', label: 'Аймаг даяар' },
+  { value: '330+', label: 'Сум, дүүрэг' },
+  { value: '3', label: 'Төрлийн үйлчилгээ' },
+  { value: '100%', label: 'Баталгаажсан жолооч' },
+];
 
 const roles = [
   {
@@ -41,6 +50,12 @@ const roles = [
     href: '/auth/register?role=cargo_sender',
     cta: 'Ачаа илгээх',
   },
+];
+
+const sampleTrips = [
+  { driver: 'Бат-Эрдэнэ', car: 'Toyota Prius 30', rating: '4.9', from: 'Улаанбаатар', to: 'Дархан', when: 'Маргааш 09:00', seats: 3, price: 35000, cargo: true },
+  { driver: 'Энхтуяа', car: 'Lexus RX 350', rating: '4.8', from: 'Эрдэнэт', to: 'Мөрөн', when: 'Бямба 07:30', seats: 2, price: 60000, cargo: false },
+  { driver: 'Ганболд', car: 'Toyota Land Cruiser', rating: '5.0', from: 'Улаанбаатар', to: 'Цэцэрлэг', when: 'Өнөөдөр 14:00', seats: 4, price: 40000, cargo: true },
 ];
 
 const steps = [
@@ -81,6 +96,15 @@ export function HomePage() {
               <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8">
                 Нэг замаар явах жолоочтой холбогдоод, сул суудлыг нь хуваалцаарай. Хямд, ойр дотно, найдвартай.
               </p>
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button onClick={() => { window.location.href = '/auth/register?role=traveler'; }}>
+                  Жолооч хайх
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" onClick={() => { window.location.href = '/auth/register?role=driver'; }}>
+                  Жолоочоор нэгдэх
+                </Button>
+              </div>
               <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2">
                 {['Баталгаажсан жолооч', 'Төлбөрийн баримт', 'Админ хяналт'].map((item) => (
                   <span key={item} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -92,6 +116,18 @@ export function HomePage() {
             </div>
 
             <HeroJourneyCard />
+          </div>
+
+          {/* Stats strip */}
+          <div className="border-t border-border">
+            <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-border px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
+              {stats.map((stat) => (
+                <div key={stat.label} className="px-2 py-5 text-center sm:py-6">
+                  <p className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{stat.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -121,61 +157,140 @@ export function HomePage() {
           </div>
         </section>
 
-        {/* Steps */}
+        {/* Product showcase */}
         <section className="border-y border-border bg-muted/30">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-            <SectionHead kicker="Хэрхэн ажилладаг вэ?" title="Таван энгийн алхам" />
-            <ol className="grid gap-x-6 gap-y-7 sm:grid-cols-2 lg:grid-cols-5">
-              {steps.map((step, index) => (
-                <li key={step.title} className="reveal-up" style={{ animationDelay: `${index * 80}ms` }}>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
-                    {index + 1}
+            <div className="mb-7 flex flex-col gap-2 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
+              <SectionHead kicker="Жишээ харагдац" title="Жолооч хайхад ийм харагдана" inline />
+              <span className="text-sm text-muted-foreground">Бодит чиглэл нэвтэрсний дараа</span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {sampleTrips.map((trip, index) => (
+                <div
+                  key={trip.driver}
+                  className="reveal-up rounded-2xl border border-border bg-card p-5 shadow-sm"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-primary">
+                        <Car className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-foreground">{trip.driver}</p>
+                        <p className="truncate text-xs text-muted-foreground">{trip.car}</p>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
+                      <Star className="h-4 w-4 fill-warning text-warning" />
+                      {trip.rating}
+                    </span>
                   </div>
-                  <h3 className="mt-3 text-sm font-semibold text-foreground">{step.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{step.text}</p>
-                </li>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2 text-base font-semibold text-foreground">
+                    <span>{trip.from}</span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <span>{trip.to}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {trip.when} · {trip.seats} сул суудал
+                  </p>
+                  {trip.cargo && (
+                    <div className="mt-3">
+                      <Badge variant="warning">Дайвар ачаа авна</Badge>
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                    <span className="text-lg font-bold text-primary">
+                      ₮{trip.price.toLocaleString()}
+                      <span className="text-sm font-normal text-muted-foreground"> /хүн</span>
+                    </span>
+                    <span className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-muted-foreground">Суудал захиалах</span>
+                  </div>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </section>
 
-        {/* Trust */}
+        {/* Steps */}
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <SectionHead kicker="Аюулгүй байдал" title="Юунд итгэж болох вэ?" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {trust.map((item, index) => (
-              <div
-                key={item.title}
-                className="reveal-up rounded-2xl border border-border bg-card p-5 shadow-sm"
-                style={{ animationDelay: `${index * 80}ms` }}
-              >
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">{item.icon}</span>
-                <h3 className="mt-4 text-base font-semibold text-foreground">{item.title}</h3>
-                <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{item.text}</p>
+          <SectionHead kicker="Хэрхэн ажилладаг вэ?" title="Таван энгийн алхам" />
+          <ol className="grid gap-x-6 gap-y-7 sm:grid-cols-2 lg:grid-cols-5">
+            {steps.map((step, index) => (
+              <li key={step.title} className="reveal-up" style={{ animationDelay: `${index * 80}ms` }}>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                  {index + 1}
+                </div>
+                <h3 className="mt-3 text-sm font-semibold text-foreground">{step.title}</h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{step.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* Trust */}
+        <section className="border-y border-border bg-muted/30">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+            <SectionHead kicker="Аюулгүй байдал" title="Юунд итгэж болох вэ?" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {trust.map((item, index) => (
+                <div
+                  key={item.title}
+                  className="reveal-up rounded-2xl border border-border bg-card p-5 shadow-sm"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">{item.icon}</span>
+                  <h3 className="mt-4 text-base font-semibold text-foreground">{item.title}</h3>
+                  <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Cargo */}
+        <section className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1fr_1fr] lg:px-8">
+          <div>
+            <p className="text-sm font-semibold tracking-wide text-primary">Ачаа илгээх</p>
+            <h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
+              Аян замдаа явахдаа л ачааг зөөдөг
+            </h2>
+            <p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
+              Жолооч аялал нийтлэхдээ “ачаа авна” гэж тэмдэглэвэл тэр замдаа жижиг ачаа дайчилж болно. Тусдаа тээврийн зах биш — энгийн, дайвар үйлчилгээ.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {['Ачаа авах эсэх', 'Ачааны багтаамж', 'Зөвшөөрөх төрөл', 'Хүргэлтийн код'].map((item) => (
+              <div key={item} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                <BadgeCheck className="h-5 w-5 text-primary" />
+                <p className="mt-2 text-sm font-medium text-foreground">{item}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Cargo */}
-        <section className="border-y border-border bg-muted/30">
-          <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1fr_1fr] lg:px-8">
+        {/* CTA band */}
+        <section className="bg-primary">
+          <div className="mx-auto flex max-w-7xl flex-col items-start gap-6 px-4 py-12 sm:px-6 sm:py-16 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
-              <p className="text-sm font-semibold tracking-wide text-primary">Ачаа илгээх</p>
-              <h2 className="mt-3 text-2xl font-bold leading-tight tracking-tight text-foreground sm:text-3xl">
-                Аян замдаа явахдаа л ачааг зөөдөг
+              <h2 className="text-2xl font-bold leading-tight tracking-tight text-primary-foreground sm:text-3xl">
+                Замдаа гарахад бэлэн үү?
               </h2>
-              <p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
-                Жолооч аялал нийтлэхдээ “ачаа авна” гэж тэмдэглэвэл тэр замдаа жижиг ачаа дайчилж болно. Тусдаа тээврийн зах биш — энгийн, дайвар үйлчилгээ.
+              <p className="mt-2 max-w-xl text-sm leading-7 text-primary-foreground/80 sm:text-base">
+                Хэдхэн алхамд бүртгүүлээд жолооч хайх, аялал нэмэх, ачаа илгээхээ эхэл.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              {['Ачаа авах эсэх', 'Ачааны багтаамж', 'Зөвшөөрөх төрөл', 'Хүргэлтийн код'].map((item) => (
-                <div key={item} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-                  <BadgeCheck className="h-5 w-5 text-primary" />
-                  <p className="mt-2 text-sm font-medium text-foreground">{item}</p>
-                </div>
-              ))}
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <a href="/auth/register" className="inline-flex items-center justify-center gap-2 rounded-lg bg-card px-5 py-3 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-card/90">
+                Бүртгүүлэх
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <a href="/how-it-works" className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-foreground/30 px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10">
+                <UsersRound className="h-4 w-4" />
+                Яаж ажилладаг вэ?
+              </a>
             </div>
           </div>
         </section>
@@ -275,9 +390,9 @@ function HeroJourneyCard() {
   );
 }
 
-function SectionHead({ kicker, title }: { kicker: string; title: string }) {
+function SectionHead({ kicker, title, inline = false }: { kicker: string; title: string; inline?: boolean }) {
   return (
-    <div className="mb-7 sm:mb-9">
+    <div className={inline ? '' : 'mb-7 sm:mb-9'}>
       <p className="text-sm font-semibold tracking-wide text-primary">{kicker}</p>
       <h2 className="mt-1.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h2>
     </div>
