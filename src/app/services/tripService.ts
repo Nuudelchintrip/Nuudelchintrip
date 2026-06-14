@@ -375,12 +375,12 @@ export async function updateDriverTrip(tripId: string, input: CreateDriverTripIn
   return { id: (data as string) || tripId };
 }
 
-export async function deleteDriverTrip(tripId: string) {
+export async function cancelDriverTrip(tripId: string) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
-  const { data, error } = await supabase.rpc('delete_driver_trip', { p_trip_id: tripId });
-  if (error) throw toError(error, 'Чиглэл устгахад алдаа гарлаа.');
-  return { action: (data as string) || 'deleted' };
+  const { data, error } = await supabase.rpc('cancel_driver_trip', { p_trip_id: tripId });
+  if (error) throw toError(error, 'Чиглэл цуцлахад алдаа гарлаа.');
+  return { action: (data as string) || 'cancelled' };
 }
 
 export async function fetchCurrentDriverTrips() {

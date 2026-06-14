@@ -33,7 +33,7 @@ import {
   completeCargoDelivery,
   updateCargoRequestStatus,
   updatePassengerBookingStatus,
-  deleteDriverTrip,
+  cancelDriverTrip,
   submitReview,
   fetchReceivedReviews,
   fetchPendingReviews,
@@ -1094,7 +1094,7 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      const { action } = await deleteDriverTrip(deleteTarget.id);
+      const { action } = await cancelDriverTrip(deleteTarget.id);
       if (action === 'cancelled') {
         setDriverTrips((prev) => prev.map((trip) => (trip.id === deleteTarget.id ? { ...trip, status: 'cancelled' } : trip)));
       } else {
@@ -1102,7 +1102,7 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
       }
       setDeleteTarget(null);
     } catch (err) {
-      setRoutesError(err instanceof Error ? err.message : 'Чиглэл устгахад алдаа гарлаа.');
+      setRoutesError(err instanceof Error ? err.message : 'Чиглэл цуцлахад алдаа гарлаа.');
       setDeleteTarget(null);
     } finally {
       setDeleting(false);
@@ -1195,7 +1195,9 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
                     <div className="flex shrink-0 flex-wrap items-center gap-2">
                       <Button variant="outline" size="sm" onClick={() => window.location.href = `/dashboard/driver/routes/new?id=${trip.id}`}>Засах</Button>
                       <Button variant="ghost" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(trip)}>Устгах</Button>
+                      {(trip.status === 'active' || trip.status === 'full') && (
+                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(trip)}>Цуцлах</Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1262,9 +1264,9 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
             className="w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-lg"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-foreground">Чиглэл устгах уу?</h3>
+            <h3 className="text-lg font-semibold text-foreground">Чиглэл цуцлах уу?</h3>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              <span className="font-medium text-foreground">{deleteTarget.fromLocation} → {deleteTarget.toLocation}</span> чиглэлийг устгана. Энэ үйлдлийг буцаах боломжгүй.
+              <span className="font-medium text-foreground">{deleteTarget.fromLocation} → {deleteTarget.toLocation}</span> чиглэл цуцлагдаж, аялагч болон ачаа илгээгчийн хайлтаас хасагдана. Түүхэнд хадгалагдана.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)} disabled={deleting}>Болих</Button>
@@ -1274,7 +1276,7 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
                 disabled={deleting}
                 className="inline-flex min-h-9 items-center justify-center rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-60"
               >
-                {deleting ? 'Устгаж байна...' : 'Устгах'}
+                {deleting ? 'Цуцалж байна...' : 'Чиглэл цуцлах'}
               </button>
             </div>
           </div>
