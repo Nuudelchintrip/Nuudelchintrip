@@ -116,25 +116,25 @@ export function HomePage() {
 
         {/* Stats */}
         <section className="border-b border-border bg-muted/20">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Монгол орны өнцөг бүрт</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Монгол орны өнцөг бүрт</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Аймаг, сум, дүүргийн чиглэлд зорчих, ачаа илгээх, жолооч хайх үйлчилгээг нэг дороос.
               </p>
             </div>
 
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-4 lg:grid-cols-4">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="rounded-2xl border border-border bg-card p-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md sm:p-6"
+                  className="rounded-xl border border-border bg-card p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                 >
-                  <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-primary">
+                  <span className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
                     {stat.icon}
                   </span>
-                  <p className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{stat.value}</p>
-                  <p className="mt-1.5 text-xs font-medium text-muted-foreground sm:text-sm">{stat.label}</p>
+                  <p className="mt-2.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{stat.value}</p>
+                  <p className="mt-1 text-xs font-medium text-muted-foreground sm:text-sm">{stat.label}</p>
                 </div>
               ))}
             </div>
