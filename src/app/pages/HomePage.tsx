@@ -213,6 +213,12 @@ export function HomePage() {
             <p className="mt-4 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
               Жолооч аялал нийтлэхдээ “ачаа авна” гэж тэмдэглэвэл тэр замдаа жижиг ачаа дайчилж болно. Тусдаа тээврийн зах биш — энгийн, дайвар үйлчилгээ.
             </p>
+            <div className="mt-5 rounded-xl border border-border bg-card p-4">
+              <p className="text-sm font-semibold text-foreground">Хүргэлт хэрхэн баталгаажих вэ?</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Хүлээн авагч ачаагаа авахдаа өөрийн 6 оронтой кодыг жолоочид хэлнэ. Жолооч кодыг оруулсны дараа хүргэлт дууссанд тооцогдоно.
+              </p>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {['Ачаа авах эсэх', 'Ачааны багтаамж', 'Зөвшөөрөх төрөл', 'Хүргэлтийн код'].map((item) => (
