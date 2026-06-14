@@ -10,7 +10,6 @@ import {
   MapPin,
   Package,
   PhoneCall,
-  Route,
   Search,
   ShieldCheck,
   Star,
@@ -47,10 +46,10 @@ const roles = [
 ];
 
 const stats = [
-  { value: '21', label: 'Аймаг даяар', icon: <MapPin className="h-5 w-5" /> },
-  { value: '330+', label: 'Сум, дүүрэг', icon: <Route className="h-5 w-5" /> },
-  { value: '3', label: 'Төрлийн үйлчилгээ', icon: <UsersRound className="h-5 w-5" /> },
-  { value: '100%', label: 'Баталгаажсан жолооч', icon: <ShieldCheck className="h-5 w-5" /> },
+  { value: '21', label: 'Аймаг даяар' },
+  { value: '330+', label: 'Сум, дүүрэг' },
+  { value: '3', label: 'Төрлийн үйлчилгээ' },
+  { value: '100%', label: 'Баталгаажсан жолооч' },
 ];
 
 const steps = [
@@ -115,13 +114,12 @@ export function HomePage() {
         </section>
 
         {/* Stats */}
-        <section className="border-b border-border bg-border">
-          <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px lg:grid-cols-4">
+        <section className="border-b border-border bg-secondary/20">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-border px-4 sm:px-6 lg:grid-cols-4 lg:divide-y-0 lg:px-8">
             {stats.map((stat) => (
-              <div key={stat.label} className="bg-background px-4 py-7 text-center">
-                <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-primary">{stat.icon}</span>
-                <p className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{stat.value}</p>
-                <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{stat.label}</p>
+              <div key={stat.label} className="px-3 py-8 text-center sm:py-10">
+                <p className="text-3xl font-extrabold tracking-tight text-primary sm:text-4xl lg:text-5xl">{stat.value}</p>
+                <p className="mt-2 text-xs font-medium text-muted-foreground sm:text-sm">{stat.label}</p>
               </div>
             ))}
           </div>
