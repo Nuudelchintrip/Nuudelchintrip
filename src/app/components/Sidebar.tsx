@@ -27,7 +27,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
     <>
       <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar/95 px-3.5 backdrop-blur md:hidden">
         <a href="/" aria-label="NuudelchinTrip нүүр">
-          <Logo size="sm" />
+          <Logo size="sm" showText textClassName="text-[15px]" />
         </a>
         <button
           type="button"
@@ -50,7 +50,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
           <aside className="relative flex h-full w-[86vw] max-w-[19rem] flex-col bg-sidebar shadow-2xl">
             <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-3.5">
               <a href="/" aria-label="NuudelchinTrip нүүр">
-                <Logo size="sm" />
+                <Logo size="sm" showText textClassName="text-[15px]" />
               </a>
               <button
                 type="button"
@@ -102,7 +102,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
       {/* Logo */}
       <div className="px-4 py-4 border-b border-sidebar-border">
         <a href="/" aria-label="NuudelchinTrip нүүр">
-          <Logo size="sm" />
+          <Logo size="md" showText textClassName="text-base" />
         </a>
         <div className="mt-3 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5">
           <div className="flex items-center gap-2.5">
