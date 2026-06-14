@@ -1040,6 +1040,25 @@ export async function submitReview(bookingId: string, rating: number, comment?: 
   }
 }
 
+export async function submitCargoReview(cargoId: string, rating: number, comment?: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  const { error } = await supabase.rpc('submit_cargo_review', {
+    p_cargo_id: cargoId,
+    p_rating: rating,
+    p_comment: comment?.trim() || null,
+  });
+  if (error) {
+    const messageByCode: Record<string, string> = {
+      invalid_rating: 'Үнэлгээ 1-5 одны хооронд байх ёстой.',
+      cargo_not_found: 'Ачааны захиалга олдсонгүй.',
+      cargo_not_completed: 'Зөвхөн дууссан ачааны захиалгыг үнэлнэ.',
+      not_authorized: 'Зөвхөн ачаа илгээгч үнэлгээ өгнө.',
+    };
+    const known = Object.entries(messageByCode).find(([c]) => toError(error, '').message.includes(c))?.[1];
+    throw known ? new Error(known) : toError(error, 'Үнэлгээ өгөхөд алдаа гарлаа.');
+  }
+}
+
 export async function fetchReceivedReviews(): Promise<ReceivedReview[]> {
   if (!supabase) return [];
   const { data: userData } = await supabase.auth.getUser();
