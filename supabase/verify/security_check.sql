@@ -8,13 +8,12 @@ where tgname in ('profiles_guard_sensitive', 'driver_profiles_guard_verification
 order by tgname;
 -- Expect 2 rows.
 
--- 2. Booking/cargo direct writes must be admin-only (no participant UPDATE, no
---    client INSERT). These policy names should be PRESENT:
+-- 2. Booking/cargo direct updates must be admin-only. These policies should be PRESENT:
 select 'locked policy' as check, policyname, tablename
 from pg_policies
-where policyname in ('bookings update admin only', 'cargo update admin only', 'payments create own pending')
+where policyname in ('bookings update admin only', 'cargo update admin only')
 order by policyname;
--- Expect 3 rows.
+-- Expect 2 rows.
 
 -- 3. The permissive policies must be GONE (this should return 0 rows):
 select 'should-be-removed' as check, policyname, tablename

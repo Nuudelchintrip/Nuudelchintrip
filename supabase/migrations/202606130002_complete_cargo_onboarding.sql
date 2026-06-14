@@ -1,9 +1,16 @@
--- Complete traveler onboarding atomically and repair a missing traveler profile.
+-- ---------------------------------------------------------------------------
+-- 202606130002_complete_cargo_onboarding
+--
+-- The frontend (completeCargoOnboarding) calls the complete_cargo_onboarding
+-- RPC when a cargo sender accepts the cargo rules. The original migration that
+-- held this function (202606120002) shipped empty, so the function was missing
+-- and the cargo onboarding step failed with "Мэдээлэл хадгалахад алдаа гарлаа".
+--
+-- Mirrors complete_traveler_onboarding: sets role = cargo_sender, marks the
+-- cargo policy accepted and onboarding completed, self-heals a missing profile.
+-- ---------------------------------------------------------------------------
 
-create or replace function public.complete_traveler_onboarding(
-  p_emergency_contact_name text default null,
-  p_emergency_contact_phone text default null
-)
+create or replace function public.complete_cargo_onboarding()
 returns jsonb
 language plpgsql
 security definer
@@ -19,64 +26,46 @@ begin
     raise exception 'not_authenticated';
   end if;
 
-  select *
-  into auth_user
-  from auth.users
-  where id = current_user_id;
-
+  select * into auth_user from auth.users where id = current_user_id;
   if auth_user.id is null then
     raise exception 'auth_user_not_found';
   end if;
 
   metadata_role := auth_user.raw_user_meta_data->>'role';
 
-  select *
-  into profile_row
+  select * into profile_row
   from public.profiles
   where id = current_user_id
   for update;
 
   if profile_row.id is null then
-    if metadata_role <> 'traveler' then
-      raise exception 'traveler_role_required';
+    if metadata_role <> 'cargo_sender' then
+      raise exception 'cargo_role_required';
     end if;
 
     insert into public.profiles (
-      id,
-      role,
-      full_name,
-      phone,
-      email,
-      phone_verified,
-      onboarding_completed,
-      emergency_contact_name,
-      emergency_contact_phone
+      id, role, full_name, phone, email, onboarding_completed, cargo_policy_accepted
     )
     values (
       auth_user.id,
-      'traveler',
+      'cargo_sender',
       coalesce(
         nullif(auth_user.raw_user_meta_data->>'full_name', ''),
         split_part(coalesce(auth_user.email, ''), '@', 1)
       ),
-      coalesce(
-        nullif(auth_user.raw_user_meta_data->>'phone', ''),
-        auth_user.phone
-      ),
+      coalesce(nullif(auth_user.raw_user_meta_data->>'phone', ''), auth_user.phone),
       auth_user.email,
       true,
-      true,
-      nullif(btrim(p_emergency_contact_name), ''),
-      nullif(btrim(p_emergency_contact_phone), '')
+      true
     )
     returning * into profile_row;
   else
-    if profile_row.role <> 'traveler' then
+    if profile_row.role <> 'cargo_sender' then
       if profile_row.role = 'admin'
         or profile_row.onboarding_completed
-        or metadata_role <> 'traveler'
+        or metadata_role <> 'cargo_sender'
       then
-        raise exception 'traveler_role_required';
+        raise exception 'cargo_role_required';
       end if;
     end if;
 
@@ -85,10 +74,8 @@ begin
     end if;
 
     update public.profiles
-    set role = 'traveler',
-        phone_verified = true,
-        emergency_contact_name = nullif(btrim(p_emergency_contact_name), ''),
-        emergency_contact_phone = nullif(btrim(p_emergency_contact_phone), ''),
+    set role = 'cargo_sender',
+        cargo_policy_accepted = true,
         onboarding_completed = true,
         updated_at = now()
     where id = current_user_id
@@ -108,5 +95,5 @@ begin
 end;
 $$;
 
-revoke all on function public.complete_traveler_onboarding(text, text) from public;
-grant execute on function public.complete_traveler_onboarding(text, text) to authenticated;
+revoke all on function public.complete_cargo_onboarding() from public;
+grant execute on function public.complete_cargo_onboarding() to authenticated;
