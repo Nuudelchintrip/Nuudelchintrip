@@ -21,13 +21,6 @@ import { Button } from '../components/Button';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 
-const stats = [
-  { value: '21', label: 'Аймаг даяар' },
-  { value: '330+', label: 'Сум, дүүрэг' },
-  { value: '3', label: 'Төрлийн үйлчилгээ' },
-  { value: '100%', label: 'Баталгаажсан жолооч' },
-];
-
 const roles = [
   {
     title: 'Би аялагч',
@@ -50,12 +43,6 @@ const roles = [
     href: '/auth/register?role=cargo_sender',
     cta: 'Ачаа илгээх',
   },
-];
-
-const sampleTrips = [
-  { driver: 'Бат-Эрдэнэ', car: 'Toyota Prius 30', rating: '4.9', from: 'Улаанбаатар', to: 'Дархан', when: 'Маргааш 09:00', seats: 3, price: 35000, cargo: true },
-  { driver: 'Энхтуяа', car: 'Lexus RX 350', rating: '4.8', from: 'Эрдэнэт', to: 'Мөрөн', when: 'Бямба 07:30', seats: 2, price: 60000, cargo: false },
-  { driver: 'Ганболд', car: 'Toyota Land Cruiser', rating: '5.0', from: 'Улаанбаатар', to: 'Цэцэрлэг', when: 'Өнөөдөр 14:00', seats: 4, price: 40000, cargo: true },
 ];
 
 const steps = [
@@ -117,18 +104,6 @@ export function HomePage() {
 
             <HeroJourneyCard />
           </div>
-
-          {/* Stats strip */}
-          <div className="border-t border-border">
-            <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-border px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
-              {stats.map((stat) => (
-                <div key={stat.label} className="px-2 py-5 text-center sm:py-6">
-                  <p className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{stat.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
 
         {/* Role chooser */}
@@ -154,63 +129,6 @@ export function HomePage() {
                 </span>
               </a>
             ))}
-          </div>
-        </section>
-
-        {/* Product showcase */}
-        <section className="border-y border-border bg-muted/30">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-            <div className="mb-7 flex flex-col gap-2 sm:mb-9 sm:flex-row sm:items-end sm:justify-between">
-              <SectionHead kicker="Жишээ харагдац" title="Жолооч хайхад ийм харагдана" inline />
-              <span className="text-sm text-muted-foreground">Бодит чиглэл нэвтэрсний дараа</span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {sampleTrips.map((trip, index) => (
-                <div
-                  key={trip.driver}
-                  className="reveal-up rounded-2xl border border-border bg-card p-5 shadow-sm"
-                  style={{ animationDelay: `${index * 90}ms` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-primary">
-                        <Car className="h-5 w-5" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-foreground">{trip.driver}</p>
-                        <p className="truncate text-xs text-muted-foreground">{trip.car}</p>
-                      </div>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-foreground">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      {trip.rating}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap items-center gap-2 text-base font-semibold text-foreground">
-                    <span>{trip.from}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    <span>{trip.to}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {trip.when} · {trip.seats} сул суудал
-                  </p>
-                  {trip.cargo && (
-                    <div className="mt-3">
-                      <Badge variant="warning">Дайвар ачаа авна</Badge>
-                    </div>
-                  )}
-
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                    <span className="text-lg font-bold text-primary">
-                      ₮{trip.price.toLocaleString()}
-                      <span className="text-sm font-normal text-muted-foreground"> /хүн</span>
-                    </span>
-                    <span className="rounded-lg bg-secondary px-3 py-1.5 text-sm font-medium text-muted-foreground">Суудал захиалах</span>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
