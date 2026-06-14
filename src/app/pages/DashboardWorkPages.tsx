@@ -1087,18 +1087,25 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
   const [travelerBookings, setTravelerBookings] = useState<TravelerBookingSummary[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(isSupabaseConfigured);
   const [routesError, setRoutesError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<MarketplaceTrip | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleDeleteTrip = async (tripId: string) => {
-    if (!window.confirm('Энэ чиглэлийг устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      const { action } = await deleteDriverTrip(tripId);
+      const { action } = await deleteDriverTrip(deleteTarget.id);
       if (action === 'cancelled') {
-        setDriverTrips((prev) => prev.map((trip) => (trip.id === tripId ? { ...trip, status: 'cancelled' } : trip)));
+        setDriverTrips((prev) => prev.map((trip) => (trip.id === deleteTarget.id ? { ...trip, status: 'cancelled' } : trip)));
       } else {
-        setDriverTrips((prev) => prev.filter((trip) => trip.id !== tripId));
+        setDriverTrips((prev) => prev.filter((trip) => trip.id !== deleteTarget.id));
       }
+      setDeleteTarget(null);
     } catch (err) {
       setRoutesError(err instanceof Error ? err.message : 'Чиглэл устгахад алдаа гарлаа.');
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -1173,19 +1180,23 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
           {role === 'driver' && driverTrips.length > 0 ? (
             <div className="space-y-4">
               {driverTrips.map((trip) => (
-                <div key={trip.id} className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-[1fr_160px_140px_160px] md:items-center">
-                  <div>
-                    <p className="font-semibold text-foreground">{trip.fromLocation} → {trip.toLocation}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(trip.departureAt).toLocaleString('mn-MN')} · {trip.seatsAvailable}/{trip.seatsTotal} сул · ₮{trip.pricePerSeat.toLocaleString()}
-                    </p>
-                  </div>
-                  <Badge variant={trip.status === 'active' ? 'success' : trip.status === 'cancelled' ? 'danger' : 'default'}>{tripStatusLabel(trip.status)}</Badge>
-                  <p className="text-sm text-muted-foreground">{trip.allowsCargo ? 'Дайвар ачаа авна' : 'Зөвхөн зорчигч'}</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => window.location.href = `/dashboard/driver/routes/new?id=${trip.id}`}>Засах</Button>
-                    <Button variant="ghost" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
-                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDeleteTrip(trip.id)}>Устгах</Button>
+                <div key={trip.id} className="rounded-lg border border-border p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-foreground">{trip.fromLocation} → {trip.toLocation}</p>
+                        <Badge variant={trip.status === 'active' ? 'success' : trip.status === 'cancelled' ? 'danger' : 'default'}>{tripStatusLabel(trip.status)}</Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {new Date(trip.departureAt).toLocaleString('mn-MN')} · {trip.seatsAvailable}/{trip.seatsTotal} сул · ₮{trip.pricePerSeat.toLocaleString()}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{trip.allowsCargo ? 'Дайвар ачаа авна' : 'Зөвхөн зорчигч'}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => window.location.href = `/dashboard/driver/routes/new?id=${trip.id}`}>Засах</Button>
+                      <Button variant="ghost" size="sm" onClick={() => window.location.href = `/routes/${trip.id}`}>Дэлгэрэнгүй</Button>
+                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => setDeleteTarget(trip)}>Устгах</Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1241,6 +1252,34 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
           )}
         </CardBody>
       </Card>
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+          onClick={() => { if (!deleting) setDeleteTarget(null); }}
+        >
+          <div
+            className="w-full max-w-sm rounded-xl border border-border bg-card p-5 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-foreground">Чиглэл устгах уу?</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              <span className="font-medium text-foreground">{deleteTarget.fromLocation} → {deleteTarget.toLocation}</span> чиглэлийг устгана. Энэ үйлдлийг буцаах боломжгүй.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setDeleteTarget(null)} disabled={deleting}>Болих</Button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={deleting}
+                className="inline-flex min-h-9 items-center justify-center rounded-lg bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-60"
+              >
+                {deleting ? 'Устгаж байна...' : 'Устгах'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardFrame>
   );
 }
