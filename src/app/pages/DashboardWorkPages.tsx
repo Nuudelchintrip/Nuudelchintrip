@@ -1535,7 +1535,11 @@ function DriverOfferCard({ offer, featured = false, mode = 'booking' }: { offer:
         <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-sm text-muted-foreground">{isCargoMode ? 'Дайвар ачааны чиглэл' : 'Нэг суудлын үнэ'}</p>
           <p className="mt-1 text-3xl font-bold text-primary">₮{offer.price.toLocaleString()}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{isCargoMode ? offer.cargoNote : '+ үйлчилгээний шимтгэл'}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {isCargoMode
+              ? `${offer.cargoNote || 'Дайвар ачаа'} · 10% шимтгэл үнэд багтсан`
+              : '10% шимтгэл үнэд багтсан'}
+          </p>
           <div className="mt-5 grid gap-2">
             <Button fullWidth onClick={() => window.location.href = isCargoMode ? `/cargo/new?tripId=${offer.id}` : `/routes/${offer.id}`}>
               {isCargoMode ? 'Ачааны хүсэлт илгээх' : 'Хүсэлт илгээх'}

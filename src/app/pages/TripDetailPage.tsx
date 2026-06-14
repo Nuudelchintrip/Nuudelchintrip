@@ -274,7 +274,7 @@ export function TripDetailPage() {
             <Card className="p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">Нийт төлбөр</p>
               <p className="mt-1 text-2xl font-bold text-primary sm:text-3xl">₮{route.price.toLocaleString()}</p>
-              <p className="mt-1 text-xs text-muted-foreground">Үйлчилгээний шимтгэл төлбөрийн шатанд тусдаа харагдана</p>
+              <p className="mt-1 text-xs text-muted-foreground">10% үйлчилгээний шимтгэл энэ дүнд багтсан</p>
               <div className="mt-5 grid gap-3">
                 {isOwner ? (
                   <>

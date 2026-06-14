@@ -6,9 +6,9 @@ import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import { PublicBackLink } from '../components/PublicBackLink';
 
-const driverPrice = 20000;
-const platformFee = driverPrice * 0.1;
-const total = driverPrice + platformFee;
+const agreedPrice = 20000;
+const platformFee = agreedPrice * 0.1;
+const driverPayout = agreedPrice - platformFee;
 
 export function PricingPage() {
   return (
@@ -24,7 +24,7 @@ export function PricingPage() {
             <Badge variant="info" className="mb-3 sm:mb-5">10% үйлчилгээний шимтгэл</Badge>
             <h1 className="mb-3 text-3xl font-bold leading-tight text-foreground sm:mb-4 sm:text-4xl">Ил тод, ойлгомжтой үнэ</h1>
             <p className="mx-auto max-w-3xl text-sm leading-6 text-muted-foreground sm:text-lg sm:leading-7">
-              NuudelchinTrip үйлчилгээний шимтгэлээ жолооч, аялагчийн тохиролцсон үнийн дүнгийн 10%-иар тооцно. Автомат QPay холболт дараагийн шатанд орно.
+              NuudelchinTrip аялал болон дайвар ачааны тохиролцсон нийт үнийн 10%-ийг үйлчилгээний шимтгэлд суутгана. Хэрэглэгчийн төлөх дүн дээр нэмэлт төлбөр нэмэгдэхгүй.
             </p>
           </div>
         </section>
@@ -43,24 +43,24 @@ export function PricingPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-border pb-4">
                       <div>
-                        <p className="font-medium text-foreground">Жолоочид очих үнэ</p>
-                        <p className="text-sm text-muted-foreground">Нэг суудлын үндсэн тохиролцсон үнэ</p>
+                        <p className="font-medium text-foreground">Тохиролцсон нийт үнэ</p>
+                        <p className="text-sm text-muted-foreground">Аялагч эсвэл ачаа илгээгчийн төлөх дүн</p>
                       </div>
-                      <p className="text-xl font-bold text-foreground">₮{driverPrice.toLocaleString()}</p>
+                      <p className="text-xl font-bold text-foreground">₮{agreedPrice.toLocaleString()}</p>
                     </div>
                     <div className="flex items-center justify-between border-b border-border pb-4">
                       <div>
                         <p className="font-medium text-foreground">Үйлчилгээний шимтгэл</p>
-                        <p className="text-sm text-muted-foreground">Тохиролцсон үнийн дүнгийн 10%</p>
+                        <p className="text-sm text-muted-foreground">Тохиролцсон нийт үнээс суутгах 10%</p>
                       </div>
                       <p className="text-xl font-bold text-primary">₮{platformFee.toLocaleString()}</p>
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-foreground">Аялагчийн нийт төлөх</p>
-                        <p className="text-sm text-muted-foreground">Жолоочийн үнэ + үйлчилгээний шимтгэл</p>
+                        <p className="font-semibold text-foreground">Жолоочид шилжих дүн</p>
+                        <p className="text-sm text-muted-foreground">Тохиролцсон үнэ - үйлчилгээний шимтгэл</p>
                       </div>
-                      <p className="text-2xl font-bold text-primary sm:text-3xl">₮{total.toLocaleString()}</p>
+                      <p className="text-2xl font-bold text-primary sm:text-3xl">₮{driverPayout.toLocaleString()}</p>
                     </div>
                   </div>
                 </CardBody>
