@@ -10,7 +10,7 @@ import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { SeatPicker } from '../components/SeatPicker';
 import { formatSeatList, normalizeSeatIds } from '../data/seats';
-import { createPassengerBooking, deleteDriverTrip, fetchTripById } from '../services/tripService';
+import { createPassengerBooking, cancelDriverTrip, fetchTripById } from '../services/tripService';
 import { supabase } from '../lib/supabase';
 
 type RouteDetailView = {
@@ -69,7 +69,7 @@ export function TripDetailPage() {
     if (!route) return;
     if (!window.confirm('Энэ чиглэлийг устгах уу? Энэ үйлдлийг буцаах боломжгүй.')) return;
     try {
-      await deleteDriverTrip(String(route.id));
+      await cancelDriverTrip(String(route.id));
       window.location.href = '/dashboard/driver/routes';
     } catch (error) {
       setRouteError(error instanceof Error ? error.message : 'Чиглэл устгахад алдаа гарлаа.');
