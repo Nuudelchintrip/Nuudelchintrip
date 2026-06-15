@@ -1,7 +1,22 @@
 // Send a phone OTP via CallPro SMS. All secrets stay in Supabase Edge Function
 // secrets (CALLPRO_API_KEY, CALLPRO_FROM, OTP_SECRET) — never in the frontend.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { corsHeaders, jsonResponse } from '../_shared/security.ts';
+
+function corsHeaders(req: Request): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  };
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200, extra: Record<string, string> = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(req), ...extra },
+  });
+}
 
 // 8-digit Mongolian number: strip non-digits and any 976 country code.
 function normalizePhone(value: unknown): string {

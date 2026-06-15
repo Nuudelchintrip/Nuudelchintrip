@@ -2,7 +2,22 @@
 // 5 wrong attempts, then marks the profile phone_verified via the existing
 // SECURITY DEFINER RPC (which handles guarded columns correctly).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import { corsHeaders, jsonResponse } from '../_shared/security.ts';
+
+function corsHeaders(req: Request): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': req.headers.get('Origin') || '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  };
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200, extra: Record<string, string> = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(req), ...extra },
+  });
+}
 
 const MAX_ATTEMPTS = 5;
 
