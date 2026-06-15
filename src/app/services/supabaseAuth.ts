@@ -235,8 +235,11 @@ const OTP_ERROR_MESSAGES: Record<string, string> = {
   otp_rate_limited: 'Дахин код авахын тулд түр хүлээнэ үү.',
   otp_hourly_limit: 'Хэт олон код хүслээ. 1 цагийн дараа дахин оролдоно уу.',
   otp_invalid: 'Код буруу байна. 6 оронтой кодоо шалгаад дахин оруулна уу.',
+  otp_expired: 'Кодын хугацаа дууссан байна. Дахин код авна уу.',
+  otp_not_found: 'Идэвхтэй код олдсонгүй. Дахин код авна уу.',
   otp_not_found_or_expired: 'Кодын хугацаа дууссан байна. Дахин код авна уу.',
   otp_too_many_attempts: 'Хэт олон удаа буруу оруулсан байна. Дахин код авна уу.',
+  sms_send_failed: 'Мессеж илгээхэд алдаа гарлаа. Дугаараа шалгаад дахин оролдоно уу.',
   auth_user_not_found: 'Нэвтэрсэн хэрэглэгчийн бүртгэл олдсонгүй.',
 };
 
@@ -309,17 +312,24 @@ export async function verifyPhoneOtp(phone: string, code: string) {
     return updateStoredUser({ phone_verified: true });
   }
 
-  const { data, error } = await supabase.rpc('verify_phone_otp', { p_phone: phone, p_code: code });
-  if (error) throw mapOtpError(error, 'Утасны баталгаажуулалтыг хадгалахад алдаа гарлаа.');
+  const fnName = (import.meta.env.VITE_VERIFY_OTP_FUNCTION as string | undefined) || 'verify-otp';
+  const { data, error } = await supabase.functions.invoke(fnName, { body: { phone, code } });
 
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
-    throw new Error('Утасны баталгаажуулалтын хариу буруу байна.');
+  if (error || !(data as { ok?: boolean })?.ok) {
+    let payload: { error?: string } | null =
+      data && typeof data === 'object' ? (data as { error?: string }) : null;
+    if (error) {
+      try {
+        payload = (await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.()) ?? null;
+      } catch {
+        payload = null;
+      }
+    }
+    const known = payload?.error ? OTP_ERROR_MESSAGES[payload.error] : undefined;
+    throw new Error(known || 'Утасны баталгаажуулалт амжилтгүй боллоо.');
   }
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const profile = toLocalProfile(data as ProfileRow, sessionData.session?.user.email || '');
-  saveStoredUser(profile);
-  return profile;
+  return updateStoredUser({ phone_verified: true });
 }
 
 export async function completeTravelerOnboarding(input: {

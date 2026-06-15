@@ -1,9 +1,11 @@
-// Send a phone OTP via CallPro SMS. All secrets stay in Supabase Edge Function
-// secrets (CALLPRO_API_KEY, CALLPRO_FROM, OTP_SECRET) — never in the frontend.
+// Verify a phone OTP issued by send-otp. Enforces 5-minute expiry and a max of
+// 5 wrong attempts, then marks the profile phone_verified via the existing
+// SECURITY DEFINER RPC (which handles guarded columns correctly).
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { corsHeaders, jsonResponse } from '../_shared/security.ts';
 
-// 8-digit Mongolian number: strip non-digits and any 976 country code.
+const MAX_ATTEMPTS = 5;
+
 function normalizePhone(value: unknown): string {
   const digits = String(value || '').replace(/\D/g, '');
   return digits.length > 8 ? digits.slice(-8) : digits;
@@ -29,14 +31,11 @@ Deno.serve(async (req) => {
     const url = Deno.env.get('SUPABASE_URL');
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const apiKey = Deno.env.get('CALLPRO_API_KEY');
-    const from = Deno.env.get('CALLPRO_FROM');
     const otpSecret = Deno.env.get('OTP_SECRET');
-    if (!url || !anonKey || !serviceKey || !apiKey || !from || !otpSecret) {
+    if (!url || !anonKey || !serviceKey || !otpSecret) {
       return jsonResponse(req, { error: 'server_configuration_error' }, 500);
     }
 
-    // Identify the signed-in user from their JWT.
     const authHeader = req.headers.get('Authorization') || '';
     const userClient = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
     const { data: userData } = await userClient.auth.getUser();
@@ -45,56 +44,51 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const phone = normalizePhone((body as { phone?: unknown }).phone);
+    const code = String((body as { code?: unknown }).code || '').replace(/\D/g, '');
     if (!/^\d{8}$/.test(phone)) return jsonResponse(req, { error: 'phone_required' }, 400);
+    if (!/^\d{6}$/.test(code)) return jsonResponse(req, { error: 'otp_invalid' }, 400);
 
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
-    // Rate limit: 1 OTP per phone per 60 seconds.
-    const { data: recent } = await admin
+    // Latest unverified OTP for this user + phone.
+    const { data: otp } = await admin
       .from('phone_otps')
-      .select('created_at')
+      .select('id, code_hash, attempts, verified, expires_at')
+      .eq('user_id', user.id)
       .eq('phone', phone)
+      .eq('verified', false)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    if (recent?.created_at) {
-      const ageMs = Date.now() - new Date(recent.created_at).getTime();
-      if (ageMs < 60_000) {
-        const retry = Math.ceil((60_000 - ageMs) / 1000);
-        return jsonResponse(req, { error: 'otp_rate_limited', retry_after_seconds: retry }, 429, {
-          'Retry-After': String(retry),
-        });
-      }
+    if (!otp) return jsonResponse(req, { error: 'otp_not_found' }, 400);
+    if (new Date(otp.expires_at).getTime() < Date.now()) {
+      return jsonResponse(req, { error: 'otp_expired' }, 400);
+    }
+    if (otp.attempts >= MAX_ATTEMPTS) {
+      return jsonResponse(req, { error: 'otp_too_many_attempts' }, 429);
     }
 
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    const codeHash = await hashCode(code, otpSecret);
-
-    const { error: insertError } = await admin.from('phone_otps').insert({
-      user_id: user.id,
-      phone,
-      code_hash: codeHash,
-      expires_at: new Date(Date.now() + 5 * 60_000).toISOString(),
-    });
-    if (insertError) return jsonResponse(req, { error: 'otp_store_failed' }, 500);
-
-    // Short Cyrillic-safe text (1 SMS segment).
-    const text = `NuudelchinTrip код: ${code}`;
-    const smsResponse = await fetch('https://api-text.callpro.mn/v1/sms/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-      body: JSON.stringify({ from, to: phone, text }),
-    });
-
-    if (!smsResponse.ok) {
-      console.error('callpro_send_failed', smsResponse.status, await smsResponse.text().catch(() => ''));
-      return jsonResponse(req, { error: 'sms_send_failed' }, 502);
+    const expected = await hashCode(code, otpSecret);
+    if (expected !== otp.code_hash) {
+      await admin.from('phone_otps').update({ attempts: otp.attempts + 1 }).eq('id', otp.id);
+      const remaining = Math.max(0, MAX_ATTEMPTS - (otp.attempts + 1));
+      return jsonResponse(req, { error: 'otp_invalid', attempts_left: remaining }, 400);
     }
 
-    return jsonResponse(req, { ok: true, resend_after_seconds: 60, expires_in_seconds: 300 });
+    // Correct code — consume it and mark the profile verified via the RPC
+    // (runs as the signed-in user, handles guarded columns).
+    await admin.from('phone_otps').update({ verified: true }).eq('id', otp.id);
+
+    const { error: verifyError } = await userClient.rpc('complete_phone_verification');
+    if (verifyError) {
+      console.error('complete_phone_verification_failed', verifyError.message);
+      return jsonResponse(req, { error: 'profile_update_failed' }, 500);
+    }
+
+    return jsonResponse(req, { ok: true, phone_verified: true });
   } catch (error) {
-    console.error('send_otp_failed', error instanceof Error ? error.message : 'unknown_error');
+    console.error('verify_otp_failed', error instanceof Error ? error.message : 'unknown_error');
     return jsonResponse(req, { error: 'internal_error' }, 500);
   }
 });
