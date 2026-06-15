@@ -869,16 +869,7 @@ export function FindDriversPage() {
             ]}
           />
         </div>
-        <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-between">
-          <label className="flex min-h-10 items-center gap-2 text-sm font-medium text-foreground">
-            <input
-              type="checkbox"
-              checked={cargoOnly}
-              onChange={(event) => setCargoOnly(event.target.checked)}
-              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-            />
-            Дайвар ачаа авч болох чиглэл
-          </label>
+        <div className="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:items-center sm:justify-end">
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button className="!min-h-9 w-full !px-3 !py-1.5 !text-xs sm:!min-h-8 sm:w-auto sm:!py-1" size="sm" variant="outline" onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}>
               Цэвэрлэх
@@ -891,9 +882,8 @@ export function FindDriversPage() {
         </div>
       </Card>
 
-      <div id="driver-search-results" className="mb-4 scroll-mt-24 flex items-center justify-between gap-3 sm:mb-5">
+      <div id="driver-search-results" className="mb-4 scroll-mt-24 flex items-center gap-3 sm:mb-5">
         <p className="text-sm text-muted-foreground sm:text-base">{filteredOffers.length} боломжит жолооч олдлоо</p>
-        <Badge variant="info">Баталгаажсан эхэнд</Badge>
       </div>
 
       {loadingTrips && (
