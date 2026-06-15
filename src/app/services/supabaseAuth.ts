@@ -240,6 +240,9 @@ const OTP_ERROR_MESSAGES: Record<string, string> = {
   otp_not_found_or_expired: 'Кодын хугацаа дууссан байна. Дахин код авна уу.',
   otp_too_many_attempts: 'Хэт олон удаа буруу оруулсан байна. Дахин код авна уу.',
   sms_send_failed: 'Мессеж илгээхэд алдаа гарлаа. Дугаараа шалгаад дахин оролдоно уу.',
+  server_configuration_error: 'Мессежийн үйлчилгээ тохируулагдаагүй байна. Түр хүлээгээд дахин оролдоно уу.',
+  otp_store_failed: 'Баталгаажуулах код үүсгэхэд алдаа гарлаа. Түр хүлээгээд дахин оролдоно уу.',
+  internal_error: 'Мессежийн үйлчилгээ түр ажиллахгүй байна. Түр хүлээгээд дахин оролдоно уу.',
   auth_user_not_found: 'Нэвтэрсэн хэрэглэгчийн бүртгэл олдсонгүй.',
 };
 
@@ -267,8 +270,11 @@ async function requestOtpViaRpc(phone: string): Promise<RequestOtpResult> {
 }
 
 export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> {
+  const allowRpcFallback =
+    import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true';
+
   if (!supabase) {
-    if (import.meta.env.DEV && import.meta.env.VITE_ALLOW_OTP_DEV_FALLBACK === 'true') {
+    if (allowRpcFallback) {
       return { resendAfterSeconds: 60, expiresInSeconds: 300, devCode: '123456' };
     }
     throw new Error('Утас баталгаажуулах үйлчилгээ тохируулагдаагүй байна.');
@@ -297,10 +303,12 @@ export async function requestPhoneOtp(phone: string): Promise<RequestOtpResult> 
     if (payload?.error && OTP_ERROR_MESSAGES[payload.error]) {
       throw new Error(OTP_ERROR_MESSAGES[payload.error]);
     }
-    return requestOtpViaRpc(phone);
+    if (allowRpcFallback) return requestOtpViaRpc(phone);
+    throw new Error(OTP_ERROR_MESSAGES.internal_error);
   }
 
-  return requestOtpViaRpc(phone);
+  if (allowRpcFallback) return requestOtpViaRpc(phone);
+  throw new Error(OTP_ERROR_MESSAGES.internal_error);
 }
 
 export async function verifyPhoneOtp(phone: string, code: string) {
