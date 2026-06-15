@@ -875,8 +875,8 @@ export function FindDriversPage() {
               Цэвэрлэх
             </Button>
             <Button className="!min-h-9 w-full !px-3 !py-1.5 !text-xs sm:!min-h-8 sm:w-auto sm:!py-1" size="sm" onClick={() => document.getElementById('driver-search-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-              Жолоочийн саналууд
-              <UsersRound className="h-4 w-4" />
+              <Search className="h-4 w-4" />
+              Жолооч хайх
             </Button>
           </div>
         </div>
