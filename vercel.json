@@ -35,6 +35,19 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.nuudelchintrip.com"
+        }
+      ],
+      "destination": "https://nuudelchintrip.com/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
