@@ -60,6 +60,7 @@ const TripsPage = named(() => import('./pages/TripsPage'), 'TripsPage');
 const TravelerDashboard = named(() => import('./pages/TravelerDashboard'), 'TravelerDashboard');
 const NotificationsPage = named(() => import('./pages/NotificationsPage'), 'NotificationsPage');
 const VerifyPhonePage = named(() => import('./pages/VerifyPhonePage'), 'VerifyPhonePage');
+const OronNutgiinUnaa = lazy(() => import('../pages/OronNutgiinUnaa'));
 
 function AccountGate({
   children,
@@ -325,7 +326,7 @@ export default function App() {
         <Route path="/onboarding/traveler" element={<OnboardingGate role="traveler"><ProfileSetupPage role="traveler" /></OnboardingGate>} />
         <Route path="/onboarding/driver" element={<OnboardingGate role="driver"><ProfileSetupPage role="driver" /></OnboardingGate>} />
         <Route path="/onboarding/cargo" element={<OnboardingGate role="cargo_sender"><ProfileSetupPage role="cargo" /></OnboardingGate>} />
-
+        <Route path="/oron-nutgiin-unaa" element={<OronNutgiinUnaa />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       </Suspense>
