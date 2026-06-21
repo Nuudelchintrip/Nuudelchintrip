@@ -9,7 +9,7 @@ import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { fetchPlatformPaymentInfo, uploadPaymentProof, type PlatformPaymentInfo } from '../services/paymentService';
-import { fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
+import { fetchCurrentTravelerBookings, fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
 
@@ -30,6 +30,8 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Цуцлагдсан',
   disputed: 'Маргаантай',
 };
+
+const PAYABLE_STATUSES = new Set(['accepted', 'waiting_payment', 'payment_review']);
 
 export function PaymentProofPage() {
   const { id } = useParams();
@@ -62,7 +64,30 @@ export function PaymentProofPage() {
   useEffect(() => {
     let active = true;
     if (!id || !UUID_PATTERN.test(id)) {
-      setLoading(false);
+      setLoading(true);
+      fetchCurrentTravelerBookings()
+        .then(async (bookings) => {
+          if (!active) return;
+          const payable = bookings.find((booking) => PAYABLE_STATUSES.has(booking.status));
+          if (!payable) {
+            setRealBooking(null);
+            setError('Төлбөрийн баримт оруулах боломжтой захиалга олдсонгүй.');
+            return;
+          }
+
+          const booking = await fetchPassengerBookingById(payable.id);
+          if (!active) return;
+          setRealBooking(booking);
+          setError(booking ? '' : 'Захиалга олдсонгүй.');
+          window.history.replaceState(null, '', `/dashboard/bookings/${payable.id}/payment-proof`);
+        })
+        .catch((fetchError) => {
+          if (!active) return;
+          setError(fetchError instanceof Error ? fetchError.message : 'Захиалгын мэдээлэл уншихад алдаа гарлаа.');
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
       return;
     }
 
