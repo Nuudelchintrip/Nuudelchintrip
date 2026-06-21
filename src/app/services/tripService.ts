@@ -856,9 +856,10 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
     .from('trips')
     .select('id, driver_id, from_location, to_location, departure_at, pickup_note, dropoff_note, price_per_seat, allows_cargo')
     .eq('id', bookingRow.trip_id)
-    .single();
+    .maybeSingle();
 
   if (tripError) throw toError(tripError, 'Booking trip уншихад алдаа гарлаа.');
+  if (!trip) throw new Error('Захиалгатай холбоотой чиглэл олдсонгүй. Хуудсаа шинэчлээд дахин шалгана уу.');
 
   const [{ data: traveler, error: travelerError }, { data: driver, error: driverError }, { data: driverProfile, error: driverProfileError }] = await Promise.all([
     supabase
@@ -935,7 +936,7 @@ export async function createCargoRequest(input: CreateCargoRequestInput) {
       p_receiver_phone: input.receiverPhone,
       p_pickup_note: input.pickupNote || null,
     })
-    .single();
+    .maybeSingle();
 
   if (error) {
     const messageByCode: Record<string, string> = {
@@ -950,6 +951,7 @@ export async function createCargoRequest(input: CreateCargoRequestInput) {
     const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
     throw known ? new Error(known) : toError(error, 'Cargo request хадгалахад алдаа гарлаа.');
   }
+  if (!data) throw new Error('Ачааны хүсэлтийг баталгаажуулж чадсангүй. Хуудсаа шинэчлээд дахин шалгана уу.');
   return data as { id: string; status: string; delivery_code: string };
 }
 
@@ -1312,13 +1314,13 @@ export async function updateCargoRequestStatus(
 
   const { data, error } = await supabase
     .rpc('set_cargo_request_status', { p_cargo_id: cargoRequestId, p_status: status })
-    .single();
+    .maybeSingle();
 
   if (error) {
     const known = Object.entries(CARGO_STATUS_ERRORS).find(([code]) => toError(error, '').message.includes(code))?.[1];
     throw known ? new Error(known) : toError(error, 'Cargo status шинэчлэхэд алдаа гарлаа.');
   }
-  return data as { id: string; status: string };
+  return (data || { id: cargoRequestId, status }) as { id: string; status: string };
 }
 
 export async function completeCargoDelivery(cargoRequestId: string, code: string) {
@@ -1326,7 +1328,7 @@ export async function completeCargoDelivery(cargoRequestId: string, code: string
 
   const { error } = await supabase
     .rpc('complete_cargo_delivery', { p_cargo_id: cargoRequestId, p_code: code })
-    .single();
+    .maybeSingle();
 
   if (error) {
     const known = Object.entries(CARGO_STATUS_ERRORS).find(([code2]) => toError(error, '').message.includes(code2))?.[1];
