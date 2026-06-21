@@ -542,9 +542,10 @@ export async function createPassengerBooking(input: {
     .from('trips')
     .select('id, price_per_seat, seats_available')
     .eq('id', input.tripId)
-    .single();
+    .maybeSingle();
 
   if (tripError) throw toError(tripError, 'Trip request failed.');
+  if (!trip) throw new Error('Идэвхтэй чиглэл олдсонгүй. Хуудсаа шинэчлээд дахин оролдоно уу.');
   if (trip.seats_available < input.seatsRequested) {
     throw new Error('Сул суудлын тоо хүрэлцэхгүй байна.');
   }
@@ -563,7 +564,7 @@ export async function createPassengerBooking(input: {
     .from('passenger_bookings')
     .insert(bookingPayload)
     .select('id, status')
-    .single();
+    .maybeSingle();
 
   if (error && toError(error, '').message.includes('selected_seats')) {
     const { selected_seats: _selectedSeats, ...legacyBookingPayload } = bookingPayload;
@@ -571,12 +572,13 @@ export async function createPassengerBooking(input: {
       .from('passenger_bookings')
       .insert(legacyBookingPayload)
       .select('id, status')
-      .single();
+      .maybeSingle();
     data = retry.data;
     error = retry.error;
   }
 
   if (error) throw toError(error, 'Supabase request failed.');
+  if (!data) throw new Error('Захиалгын хүсэлтийг баталгаажуулж чадсангүй. Хуудсаа шинэчлээд дахин шалгана уу.');
   return data;
 }
 
@@ -730,7 +732,7 @@ export async function updatePassengerBookingStatus(
   // Role-validated transition that also releases held seats on reject/cancel.
   const { data, error } = await supabase
     .rpc('set_passenger_booking_status', { p_booking_id: bookingId, p_status: status })
-    .single();
+    .maybeSingle();
 
   if (error) {
     const messageByCode: Record<string, string> = {
@@ -743,12 +745,12 @@ export async function updatePassengerBookingStatus(
     const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
     throw known ? new Error(known) : toError(error, 'Booking status шинэчлэхэд алдаа гарлаа.');
   }
-  return data as { id: string; status: string };
+  return (data || { id: bookingId, status }) as { id: string; status: string };
 }
 
 export async function startPassengerTrip(bookingId: string) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
-  const { error } = await supabase.rpc('start_passenger_trip', { p_booking_id: bookingId }).single();
+  const { error } = await supabase.rpc('start_passenger_trip', { p_booking_id: bookingId }).maybeSingle();
   if (error) {
     const messageByCode: Record<string, string> = {
       driver_or_admin_required: 'Зөвхөн чиглэлийн жолооч аялал эхлүүлнэ.',
@@ -762,7 +764,7 @@ export async function startPassengerTrip(bookingId: string) {
 
 export async function completePassengerTrip(bookingId: string, code: string) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
-  const { error } = await supabase.rpc('complete_passenger_trip', { p_booking_id: bookingId, p_code: code }).single();
+  const { error } = await supabase.rpc('complete_passenger_trip', { p_booking_id: bookingId, p_code: code }).maybeSingle();
   if (error) {
     const messageByCode: Record<string, string> = {
       driver_or_admin_required: 'Зөвхөн чиглэлийн жолооч аялал дуусгана.',
