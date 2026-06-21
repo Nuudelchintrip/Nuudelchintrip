@@ -209,6 +209,29 @@ interface BookingDetailRow extends BookingRow {
   trip_id: string;
 }
 
+interface BookingDetailRpcRow extends BookingRow {
+  trip_code?: string | null;
+  trip_driver_id: string;
+  trip_from_location: string;
+  trip_to_location: string;
+  trip_departure_at: string;
+  trip_pickup_note: string | null;
+  trip_dropoff_note: string | null;
+  trip_price_per_seat: number | null;
+  trip_allows_cargo: boolean | null;
+  traveler_full_name: string | null;
+  traveler_phone: string | null;
+  traveler_email: string | null;
+  traveler_phone_verified: boolean | null;
+  driver_full_name: string | null;
+  driver_phone: string | null;
+  driver_email: string | null;
+  driver_car_model: string | null;
+  driver_rating: number | null;
+  driver_completed_trips: number | null;
+  driver_verification_status: TripDriverSummary['verificationStatus'] | null;
+}
+
 interface CargoRequestRow {
   id: string;
   trip_id: string;
@@ -264,6 +287,46 @@ function mapTripRows(
       },
     };
   });
+}
+
+function mapBookingDetailRpcRow(row: BookingDetailRpcRow): PassengerBookingDetail {
+  return {
+    id: row.id,
+    tripId: row.trip_id,
+    travelerId: row.traveler_id,
+    status: row.status,
+    seatsRequested: row.seats_requested,
+    selectedSeats: normalizeSeatIds(row.selected_seats, row.seats_requested),
+    totalAmount: Number(row.total_amount || 0),
+    note: row.note || undefined,
+    createdAt: row.created_at,
+    tripCode: row.trip_code || undefined,
+    trip: {
+      driverId: row.trip_driver_id,
+      fromLocation: row.trip_from_location,
+      toLocation: row.trip_to_location,
+      departureAt: row.trip_departure_at,
+      pickupNote: row.trip_pickup_note || undefined,
+      dropoffNote: row.trip_dropoff_note || undefined,
+      pricePerSeat: Number(row.trip_price_per_seat || 0),
+      allowsCargo: Boolean(row.trip_allows_cargo),
+    },
+    traveler: {
+      fullName: row.traveler_full_name || 'Аялагч',
+      phone: row.traveler_phone || undefined,
+      email: row.traveler_email || undefined,
+      phoneVerified: Boolean(row.traveler_phone_verified),
+    },
+    driver: {
+      fullName: row.driver_full_name || 'Жолооч',
+      phone: row.driver_phone || undefined,
+      email: row.driver_email || undefined,
+      carModel: row.driver_car_model || undefined,
+      rating: Number(row.driver_rating || 0),
+      completedTrips: Number(row.driver_completed_trips || 0),
+      verificationStatus: row.driver_verification_status || undefined,
+    },
+  };
 }
 
 export async function canCurrentDriverCreateTrip() {
@@ -831,6 +894,24 @@ export async function fetchBookingStatusHistory(bookingId: string): Promise<Book
 
 export async function fetchPassengerBookingById(bookingId: string): Promise<PassengerBookingDetail | null> {
   if (!supabase) return null;
+
+  const { data: rpcBooking, error: rpcError } = await supabase
+    .rpc('get_passenger_booking_detail', { p_booking_id: bookingId })
+    .maybeSingle();
+
+  if (!rpcError && rpcBooking) {
+    return mapBookingDetailRpcRow(rpcBooking as BookingDetailRpcRow);
+  }
+
+  const rpcMessage = rpcError ? toError(rpcError, '').message : '';
+  const canFallbackToDirectRead = !rpcError
+    || rpcMessage.includes('get_passenger_booking_detail')
+    || rpcMessage.includes('Could not find the function')
+    || rpcMessage.includes('PGRST202');
+
+  if (rpcError && !canFallbackToDirectRead) {
+    throw toError(rpcError, 'Booking detail уншихад алдаа гарлаа.');
+  }
 
   let { data: booking, error: bookingError } = await supabase
     .from('passenger_bookings')
