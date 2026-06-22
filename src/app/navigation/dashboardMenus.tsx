@@ -1,4 +1,4 @@
-import { Banknote, Bell, Box, Bus, CreditCard, FileCheck2, Flag, LayoutDashboard, ListChecks, PackageCheck, PackagePlus, Route, Search, Settings, ShieldCheck, UserCircle, UsersRound } from 'lucide-react';
+import { Banknote, Box, Bus, CreditCard, LayoutDashboard, PackageCheck, PackagePlus, Route, Search, ShieldCheck, UserCircle, UsersRound } from 'lucide-react';
 
 export type DashboardRole = 'sender' | 'traveler' | 'driver' | 'admin';
 
@@ -8,12 +8,7 @@ export function getDashboardMenu(role: DashboardRole) {
       { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Самбар', href: '/dashboard/cargo' },
       { icon: <PackagePlus className="h-5 w-5" />, label: 'Ачаа илгээх', href: '/cargo/find-routes' },
       { icon: <Box className="h-5 w-5" />, label: 'Миний ачаа', href: '/dashboard/cargo/requests' },
-      { icon: <Bell className="h-5 w-5" />, label: 'Мэдэгдэл', href: '/dashboard/notifications' },
-      { icon: <ShieldCheck className="h-5 w-5" />, label: 'Хүргэлтийн код', href: '/dashboard/cargo/status' },
-      { icon: <FileCheck2 className="h-5 w-5" />, label: 'Төлбөрийн баримт', href: '/dashboard/cargo/proof' },
-      { icon: <Flag className="h-5 w-5" />, label: 'Ачааны дүрэм', href: '/dashboard/cargo/rules' },
-      { icon: <UserCircle className="h-5 w-5" />, label: 'Хувийн мэдээлэл', href: '/dashboard/cargo/profile' },
-      { icon: <Settings className="h-5 w-5" />, label: 'Тохиргоо', href: '/dashboard/cargo/settings' },
+      { icon: <UserCircle className="h-5 w-5" />, label: 'Бүртгэл', href: '/dashboard/cargo/profile' },
     ];
   }
 
@@ -22,39 +17,26 @@ export function getDashboardMenu(role: DashboardRole) {
       { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Самбар', href: '/dashboard/traveler' },
       { icon: <Search className="h-5 w-5" />, label: 'Жолооч хайх', href: '/traveler/find-drivers' },
       { icon: <Bus className="h-5 w-5" />, label: 'Миний аялал', href: '/dashboard/traveler/trips' },
-      { icon: <Bell className="h-5 w-5" />, label: 'Мэдэгдэл', href: '/dashboard/notifications' },
-      { icon: <UserCircle className="h-5 w-5" />, label: 'Хувийн мэдээлэл', href: '/dashboard/traveler/profile' },
-      { icon: <Settings className="h-5 w-5" />, label: 'Тохиргоо', href: '/dashboard/traveler/settings' },
+      { icon: <UserCircle className="h-5 w-5" />, label: 'Бүртгэл', href: '/dashboard/traveler/profile' },
     ];
   }
 
   if (role === 'driver') {
     return [
       { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Самбар', href: '/dashboard/driver' },
-      { icon: <Route className="h-5 w-5" />, label: 'Чиглэл нэмэх', href: '/driver/add-route' },
-      { icon: <Route className="h-5 w-5" />, label: 'Миний чиглэлүүд', href: '/dashboard/driver/routes' },
-      { icon: <UsersRound className="h-5 w-5" />, label: 'Ирсэн хүсэлтүүд', href: '/driver/requests' },
-      { icon: <Bell className="h-5 w-5" />, label: 'Мэдэгдэл', href: '/dashboard/notifications' },
-      { icon: <Box className="h-5 w-5" />, label: 'Дайвар ачааны хүсэлтүүд', href: '/dashboard/driver/cargo-requests' },
+      { icon: <Route className="h-5 w-5" />, label: 'Чиглэл', href: '/dashboard/driver/routes' },
+      { icon: <UsersRound className="h-5 w-5" />, label: 'Хүсэлтүүд', href: '/driver/requests' },
       { icon: <Banknote className="h-5 w-5" />, label: 'Орлого', href: '/dashboard/driver/earnings' },
-      { icon: <ShieldCheck className="h-5 w-5" />, label: 'Баталгаажуулалт', href: '/dashboard/driver/verification' },
-      { icon: <UserCircle className="h-5 w-5" />, label: 'Хувийн мэдээлэл', href: '/dashboard/driver/profile' },
-      { icon: <Settings className="h-5 w-5" />, label: 'Тохиргоо', href: '/dashboard/driver/settings' },
+      { icon: <UserCircle className="h-5 w-5" />, label: 'Бүртгэл', href: '/dashboard/driver/profile' },
     ];
   }
 
   return [
-    { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Админ самбар', href: '/admin' },
+    { icon: <LayoutDashboard className="h-5 w-5" />, label: 'Админ', href: '/admin' },
     { icon: <UsersRound className="h-5 w-5" />, label: 'Хэрэглэгчид', href: '/admin/users' },
     { icon: <ShieldCheck className="h-5 w-5" />, label: 'Баталгаажуулалт', href: '/admin/verifications' },
-    { icon: <CreditCard className="h-5 w-5" />, label: 'Төлбөрүүд', href: '/admin/payments' },
-    { icon: <Banknote className="h-5 w-5" />, label: 'Жолоочийн төлбөр', href: '/admin/payouts' },
-    { icon: <Route className="h-5 w-5" />, label: 'Чиглэлүүд', href: '/admin/routes' },
-    { icon: <Bus className="h-5 w-5" />, label: 'Захиалгууд', href: '/admin/bookings' },
-    { icon: <PackageCheck className="h-5 w-5" />, label: 'Ачааны хүсэлтүүд', href: '/admin/cargo' },
-    { icon: <Flag className="h-5 w-5" />, label: 'Гомдол, маргаан', href: '/admin/reports' },
-    { icon: <Bell className="h-5 w-5" />, label: 'Дэмжлэг', href: '/admin/support' },
-    { icon: <ListChecks className="h-5 w-5" />, label: 'Үйлдлийн түүх', href: '/admin/logs' },
-    { icon: <Settings className="h-5 w-5" />, label: 'Тохиргоо', href: '/admin/settings' },
+    { icon: <CreditCard className="h-5 w-5" />, label: 'Төлбөр', href: '/admin/payments' },
+    { icon: <Route className="h-5 w-5" />, label: 'Чиглэл', href: '/admin/routes' },
+    { icon: <PackageCheck className="h-5 w-5" />, label: 'Ачаа', href: '/admin/cargo' },
   ];
 }
