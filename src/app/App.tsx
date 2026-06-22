@@ -17,7 +17,6 @@ const AccountPasswordPage = named(() => import('./pages/AccountPages'), 'Account
 const AccountProfilePage = named(() => import('./pages/AccountPages'), 'AccountProfilePage');
 const AccountSettingsPage = named(() => import('./pages/AccountPages'), 'AccountSettingsPage');
 const AccountVerificationPage = named(() => import('./pages/AccountPages'), 'AccountVerificationPage');
-const PublicDriverProfilePage = named(() => import('./pages/AccountPages'), 'PublicDriverProfilePage');
 const ProfileRouterPage = named(() => import('./pages/AccountRouterPages'), 'ProfileRouterPage');
 const SettingsRouterPage = named(() => import('./pages/AccountRouterPages'), 'SettingsRouterPage');
 const AdminDashboard = named(() => import('./pages/AdminDashboard'), 'AdminDashboard');
@@ -42,6 +41,7 @@ const DeliveryProofPage = named(() => import('./pages/DeliveryProofPage'), 'Deli
 const DriverDashboard = named(() => import('./pages/DriverDashboard'), 'DriverDashboard');
 const HowItWorksPage = named(() => import('./pages/HowItWorksPage'), 'HowItWorksPage');
 const PaymentProofPage = named(() => import('./pages/PaymentProofPage'), 'PaymentProofPage');
+const ParticipantProfilePage = named(() => import('./pages/ParticipantProfilePage'), 'ParticipantProfilePage');
 const PostCargoPage = named(() => import('./pages/PostCargoPage'), 'PostCargoPage');
 const PricingPage = named(() => import('./pages/PricingPage'), 'PricingPage');
 const AboutPage = named(() => import('./pages/PublicInfoPages'), 'AboutPage');
@@ -232,7 +232,8 @@ export default function App() {
         <Route path="/profile/sender" element={<Navigate to="/onboarding/cargo" replace />} />
         <Route path="/profile/traveler" element={<Navigate to="/onboarding/traveler" replace />} />
         <Route path="/profile/driver" element={<Navigate to="/onboarding/driver" replace />} />
-        <Route path="/profile/driver/:id" element={<PublicDriverProfilePage />} />
+        <Route path="/profile/driver/:id" element={<RequireAccount><ParticipantProfilePage /></RequireAccount>} />
+        <Route path="/profile/traveler/:id" element={<RequireAccount><ParticipantProfilePage /></RequireAccount>} />
 
         <Route path="/dashboard" element={<DashboardRedirectPage />} />
         <Route path="/dashboard/verification" element={<Navigate to="/dashboard/driver/verification" replace />} />

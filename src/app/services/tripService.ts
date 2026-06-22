@@ -152,6 +152,22 @@ export interface PassengerBookingDetail {
   };
 }
 
+export interface ParticipantPublicProfile {
+  id: string;
+  role: 'traveler' | 'driver' | 'cargo_sender' | 'admin';
+  fullName: string;
+  phone?: string;
+  email?: string;
+  phoneVerified: boolean;
+  avatarUrl?: string;
+  driverVerificationStatus?: TripDriverSummary['verificationStatus'];
+  carModel?: string;
+  plateNumber?: string;
+  seats?: number;
+  rating: number;
+  completedTrips: number;
+}
+
 interface TripRow {
   id: string;
   driver_id: string;
@@ -230,6 +246,22 @@ interface BookingDetailRpcRow extends BookingRow {
   driver_rating: number | null;
   driver_completed_trips: number | null;
   driver_verification_status: TripDriverSummary['verificationStatus'] | null;
+}
+
+interface ParticipantPublicProfileRow {
+  id: string;
+  role: ParticipantPublicProfile['role'];
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  phone_verified: boolean | null;
+  avatar_url: string | null;
+  driver_verification_status: TripDriverSummary['verificationStatus'] | null;
+  car_model: string | null;
+  plate_number: string | null;
+  seats: number | null;
+  rating: number | null;
+  completed_trips: number | null;
 }
 
 interface CargoRequestRow {
@@ -1000,6 +1032,34 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
       completedTrips: Number(driverProfile?.completed_trips || 0),
       verificationStatus: driverProfile?.verification_status,
     },
+  };
+}
+
+export async function fetchParticipantPublicProfile(userId: string): Promise<ParticipantPublicProfile | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .rpc('get_participant_public_profile', { p_user_id: userId })
+    .maybeSingle();
+
+  if (error) throw toError(error, 'Хэрэглэгчийн мэдээлэл уншихад алдаа гарлаа.');
+  if (!data) return null;
+
+  const row = data as ParticipantPublicProfileRow;
+  return {
+    id: row.id,
+    role: row.role,
+    fullName: row.full_name || (row.role === 'driver' ? 'Жолооч' : 'Аялагч'),
+    phone: row.phone || undefined,
+    email: row.email || undefined,
+    phoneVerified: Boolean(row.phone_verified),
+    avatarUrl: row.avatar_url || undefined,
+    driverVerificationStatus: row.driver_verification_status || undefined,
+    carModel: row.car_model || undefined,
+    plateNumber: row.plate_number || undefined,
+    seats: row.seats || undefined,
+    rating: Number(row.rating || 0),
+    completedTrips: Number(row.completed_trips || 0),
   };
 }
 

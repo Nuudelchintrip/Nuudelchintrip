@@ -706,6 +706,13 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
                   <p className="mt-2 text-muted-foreground">
                     {request.travelerName} · {request.seatsRequested} суудал · {new Date(request.departureAt).toLocaleString('mn-MN')}
                   </p>
+                  <button
+                    type="button"
+                    className="mt-2 text-sm font-medium text-primary hover:underline"
+                    onClick={() => { window.location.href = `/profile/traveler/${request.travelerId}`; }}
+                  >
+                    Аялагчийн профайл харах
+                  </button>
                   {request.note && <p className="mt-2 text-sm leading-6 text-muted-foreground">{request.note}</p>}
                 </div>
                 <div className="rounded-lg bg-muted/40 p-4">

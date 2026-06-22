@@ -364,8 +364,8 @@ export function BookingDetailPage() {
                 <h3 className="font-semibold text-foreground">Оролцогчид</h3>
               </CardHeader>
               <CardBody className="space-y-5">
-                <PersonCard title="Аялагч" name={booking.passenger.name} phone={booking.passenger.phone} verified={booking.passenger.verified} tone="primary" />
-                <PersonCard title="Жолооч" name={booking.driver.name} phone={booking.driver.phone} verified={booking.driver.verified} tone="accent" meta={`Үнэлгээ: ${booking.driver.rating}/5.0`} />
+                <PersonCard title="Аялагч" name={booking.passenger.name} phone={booking.passenger.phone} verified={booking.passenger.verified} tone="primary" profileHref={`/profile/traveler/${realBooking?.travelerId}`} />
+                <PersonCard title="Жолооч" name={booking.driver.name} phone={booking.driver.phone} verified={booking.driver.verified} tone="accent" meta={`Үнэлгээ: ${booking.driver.rating}/5.0`} profileHref={`/profile/driver/${realBooking?.trip.driverId}`} />
                 <div className="rounded-xl border border-border bg-muted/30 p-4">
                   <p className="text-sm text-muted-foreground">Авах / буулгах цэг</p>
                   <p className="mt-1 font-semibold text-foreground">{booking.ride.pickupNote}</p>
@@ -498,7 +498,7 @@ function EvidenceItem({ icon, title, status, active }: { icon: ReactNode; title:
   );
 }
 
-function PersonCard({ title, name, phone, verified, tone, meta }: { title: string; name: string; phone: string; verified: boolean; tone: 'primary' | 'accent'; meta?: string }) {
+function PersonCard({ title, name, phone, verified, tone, meta, profileHref }: { title: string; name: string; phone: string; verified: boolean; tone: 'primary' | 'accent'; meta?: string; profileHref?: string }) {
   const toneClasses = tone === 'primary' ? 'bg-primary/10 text-primary' : 'bg-accent/10 text-accent';
 
   return (
@@ -506,7 +506,7 @@ function PersonCard({ title, name, phone, verified, tone, meta }: { title: strin
       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${toneClasses}`}>
         <User className="w-6 h-6" />
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-sm text-muted-foreground">{title}</p>
         <div className="flex items-center gap-2">
           <p className="font-medium text-foreground">{name}</p>
@@ -514,6 +514,15 @@ function PersonCard({ title, name, phone, verified, tone, meta }: { title: strin
         </div>
         <p className="text-sm text-muted-foreground">{phone}</p>
         {meta && <p className="text-sm text-muted-foreground">{meta}</p>}
+        {profileHref && (
+          <button
+            type="button"
+            className="mt-2 text-sm font-medium text-primary hover:underline"
+            onClick={() => { window.location.href = profileHref; }}
+          >
+            Профайл харах
+          </button>
+        )}
       </div>
     </div>
   );

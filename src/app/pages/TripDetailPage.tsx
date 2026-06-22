@@ -269,6 +269,14 @@ export function TripDetailPage() {
                 <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success" /> Утас баталгаажсан</p>
                 <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success" /> Жолооч баталгаажсан</p>
               </div>
+              <Button
+                variant="outline"
+                fullWidth
+                className="mt-4"
+                onClick={() => { window.location.href = `/profile/driver/${route.driverId}`; }}
+              >
+                Жолоочийн профайл харах
+              </Button>
             </Card>
 
             <Card className="p-4 sm:p-5">
