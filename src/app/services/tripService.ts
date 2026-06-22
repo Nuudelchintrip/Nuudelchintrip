@@ -55,6 +55,13 @@ export interface CreateDriverTripInput {
   cargoPriceNote?: string;
 }
 
+export interface SaveRouteSearchInput {
+  fromLocation: string;
+  toLocation: string;
+  departureDate?: string;
+  seatsRequested?: number;
+}
+
 export interface DriverPassengerRequest {
   id: string;
   tripId: string;
@@ -445,6 +452,20 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     ].join(' | '));
   }
   return { id: tripId };
+}
+
+export async function saveRouteSearch(input: SaveRouteSearchInput) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data: searchId, error } = await supabase.rpc('save_route_search', {
+    p_from_location: input.fromLocation,
+    p_to_location: input.toLocation,
+    p_departure_date: input.departureDate || null,
+    p_seats_requested: input.seatsRequested || 1,
+  });
+
+  if (error) throw toError(error, 'Хайлтаа хадгалахад алдаа гарлаа.');
+  return { id: searchId as string };
 }
 
 export async function updateDriverTrip(tripId: string, input: CreateDriverTripInput) {

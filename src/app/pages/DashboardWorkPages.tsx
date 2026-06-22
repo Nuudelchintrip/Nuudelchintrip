@@ -19,6 +19,7 @@ import { refreshLocalProfileFromSupabase } from '../services/supabaseAuth';
 import {
   canCurrentDriverCreateTrip,
   createDriverTrip,
+  saveRouteSearch,
   updateDriverTrip,
   fetchTripById,
   fetchActiveTrips,
@@ -791,6 +792,9 @@ export function FindDriversPage() {
   const [offers, setOffers] = useState<DriverOffer[]>([]);
   const [loadingTrips, setLoadingTrips] = useState(isSupabaseConfigured);
   const [loadError, setLoadError] = useState('');
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [saveSearchMessage, setSaveSearchMessage] = useState('');
+  const [saveSearchError, setSaveSearchError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -833,6 +837,40 @@ export function FindDriversPage() {
       return matchesFrom && matchesTo && matchesDate && matchesSeats && matchesCargo;
     });
   }, [cargoOnly, date, fromAimag, fromSoum, offers, passengers, toAimag, toSoum]);
+
+  const searchFromLocation = [fromAimag, fromSoum].filter(Boolean).join(' - ');
+  const searchToLocation = [toAimag, toSoum].filter(Boolean).join(' - ');
+  const canSaveSearch = Boolean(searchFromLocation && searchToLocation);
+
+  useEffect(() => {
+    setSaveSearchMessage('');
+    setSaveSearchError('');
+  }, [date, fromAimag, fromSoum, passengers, toAimag, toSoum]);
+
+  const handleSaveRouteSearch = async () => {
+    if (!canSaveSearch) {
+      setSaveSearchError('Эхлэх болон очих байршлаа сонгоно уу.');
+      return;
+    }
+
+    setSavingSearch(true);
+    setSaveSearchMessage('');
+    setSaveSearchError('');
+
+    try {
+      await saveRouteSearch({
+        fromLocation: searchFromLocation,
+        toLocation: searchToLocation,
+        departureDate: date || undefined,
+        seatsRequested: Number(passengers || 1),
+      });
+      setSaveSearchMessage('Чиглэл гарвал танд мэдэгдэл ирнэ.');
+    } catch (error) {
+      setSaveSearchError(error instanceof Error ? error.message : 'Хайлтаа хадгалахад алдаа гарлаа.');
+    } finally {
+      setSavingSearch(false);
+    }
+  };
 
   return (
     <DashboardFrame role="traveler">
@@ -911,11 +949,39 @@ export function FindDriversPage() {
         ))}
       </div>
 
-      {filteredOffers.length === 0 && (
+      {!loadingTrips && filteredOffers.length === 0 && (
         <Card className="mt-5 p-6 text-center sm:mt-6 sm:p-10">
           <Search className="mx-auto mb-3 h-9 w-9 text-muted-foreground sm:mb-4 sm:h-12 sm:w-12" />
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">Тохирох унаа олдсонгүй</h2>
-          <p className="mt-2 text-sm text-muted-foreground sm:text-base">Шүүлтүүрээ сулруулаад дахин хайгаарай.</p>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
+            Ийм чиглэл гарвал хадгалсан хайлтаар тань notification илгээнэ.
+          </p>
+          <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              onClick={handleSaveRouteSearch}
+              disabled={savingSearch || !canSaveSearch}
+              className="w-full sm:w-auto"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {savingSearch ? 'Хадгалж байна...' : 'Ийм чиглэл гарвал мэдэгдэх'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}
+              className="w-full sm:w-auto"
+            >
+              Шүүлтүүр цэвэрлэх
+            </Button>
+          </div>
+          {!canSaveSearch && (
+            <p className="mt-3 text-xs text-muted-foreground">Мэдэгдэл авахын тулд суух болон буух байршлаа сонгоно уу.</p>
+          )}
+          {saveSearchMessage && (
+            <p className="mt-3 text-sm font-medium text-primary">{saveSearchMessage}</p>
+          )}
+          {saveSearchError && (
+            <p className="mt-3 text-sm font-medium text-destructive">{saveSearchError}</p>
+          )}
         </Card>
       )}
     </DashboardFrame>
