@@ -39,6 +39,9 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
   const [carModel, setCarModel] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
   const [seats, setSeats] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [registerNumber, setRegisterNumber] = useState('');
+  const [age, setAge] = useState('');
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -54,6 +57,20 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
     }
 
     if (normalizedRole === 'driver') {
+      if (!lastName.trim()) {
+        setError('Овог оруулна уу.');
+        return;
+      }
+      const normalizedRegister = registerNumber.trim().toUpperCase();
+      if (!/^[А-ЯӨҮЁ]{2}[0-9]{8}$/i.test(normalizedRegister)) {
+        setError('Регистрийн дугаар 2 үсэг + 8 оронтой байна (ж: АБ12345678).');
+        return;
+      }
+      const ageNumber = Number(age);
+      if (!Number.isInteger(ageNumber) || ageNumber < 18 || ageNumber > 90) {
+        setError('Нас 18-90 хооронд байх ёстой.');
+        return;
+      }
       if (!carModel.trim()) {
         setError('Машины загварыг оруулна уу.');
         return;
@@ -187,6 +204,20 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
               </CardHeader>
               <CardBody>
                 <div className="grid gap-4 md:grid-cols-2">
+                  <Input label="Овог" placeholder="Бат" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+                  <Input
+                    label="Регистрийн дугаар"
+                    placeholder="АБ12345678"
+                    value={registerNumber}
+                    onChange={(event) => setRegisterNumber(event.target.value.toUpperCase())}
+                  />
+                  <Input
+                    label="Нас"
+                    placeholder="30"
+                    inputMode="numeric"
+                    value={age}
+                    onChange={(event) => setAge(event.target.value.replace(/\D/g, ''))}
+                  />
                   <Input label="Машины загвар" placeholder="Toyota Prius 30" value={carModel} onChange={(event) => setCarModel(event.target.value)} />
                   <Input label="Улсын дугаар" placeholder="УБА 1234" value={plateNumber} onChange={(event) => setPlateNumber(event.target.value)} />
                   <Input label="Суудлын тоо" placeholder="4" value={seats} onChange={(event) => setSeats(event.target.value)} />

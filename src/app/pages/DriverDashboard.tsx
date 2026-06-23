@@ -86,7 +86,7 @@ export function DriverDashboard() {
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">Таны чиглэл, ирсэн хүсэлт, орлогын бодит тойм.</p>
           </div>
-          <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/driver/add-route'} disabled={!isApproved}>
+          <Button className="w-full sm:w-auto" onClick={() => window.location.href = '/dashboard/driver/routes/new'} disabled={!isApproved}>
             <Plus className="h-4 w-4" />
             Чиглэл нэмэх
           </Button>
@@ -173,7 +173,7 @@ export function DriverDashboard() {
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-foreground">Ирсэн хүсэлтүүд</h2>
-              <button type="button" onClick={() => window.location.href = '/driver/requests'} className="text-sm font-medium text-primary hover:underline">Бүгд</button>
+              <button type="button" onClick={() => window.location.href = '/dashboard/driver/requests'} className="text-sm font-medium text-primary hover:underline">Бүгд</button>
             </div>
             {loading ? (
               <Card className="p-5 text-sm text-muted-foreground">Уншиж байна...</Card>
