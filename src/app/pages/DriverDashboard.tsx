@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Banknote, Car, Inbox, Plus, Route, ShieldCheck, Wallet, XCircle } from 'lucide-react';
+import { Banknote, Car, Inbox, Megaphone, Phone, Plus, Route, ShieldCheck, Wallet, XCircle } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card, CardBody } from '../components/Card';
@@ -11,8 +11,10 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import {
   fetchCurrentDriverTrips,
   fetchCurrentDriverPassengerRequests,
+  fetchActiveRouteRequests,
   type MarketplaceTrip,
   type DriverPassengerRequest,
+  type RouteRequest,
 } from '../services/tripService';
 import { fetchMyDriverEarnings, type DriverEarnings } from '../services/payoutService';
 import { fetchMyDriverVerification, type MyDriverVerification } from '../services/supabaseAuth';
@@ -32,6 +34,7 @@ export function DriverDashboard() {
   const [trips, setTrips] = useState<MarketplaceTrip[]>([]);
   const [requests, setRequests] = useState<DriverPassengerRequest[]>([]);
   const [earnings, setEarnings] = useState<DriverEarnings | null>(null);
+  const [routeAds, setRouteAds] = useState<RouteRequest[]>([]);
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
   useEffect(() => {
@@ -49,12 +52,14 @@ export function DriverDashboard() {
       fetchCurrentDriverTrips().catch(() => []),
       fetchCurrentDriverPassengerRequests().catch(() => []),
       fetchMyDriverEarnings().catch(() => null),
+      fetchActiveRouteRequests().catch(() => []),
     ])
-      .then(([tripItems, requestItems, earningItems]) => {
+      .then(([tripItems, requestItems, earningItems, routeAdItems]) => {
         if (!active) return;
         setTrips(tripItems as MarketplaceTrip[]);
         setRequests(requestItems as DriverPassengerRequest[]);
         setEarnings(earningItems as DriverEarnings | null);
+        setRouteAds(routeAdItems as RouteRequest[]);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -201,6 +206,37 @@ export function DriverDashboard() {
             )}
           </section>
         </div>
+
+        {routeAds.length > 0 && (
+          <section className="mt-6">
+            <div className="mb-3 flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold text-foreground">Аялагчдын чиглэл хүсэлтүүд</h2>
+            </div>
+            <p className="mb-3 text-sm text-muted-foreground">
+              Эдгээр чиглэлээр аялагчид жолооч хайж байна — таарах чиглэлээр маршрут нийтэлбэл зар эзэнд нь мэдэгдэл очно.
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {routeAds.slice(0, 4).map((ad) => (
+                <Card key={ad.id} className="p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="info">Чиглэл хүсэлт</Badge>
+                    <span className="text-sm text-muted-foreground">{ad.travelDate}</span>
+                  </div>
+                  <p className="mt-2 font-semibold text-foreground">{ad.fromLocation} → {ad.toLocation}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{ad.seats} суудал хэрэгтэй</p>
+                  {ad.contactPhone && (
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5" />
+                      {ad.contactPhone}
+                    </p>
+                  )}
+                  {ad.note && <p className="mt-2 text-sm leading-6 text-muted-foreground">{ad.note}</p>}
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <Button variant="outline" onClick={() => window.location.href = '/dashboard/driver/earnings'}><Banknote className="h-4 w-4" />Орлого</Button>

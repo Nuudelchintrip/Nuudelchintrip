@@ -6,6 +6,8 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
+import { closeRouteRequest, createRouteRequest, fetchActiveRouteRequests } from '../services/tripService';
+import { getStoredUser } from '../utils/auth';
 
 type RouteRequestAd = {
   id: string;
@@ -16,6 +18,9 @@ type RouteRequestAd = {
   phone: string;
   note: string;
   createdAt: string;
+  /** 'db' = Supabase-д хадгалагдсан бодит зар, 'local' = зөвхөн энэ browser-ийн демо зар. */
+  source: 'db' | 'local';
+  travelerId?: string;
 };
 
 const ROUTE_REQUESTS_KEY = 'nuudelchin_route_requests';
@@ -24,15 +29,34 @@ function loadRouteRequests(): RouteRequestAd[] {
   try {
     const raw = localStorage.getItem(ROUTE_REQUESTS_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.map((item: RouteRequestAd) => ({ ...item, source: 'local' as const }))
+      : [];
   } catch {
     return [];
   }
 }
 
+async function loadDbRouteRequests(): Promise<RouteRequestAd[]> {
+  const items = await fetchActiveRouteRequests();
+  return items.map((item) => ({
+    id: item.id,
+    from: item.fromLocation,
+    to: item.toLocation,
+    date: item.travelDate,
+    seats: String(item.seats),
+    phone: item.contactPhone || '',
+    note: item.note || '',
+    createdAt: item.createdAt,
+    source: 'db' as const,
+    travelerId: item.travelerId,
+  }));
+}
+
 function saveRouteRequests(items: RouteRequestAd[]) {
   try {
-    localStorage.setItem(ROUTE_REQUESTS_KEY, JSON.stringify(items));
+    // Зөвхөн локал демо заруудыг хадгална — бодит зар Supabase-д байгаа.
+    localStorage.setItem(ROUTE_REQUESTS_KEY, JSON.stringify(items.filter((item) => item.source === 'local')));
   } catch {
     // localStorage хаагдсан үед зар түр санах ойд л үлдэнэ.
   }
@@ -56,10 +80,33 @@ export default function JoloochHaih() {
       'content',
       'Орон нутаг, хот хооронд явах жолооч хайж, сул суудалтай чиглэл болон маршрутыг NuudelchinTrip дээрээс олоорой.',
     );
-    setRequests(loadRouteRequests());
+    // Supabase-аас идэвхтэй заруудыг уншиж, локал демо заруудтай нийлүүлнэ.
+    // route_requests хүснэгт хараахан үүсээгүй бол локал заруудаа л харуулна.
+    let active = true;
+    const localAds = loadRouteRequests();
+    setRequests(localAds);
+    loadDbRouteRequests()
+      .then((dbAds) => {
+        if (active) setRequests([...dbAds, ...localAds]);
+      })
+      .catch(() => {
+        // Хүснэгт байхгүй / нэвтрээгүй — локал жагсаалт хэвээр.
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const submitRouteRequest = () => {
+  const resetForm = () => {
+    setFrom('');
+    setTo('');
+    setDate('');
+    setSeats('1');
+    setPhone('');
+    setNote('');
+  };
+
+  const submitRouteRequest = async () => {
     setFormSuccess('');
     if (!from.trim() || !to.trim()) {
       setFormError('Хаанаас, хаашаа явахаа оруулна уу.');
@@ -79,6 +126,31 @@ export default function JoloochHaih() {
       return;
     }
 
+    // Эхлээд Supabase-д бодитоор хадгалахыг оролдоно (нэвтэрсэн, хүснэгт үүссэн үед).
+    try {
+      await createRouteRequest({
+        fromLocation: from.trim(),
+        toLocation: to.trim(),
+        travelDate: date,
+        seats: seatCount,
+        contactPhone: phone.trim(),
+        note: note.trim() || undefined,
+      });
+      const [dbAds, localAds] = [await loadDbRouteRequests(), loadRouteRequests()];
+      setRequests([...dbAds, ...localAds]);
+      setFormError('');
+      setFormSuccess('Таны чиглэл хүсэх зар нийтлэгдлээ. Энэ чиглэлээр маршрут нээсэн жолооч танд мэдэгдэл илгээнэ.');
+      resetForm();
+      return;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      // Хэрэглэгчийн засах ёстой алдааг шууд харуулна; бусад тохиолдолд локал демо руу шилжинэ.
+      if (message.includes('хязгаар') || message.includes('түдгэлзсэн') || message.includes('огноо')) {
+        setFormError(message);
+        return;
+      }
+    }
+
     const nextAd: RouteRequestAd = {
       id: `${Date.now()}`,
       from: from.trim(),
@@ -88,25 +160,31 @@ export default function JoloochHaih() {
       phone: phone.trim(),
       note: note.trim(),
       createdAt: new Date().toISOString(),
+      source: 'local',
     };
     const next = [nextAd, ...requests];
     setRequests(next);
     saveRouteRequests(next);
     setFormError('');
     setFormSuccess('Таны чиглэл хүсэх зар нийтлэгдлээ. Энэ чиглэлээр явах жолооч тантай холбогдоно.');
-    setFrom('');
-    setTo('');
-    setDate('');
-    setSeats('1');
-    setPhone('');
-    setNote('');
+    resetForm();
   };
 
-  const removeRouteRequest = (id: string) => {
-    const next = requests.filter((item) => item.id !== id);
+  const removeRouteRequest = async (ad: RouteRequestAd) => {
+    if (ad.source === 'db') {
+      try {
+        await closeRouteRequest(ad.id);
+      } catch (err) {
+        setFormError(err instanceof Error ? err.message : 'Зар хаахад алдаа гарлаа.');
+        return;
+      }
+    }
+    const next = requests.filter((item) => item.id !== ad.id);
     setRequests(next);
     saveRouteRequests(next);
   };
+
+  const currentUserId = getStoredUser()?.id;
 
   return (
     <div className="min-h-screen bg-background">
@@ -173,14 +251,16 @@ export default function JoloochHaih() {
                         </div>
                         {item.note && <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.note}</p>}
                       </div>
-                      <button
-                        type="button"
-                        aria-label="Зар устгах"
-                        onClick={() => removeRouteRequest(item.id)}
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {(item.source === 'local' || (currentUserId && item.travelerId === currentUserId)) && (
+                        <button
+                          type="button"
+                          aria-label="Зар устгах"
+                          onClick={() => void removeRouteRequest(item)}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </div>
                   </Card>
                 ))}

@@ -22,7 +22,7 @@ import { Card, CardBody, CardHeader } from '../components/Card';
 import { Footer } from '../components/Footer';
 import { Navbar } from '../components/Navbar';
 import { bookingStatusSteps, getBooking, getStatusIndex, type BookingStatus } from '../data/mockData';
-import { createBookingReport, fetchBookingStatusHistory, fetchPassengerBookingById, updatePassengerBookingStatus, type BookingStatusLog, type PassengerBookingDetail } from '../services/tripService';
+import { createBookingReport, fetchBookingStatusHistory, fetchPassengerBookingById, fetchTripCompanions, updatePassengerBookingStatus, type BookingStatusLog, type PassengerBookingDetail, type TripCompanion } from '../services/tripService';
 import { getRequestStatusLabel } from '../utils/bookingStatus';
 import { getStoredUser } from '../utils/auth';
 
@@ -35,7 +35,23 @@ export function BookingDetailPage() {
   const [bookingError, setBookingError] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [history, setHistory] = useState<BookingStatusLog[]>([]);
+  const [companions, setCompanions] = useState<TripCompanion[]>([]);
   const [reportMessage, setReportMessage] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    if (!realBooking?.tripId) {
+      setCompanions([]);
+      return;
+    }
+    // Хамт явагчид: RPC хараахан үүсээгүй бол хоосон буцна, карт нуугдана.
+    fetchTripCompanions(realBooking.tripId).then((items) => {
+      if (active) setCompanions(items);
+    });
+    return () => {
+      active = false;
+    };
+  }, [realBooking?.tripId]);
 
   const handleReport = async () => {
     if (!realBooking) return;
@@ -373,6 +389,36 @@ export function BookingDetailPage() {
                 </div>
               </CardBody>
             </Card>
+
+            {companions.length > 1 && (
+              <Card>
+                <CardHeader>
+                  <h3 className="font-semibold text-foreground">Хамт явагчид</h3>
+                </CardHeader>
+                <CardBody className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Энэ аялалд хамт зорчих бусад аялагчид.</p>
+                  {companions.map((companion) => (
+                    <button
+                      key={companion.userId}
+                      type="button"
+                      onClick={() => { window.location.href = `/profile/traveler/${companion.userId}`; }}
+                      className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary/40 hover:bg-primary/5"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <p className="truncate font-medium text-foreground">{companion.fullName}</p>
+                          {companion.phoneVerified && <CheckCircle className="h-4 w-4 shrink-0 text-success" />}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{companion.seatsRequested} суудал</p>
+                      </div>
+                    </button>
+                  ))}
+                </CardBody>
+              </Card>
+            )}
 
             <Card className="bg-primary/5 border-primary/20">
               <CardHeader>

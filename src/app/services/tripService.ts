@@ -486,6 +486,135 @@ export async function saveRouteSearch(input: SaveRouteSearchInput) {
   return { id: searchId as string };
 }
 
+export interface RouteRequest {
+  id: string;
+  travelerId: string;
+  fromLocation: string;
+  toLocation: string;
+  travelDate: string;
+  seats: number;
+  contactPhone?: string;
+  note?: string;
+  createdAt: string;
+}
+
+interface RouteRequestRow {
+  id: string;
+  traveler_id: string;
+  from_location: string;
+  to_location: string;
+  travel_date: string;
+  seats: number;
+  contact_phone: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+function mapRouteRequestRow(row: RouteRequestRow): RouteRequest {
+  return {
+    id: row.id,
+    travelerId: row.traveler_id,
+    fromLocation: row.from_location,
+    toLocation: row.to_location,
+    travelDate: row.travel_date,
+    seats: Number(row.seats || 1),
+    contactPhone: row.contact_phone || undefined,
+    note: row.note || undefined,
+    createdAt: row.created_at,
+  };
+}
+
+export async function createRouteRequest(input: {
+  fromLocation: string;
+  toLocation: string;
+  travelDate: string;
+  seats: number;
+  contactPhone?: string;
+  note?: string;
+}) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { data: requestId, error } = await supabase.rpc('create_route_request', {
+    p_from_location: input.fromLocation,
+    p_to_location: input.toLocation,
+    p_travel_date: input.travelDate,
+    p_seats: input.seats,
+    p_contact_phone: input.contactPhone || null,
+    p_note: input.note || null,
+  });
+
+  if (error) {
+    const message = toError(error, '').message;
+    const messageByCode: Record<string, string> = {
+      not_authenticated: 'Зар нийтлэхийн тулд нэвтэрнэ үү.',
+      account_suspended: 'Таны бүртгэл түр түдгэлзсэн байна.',
+      route_required: 'Хаанаас, хаашаа явахаа оруулна уу.',
+      future_date_required: 'Явах огноо өнөөдрөөс хойш байх ёстой.',
+      invalid_seat_count: 'Суудлын тоо 1-12 хооронд байх ёстой.',
+      too_many_active_requests: 'Идэвхтэй зарын дээд хязгаар (5) хүрсэн байна. Хуучин зараа хаагаад дахин оролдоно уу.',
+    };
+    const known = Object.entries(messageByCode).find(([code]) => message.includes(code))?.[1];
+    throw known ? new Error(known) : toError(error, 'Зар нийтлэхэд алдаа гарлаа.');
+  }
+
+  return { id: requestId as string };
+}
+
+export async function fetchActiveRouteRequests() {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from('route_requests')
+    .select('id, traveler_id, from_location, to_location, travel_date, seats, contact_phone, note, created_at')
+    .eq('active', true)
+    .gte('travel_date', new Date().toISOString().slice(0, 10))
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) throw toError(error, 'Чиглэл хүсэлтүүдийг уншихад алдаа гарлаа.');
+  return ((data || []) as RouteRequestRow[]).map(mapRouteRequestRow);
+}
+
+export async function closeRouteRequest(requestId: string) {
+  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+
+  const { error } = await supabase.rpc('close_route_request', { p_request_id: requestId });
+  if (error) throw toError(error, 'Зар хаахад алдаа гарлаа.');
+}
+
+export interface TripCompanion {
+  userId: string;
+  fullName: string;
+  avatarUrl?: string;
+  phoneVerified: boolean;
+  seatsRequested: number;
+  bookingStatus: string;
+}
+
+/** Same-trip participants (accepted+ bookings). Returns [] until the companions migration is applied. */
+export async function fetchTripCompanions(tripId: string): Promise<TripCompanion[]> {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.rpc('get_trip_companions', { p_trip_id: tripId });
+  if (error) return [];
+
+  return ((data || []) as {
+    user_id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    phone_verified: boolean | null;
+    seats_requested: number | null;
+    booking_status: string | null;
+  }[]).map((row) => ({
+    userId: row.user_id,
+    fullName: row.full_name || 'Аялагч',
+    avatarUrl: row.avatar_url || undefined,
+    phoneVerified: Boolean(row.phone_verified),
+    seatsRequested: Number(row.seats_requested || 1),
+    bookingStatus: row.booking_status || '',
+  }));
+}
+
 export async function updateDriverTrip(tripId: string, input: CreateDriverTripInput) {
   if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
 
