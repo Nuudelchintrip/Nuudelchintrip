@@ -20,6 +20,8 @@ export interface TripDriverSummary {
   verificationStatus?: 'not_submitted' | 'pending' | 'approved' | 'rejected';
 }
 
+export type TripGenderPreference = 'any' | 'female' | 'male';
+
 export interface MarketplaceTrip {
   id: string;
   driverId: string;
@@ -36,6 +38,7 @@ export interface MarketplaceTrip {
   cargoCapacityKg?: number;
   allowedCargoTypes: string[];
   cargoPriceNote?: string;
+  genderPreference: TripGenderPreference;
   status: string;
   driver: TripDriverSummary;
 }
@@ -53,6 +56,7 @@ export interface CreateDriverTripInput {
   cargoCapacityKg?: number;
   allowedCargoTypes?: string[];
   cargoPriceNote?: string;
+  genderPreference?: TripGenderPreference;
 }
 
 export interface SaveRouteSearchInput {
@@ -191,6 +195,7 @@ interface TripRow {
   cargo_capacity_kg: number | null;
   allowed_cargo_types: string[] | null;
   cargo_price_note: string | null;
+  gender_preference?: TripGenderPreference | null;
   status: string;
 }
 
@@ -315,6 +320,7 @@ function mapTripRows(
       cargoCapacityKg: trip.cargo_capacity_kg ?? undefined,
       allowedCargoTypes: trip.allowed_cargo_types || [],
       cargoPriceNote: trip.cargo_price_note || undefined,
+      genderPreference: trip.gender_preference || 'any',
       status: trip.status,
       driver: {
         fullName: profile?.full_name || 'Баталгаажсан жолооч',
@@ -411,7 +417,7 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     ].join(' | '));
   }
 
-  const { data: tripId, error } = await supabase.rpc('create_driver_trip', {
+  const baseTripArgs = {
     p_from_location: input.fromLocation,
     p_to_location: input.toLocation,
     p_departure_at: input.departureAt,
@@ -424,7 +430,19 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
     p_cargo_capacity_kg: input.allowsCargo ? input.cargoCapacityKg ?? null : null,
     p_allowed_cargo_types: input.allowsCargo ? input.allowedCargoTypes ?? [] : null,
     p_cargo_price_note: input.allowsCargo ? input.cargoPriceNote || null : null,
+  };
+
+  let { data: tripId, error } = await supabase.rpc('create_driver_trip', {
+    ...baseTripArgs,
+    p_gender_preference: input.genderPreference || 'any',
   });
+
+  // DB талд gender_preference migration ороогүй бол хуучин сигнатураар дахин дуудна.
+  if (error && error.message?.includes('create_driver_trip')) {
+    const retry = await supabase.rpc('create_driver_trip', baseTripArgs);
+    tripId = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     const [{ data: profile }, { data: driverProfile }] = await Promise.all([
@@ -583,12 +601,14 @@ export async function fetchTripById(tripId: string) {
     .from('trips')
     .select(`
       ${tripColumns},
-      available_seat_labels
+      available_seat_labels,
+      gender_preference
     `)
     .eq('id', tripId)
     .maybeSingle();
 
-  if (tripError && toError(tripError, '').message.includes('available_seat_labels')) {
+  // DB талд байхгүй нэмэлт баганууд (хуучин схем) байвал үндсэн баганаар дахин уншина.
+  if (tripError && /available_seat_labels|gender_preference/.test(toError(tripError, '').message)) {
     const retry = await supabase
       .from('trips')
       .select(tripColumns)
@@ -651,6 +671,12 @@ export async function createPassengerBooking(input: {
     if (rpcMessage.includes('request_rate_limited')) {
       throw new Error('Хэт олон захиалгын хүсэлт илгээлээ. Түр хүлээгээд дахин оролдоно уу.');
     }
+    if (rpcMessage.includes('gender_not_allowed')) {
+      throw new Error('Энэ чиглэл нь зөвхөн нэг хүйсийн зорчигч авдаг. Таны хүйс тохирохгүй байна.');
+    }
+    if (rpcMessage.includes('gender_required_for_booking')) {
+      throw new Error('Хүйсээ профайлдаа оруулсны дараа энэ чиглэлд суудал захиална уу.');
+    }
     throw toError(rpcResult.error, 'Seat booking request failed.');
   }
 
@@ -693,7 +719,16 @@ export async function createPassengerBooking(input: {
     error = retry.error;
   }
 
-  if (error) throw toError(error, 'Supabase request failed.');
+  if (error) {
+    const message = toError(error, '').message;
+    if (message.includes('gender_not_allowed')) {
+      throw new Error('Энэ чиглэл нь зөвхөн нэг хүйсийн зорчигч авдаг. Таны хүйс тохирохгүй байна.');
+    }
+    if (message.includes('gender_required_for_booking')) {
+      throw new Error('Хүйсээ профайлдаа оруулсны дараа энэ чиглэлд суудал захиална уу.');
+    }
+    throw toError(error, 'Supabase request failed.');
+  }
   if (!data) throw new Error('Захиалгын хүсэлтийг баталгаажуулж чадсангүй. Хуудсаа шинэчлээд дахин шалгана уу.');
   return data;
 }

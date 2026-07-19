@@ -242,6 +242,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
   const [pickupNote, setPickupNote] = useState('');
   const [dropoffNote, setDropoffNote] = useState('');
   const [allowsCargo, setAllowsCargo] = useState('no');
+  const [genderPreference, setGenderPreference] = useState<'any' | 'female' | 'male'>('any');
   const [cargoCapacityKg, setCargoCapacityKg] = useState('');
   const [allowedCargoTypes, setAllowedCargoTypes] = useState('');
   const [cargoPriceNote, setCargoPriceNote] = useState('');
@@ -412,6 +413,7 @@ export function TripFormPage({ role }: { role: WorkRole }) {
       pickupNote: pickupNote || formNote,
       dropoffNote,
       allowsCargo: allowsCargo === 'yes',
+      genderPreference,
       cargoCapacityKg: cargoCapacity,
       allowedCargoTypes: allowedCargoTypes
         .split(',')
@@ -530,6 +532,13 @@ export function TripFormPage({ role }: { role: WorkRole }) {
             )}
             <Input label="Авах цэгийн тайлбар" placeholder="Жишээ: Драмын театрын урд" value={pickupNote} onChange={(event) => setPickupNote(event.target.value)} />
             <Input label="Буух цэгийн тайлбар" placeholder="Жишээ: Дархан захын ойролцоо" value={dropoffNote} onChange={(event) => setDropoffNote(event.target.value)} />
+            {role === 'driver' && !editId && (
+              <Select label="Зорчигчийн хүйс" value={genderPreference} onChange={(event) => setGenderPreference(event.target.value as 'any' | 'female' | 'male')} options={[
+                { value: 'any', label: 'Бүгд (хязгааргүй)' },
+                { value: 'female', label: 'Зөвхөн эмэгтэй' },
+                { value: 'male', label: 'Зөвхөн эрэгтэй' },
+              ]} />
+            )}
             {role === 'driver' && (
               <>
                 <Select label="Дайвар ачаа авах эсэх" value={allowsCargo} onChange={(event) => setAllowsCargo(event.target.value)} options={[

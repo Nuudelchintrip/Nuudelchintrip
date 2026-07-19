@@ -39,20 +39,20 @@ export function SeatPicker({
   const rows = ['front', 'rear', 'extra'] as const;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-3 sm:rounded-xl sm:p-4">
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+    <div className="rounded-lg border border-border bg-card p-2.5 sm:rounded-xl sm:p-4">
+      <div className="flex items-center justify-between gap-2 sm:flex-row sm:items-start">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">{label}</p>
-          {description ? <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">{description}</p> : null}
+          {description ? <p className="mt-0.5 hidden text-xs leading-5 text-muted-foreground sm:mt-1 sm:block sm:text-sm sm:leading-6">{description}</p> : null}
         </div>
-        <span className="text-sm font-medium text-primary">{selectedSeats.length} сонгосон</span>
+        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary sm:bg-transparent sm:px-0 sm:text-sm">{selectedSeats.length} сонгосон</span>
       </div>
 
-      <div className="mt-3 space-y-2.5 sm:mt-4 sm:space-y-3">
+      <div className="mt-2.5 space-y-1.5 sm:mt-4 sm:space-y-3">
         {rows.map((row) => {
           const rowSeats = seatOptions.filter((seat) => seat.row === row);
           return (
-            <div key={row} className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2">
+            <div key={row} className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {rowSeats.map((seat) => {
                 const isAvailable = availableSet.has(seat.id);
                 const isSelected = selectedSeats.includes(seat.id);
@@ -64,8 +64,9 @@ export function SeatPicker({
                     type="button"
                     disabled={isDisabled}
                     onClick={() => toggleSeat(seat.id)}
+                    title={isAvailable ? seat.label : `${seat.label} · Захиалагдсан`}
                     className={[
-                      'flex min-h-12 items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs transition sm:min-h-14 sm:px-3 sm:text-sm',
+                      'flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-lg border px-1 py-1.5 text-center text-[11px] leading-tight transition sm:min-h-14 sm:flex-row sm:justify-start sm:gap-2 sm:px-3 sm:text-left sm:text-sm',
                       isSelected
                         ? 'border-primary bg-primary text-primary-foreground shadow-sm'
                         : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-primary/5',
@@ -76,7 +77,7 @@ export function SeatPicker({
                     <Armchair className="h-4 w-4 shrink-0" />
                     <span className="min-w-0">
                       <span className="block font-medium">{seat.shortLabel}</span>
-                      <span className={isSelected ? 'block text-xs text-primary-foreground/80' : 'block text-xs text-muted-foreground'}>
+                      <span className={`hidden sm:block sm:text-xs ${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                         {isAvailable ? (mode === 'driver' ? 'Сул болгож нийтэлнэ' : 'Сул') : 'Захиалагдсан'}
                       </span>
                     </span>

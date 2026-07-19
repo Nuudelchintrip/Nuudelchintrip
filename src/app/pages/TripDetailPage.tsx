@@ -28,6 +28,7 @@ type RouteDetailView = {
   dropoff: string;
   allowsCargo: boolean;
   cargoNote: string;
+  genderPreference: 'any' | 'female' | 'male';
   source: 'supabase';
   driver: {
     name: string;
@@ -115,6 +116,7 @@ export function TripDetailPage() {
           cargoNote: trip.allowsCargo
             ? trip.cargoPriceNote || `${trip.cargoCapacityKg || 0} кг хүртэл`
             : 'Авахгүй',
+          genderPreference: trip.genderPreference || 'any',
           source: 'supabase',
           driver: {
             name: trip.driver.fullName,
@@ -200,6 +202,8 @@ export function TripDetailPage() {
                   <Badge variant="success">Баталгаажсан жолооч</Badge>
                   <Badge variant="default">{route.vehicle}</Badge>
                   {route.allowsCargo && <Badge variant="warning">Дайвар ачаа авна</Badge>}
+                  {route.genderPreference === 'female' && <Badge variant="info">Зөвхөн эмэгтэй</Badge>}
+                  {route.genderPreference === 'male' && <Badge variant="info">Зөвхөн эрэгтэй</Badge>}
                 </div>
                 <h1 className="mt-4 flex flex-wrap items-center gap-2 text-2xl font-bold leading-tight text-foreground sm:mt-5 sm:gap-3 sm:text-3xl">
                   <span>{route.from}</span>

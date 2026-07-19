@@ -343,6 +343,7 @@ export async function verifyPhoneOtp(phone: string, code: string) {
 export async function completeTravelerOnboarding(input: {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
+  gender?: 'male' | 'female';
 }) {
   if (supabase) {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -352,10 +353,21 @@ export async function completeTravelerOnboarding(input: {
     const userId = sessionData.session?.user.id;
     if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
 
-    const { data, error } = await supabase.rpc('complete_traveler_onboarding', {
+    let { data, error } = await supabase.rpc('complete_traveler_onboarding', {
       p_emergency_contact_name: input.emergencyContactName?.trim() || null,
       p_emergency_contact_phone: input.emergencyContactPhone?.trim() || null,
+      p_gender: input.gender ?? null,
     });
+
+    // DB талд gender migration ороогүй бол хуучин 2 параметртэй RPC руу буцаж дуудна.
+    if (error && error.message?.includes('complete_traveler_onboarding')) {
+      const retry = await supabase.rpc('complete_traveler_onboarding', {
+        p_emergency_contact_name: input.emergencyContactName?.trim() || null,
+        p_emergency_contact_phone: input.emergencyContactPhone?.trim() || null,
+      });
+      data = retry.data;
+      error = retry.error;
+    }
     if (error) {
       const messageByCode: Record<string, string> = {
         not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
@@ -417,6 +429,10 @@ export async function submitDriverOnboarding(input: {
   driverLicenseUrl?: string;
   vehicleCertificateUrl?: string;
   vehiclePhotoUrl?: string;
+  gender?: 'male' | 'female';
+  lastName?: string;
+  registerNumber?: string;
+  birthDate?: string;
 }) {
   if (supabase) {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -426,14 +442,31 @@ export async function submitDriverOnboarding(input: {
     const userId = sessionData.session?.user.id;
     if (!userId) throw new Error('Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.');
 
-    const { error: onboardingError } = await supabase.rpc('submit_driver_onboarding', {
+    let { error: onboardingError } = await supabase.rpc('submit_driver_onboarding', {
       p_car_model: input.carModel?.trim() || null,
       p_plate_number: input.plateNumber?.trim() || null,
       p_seats: input.seats ?? null,
       p_driver_license_url: input.driverLicenseUrl?.trim() || null,
       p_vehicle_certificate_url: input.vehicleCertificateUrl?.trim() || null,
       p_vehicle_photo_url: input.vehiclePhotoUrl?.trim() || null,
+      p_gender: input.gender ?? null,
+      p_last_name: input.lastName?.trim() || null,
+      p_register_number: input.registerNumber?.trim() || null,
+      p_birth_date: input.birthDate || null,
     });
+
+    // DB талд identity migration ороогүй бол хуучин 6 параметртэй RPC руу буцаж дуудна.
+    if (onboardingError && onboardingError.message?.includes('submit_driver_onboarding')) {
+      const retry = await supabase.rpc('submit_driver_onboarding', {
+        p_car_model: input.carModel?.trim() || null,
+        p_plate_number: input.plateNumber?.trim() || null,
+        p_seats: input.seats ?? null,
+        p_driver_license_url: input.driverLicenseUrl?.trim() || null,
+        p_vehicle_certificate_url: input.vehicleCertificateUrl?.trim() || null,
+        p_vehicle_photo_url: input.vehiclePhotoUrl?.trim() || null,
+      });
+      onboardingError = retry.error;
+    }
     if (onboardingError) {
       const messageByCode: Record<string, string> = {
         not_authenticated: 'Нэвтрэлтийн хугацаа дууссан байна. Дахин нэвтэрнэ үү.',
@@ -447,6 +480,12 @@ export async function submitDriverOnboarding(input: {
         driver_license_required: 'Жолооны үнэмлэхний зургийг оруулна уу.',
         vehicle_certificate_required: 'Машины гэрчилгээний зургийг оруулна уу.',
         vehicle_photo_required: 'Машины зургийг оруулна уу.',
+        gender_required: 'Хүйсээ сонгоно уу.',
+        last_name_required: 'Овгоо оруулна уу.',
+        register_number_required: 'Регистрийн дугаараа оруулна уу.',
+        birth_date_required: 'Төрсөн огноогоо оруулна уу.',
+        invalid_birth_date: 'Төрсөн огноо буруу байна.',
+        driver_underage: 'Жолооч 18-аас дээш настай байх ёстой.',
       };
       const knownMessage = Object.entries(messageByCode).find(([code]) =>
         onboardingError.message?.includes(code),

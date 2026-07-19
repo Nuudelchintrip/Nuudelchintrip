@@ -39,6 +39,10 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
   const [carModel, setCarModel] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
   const [seats, setSeats] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
+  const [lastName, setLastName] = useState('');
+  const [registerNumber, setRegisterNumber] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -53,7 +57,28 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
       return;
     }
 
+    if (normalizedRole === 'traveler' && !gender) {
+      setError('Хүйсээ сонгоно уу.');
+      return;
+    }
+
     if (normalizedRole === 'driver') {
+      if (!gender) {
+        setError('Хүйсээ сонгоно уу.');
+        return;
+      }
+      if (!lastName.trim()) {
+        setError('Овгоо оруулна уу.');
+        return;
+      }
+      if (!registerNumber.trim()) {
+        setError('Регистрийн дугаараа оруулна уу.');
+        return;
+      }
+      if (!birthDate) {
+        setError('Төрсөн огноогоо оруулна уу.');
+        return;
+      }
       if (!carModel.trim()) {
         setError('Машины загварыг оруулна уу.');
         return;
@@ -92,7 +117,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
           const avatarUrl = await uploadAvatar(avatarFile);
           await updateProfileInfo({ avatarUrl });
         }
-        await completeTravelerOnboarding({ emergencyContactName, emergencyContactPhone });
+        await completeTravelerOnboarding({ emergencyContactName, emergencyContactPhone, gender: gender || undefined });
       } else if (normalizedRole === 'driver') {
         setProgress('Бичиг баримтыг илгээж байна...');
         const [driverLicenseUrl, vehicleCertificateUrl, vehiclePhotoUrl] = await Promise.all([
@@ -108,6 +133,10 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
           driverLicenseUrl,
           vehicleCertificateUrl,
           vehiclePhotoUrl,
+          gender: gender || undefined,
+          lastName,
+          registerNumber,
+          birthDate,
         });
       } else {
         await completeCargoOnboarding();
@@ -168,6 +197,28 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
                   setError('');
                 }}
               />
+              <div className="mb-4">
+                <label className="mb-1.5 block text-sm font-medium text-foreground">Хүйс</label>
+                <div className="grid max-w-sm grid-cols-2 gap-2">
+                  {([['male', 'Эрэгтэй'], ['female', 'Эмэгтэй']] as const).map(([value, text]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => { setGender(value); setError(''); }}
+                      className={`min-h-11 rounded-lg border px-3 text-sm font-medium transition ${
+                        gender === value
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-background text-foreground hover:border-primary/50'
+                      }`}
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                  Хүйсээр тааруулсан чиглэл (зөвхөн эмэгтэй / зөвхөн эрэгтэй) суудал захиалахад ашиглана.
+                </p>
+              </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <Input label="Яаралтай холбоо барих хүний нэр" placeholder="Холбоо барих хүний нэр" value={emergencyContactName} onChange={(event) => setEmergencyContactName(event.target.value)} />
                 <Input label="Яаралтай холбоо барих утас" placeholder="+976 99999999" value={emergencyContactPhone} onChange={(event) => setEmergencyContactPhone(event.target.value)} />
@@ -178,6 +229,45 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
 
         {isDriver && (
           <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_340px]">
+            <div className="space-y-4 sm:space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-semibold text-foreground">Хувийн мэдээлэл</h2>
+                </div>
+              </CardHeader>
+              <CardBody>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-foreground">Хүйс</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {([['male', 'Эрэгтэй'], ['female', 'Эмэгтэй']] as const).map(([value, text]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => { setGender(value); setError(''); }}
+                          className={`min-h-11 rounded-lg border px-3 text-sm font-medium transition ${
+                            gender === value
+                              ? 'border-primary bg-primary text-primary-foreground'
+                              : 'border-border bg-background text-foreground hover:border-primary/50'
+                          }`}
+                        >
+                          {text}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Input label="Овог" placeholder="Бат" value={lastName} onChange={(event) => setLastName(event.target.value)} />
+                  <Input label="Регистрийн дугаар" placeholder="УБ95010112" value={registerNumber} onChange={(event) => setRegisterNumber(event.target.value)} />
+                  <Input label="Төрсөн огноо" type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)} />
+                </div>
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                  Хүйс, овог, регистр, төрсөн огноог жолоочийн биеийн байцаалттай тулгаж админ шалгана.
+                </p>
+              </CardBody>
+            </Card>
+
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -201,6 +291,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
                 </div>
               </CardBody>
             </Card>
+            </div>
 
             <Card className="border-warning/20 bg-warning/5">
               <CardBody className="p-4 sm:p-6">
