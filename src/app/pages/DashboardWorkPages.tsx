@@ -963,7 +963,8 @@ export function FindDriversPage() {
           <Search className="mx-auto mb-3 h-9 w-9 text-muted-foreground sm:mb-4 sm:h-12 sm:w-12" />
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">Тохирох унаа олдсонгүй</h2>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-            Ийм чиглэл гарвал хадгалсан хайлтаар тань notification илгээнэ.
+            Хоёр аргаар жолоочоо олж болно: ийм чиглэл гармагц мэдэгдэл авах, эсвэл
+            чиглэл хүсэх зараа нийтэлж жолооч нарт харагдуулах.
           </p>
           <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
@@ -976,6 +977,13 @@ export function FindDriversPage() {
             </Button>
             <Button
               variant="outline"
+              onClick={() => { window.location.href = '/jolooch-haih'; }}
+              className="w-full sm:w-auto"
+            >
+              Чиглэл хүсэх зар нийтлэх
+            </Button>
+            <Button
+              variant="ghost"
               onClick={() => { setFromAimag(''); setFromSoum(''); setToAimag(''); setToSoum(''); setDate(''); setPassengers('1'); setCargoOnly(false); }}
               className="w-full sm:w-auto"
             >

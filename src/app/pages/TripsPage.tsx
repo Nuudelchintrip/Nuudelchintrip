@@ -1,118 +1,213 @@
-import { ArrowRight, LockKeyhole, Search, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, CalendarDays, Car, CreditCard, Megaphone, Search, ShieldCheck, Star, UsersRound } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Footer } from '../components/Footer';
+import { Input } from '../components/Input';
 import { LocationSelectGroup } from '../components/LocationSelectGroup';
 import { Navbar } from '../components/Navbar';
+import { fetchPublicTrips, type PublicTrip } from '../services/tripService';
+import { getStoredUser } from '../utils/auth';
+
+function formatLocation(aimag: string, soum: string) {
+  if (!aimag) return '';
+  return soum ? `${aimag} - ${soum}` : aimag;
+}
+
+function formatDeparture(departureAt: string) {
+  const date = new Date(departureAt);
+  if (Number.isNaN(date.getTime())) return departureAt;
+  return `${date.toISOString().slice(0, 10)} · ${date.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
+}
 
 export function TripsPage() {
+  const [fromAimag, setFromAimag] = useState('');
+  const [fromSoum, setFromSoum] = useState('');
+  const [toAimag, setToAimag] = useState('');
+  const [toSoum, setToSoum] = useState('');
+  const [date, setDate] = useState('');
+  const [trips, setTrips] = useState<PublicTrip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searched, setSearched] = useState(false);
+  const isLoggedIn = Boolean(getStoredUser());
+
+  const runSearch = (filters?: { from?: string; to?: string; date?: string }) => {
+    setLoading(true);
+    fetchPublicTrips(filters)
+      .then(setTrips)
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    document.title = 'Чиглэл хайх | NuudelchinTrip';
+    runSearch();
+  }, []);
+
+  const handleSearch = () => {
+    setSearched(true);
+    runSearch({
+      from: formatLocation(fromAimag, fromSoum) || undefined,
+      to: formatLocation(toAimag, toSoum) || undefined,
+      date: date || undefined,
+    });
+  };
+
+  const handleClear = () => {
+    setFromAimag('');
+    setFromSoum('');
+    setToAimag('');
+    setToSoum('');
+    setDate('');
+    setSearched(false);
+    runSearch();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-3.5 py-6 sm:px-6 sm:py-10 lg:px-8">
-        <section className="grid gap-5 sm:gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
-          <div>
-            <Badge variant="info">Чиглэл хайх</Badge>
-            <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight text-foreground sm:text-5xl">
-              Жинхэнэ чиглэлүүд нэвтэрсний дараа харагдана
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:mt-4 sm:text-lg sm:leading-8">
-              NuudelchinTrip дээр жолоочийн нийтэлсэн чиглэл, сул суудал, үнэ, утасны мэдээлэл нь хэрэглэгч нэвтэрсний дараа өөрийн төрөлд тохирсон самбарт харагдана.
-            </p>
-          </div>
+      <main className="mx-auto max-w-5xl px-3.5 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <div className="mb-5 sm:mb-8">
+          <Badge variant="info">Чиглэл хайх</Badge>
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-foreground sm:text-4xl">
+            Идэвхтэй чиглэлүүд
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+            Баталгаажсан жолоочдын нийтэлсэн чиглэл, сул суудал, үнийг эндээс хараарай.
+            Суудал захиалахад нэвтрэх шаардлагатай.
+          </p>
+        </div>
 
-          <Card className="border-primary/20 bg-primary/5 p-4 sm:p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground sm:h-12 sm:w-12">
-              <LockKeyhole className="h-5 w-5 sm:h-6 sm:w-6" />
-            </div>
-            <h2 className="mt-4 text-xl font-semibold text-foreground">Яагаад нийтийн жагсаалт байхгүй вэ?</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Жолооч, аялагчийн утас, захиалга, төлбөрийн баримт, маргааны мэдээлэл нууцлалтай холбоотой тул нэвтэрсний дараа л ажиллана.
-            </p>
-          </Card>
-        </section>
-
-        <Card className="mt-5 p-4 sm:mt-8 sm:p-5 md:p-6">
-          <div className="mb-4 flex items-center gap-2 sm:mb-5">
-            <Search className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground sm:text-xl">Хайлтын талбар</h2>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="p-4 sm:p-5">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <LocationSelectGroup
               label="Суух байршил"
-              aimag=""
-              soum=""
-              onAimagChange={() => undefined}
-              onSoumChange={() => undefined}
+              aimag={fromAimag}
+              soum={fromSoum}
+              onAimagChange={setFromAimag}
+              onSoumChange={setFromSoum}
             />
             <LocationSelectGroup
               label="Буух байршил"
-              aimag=""
-              soum=""
-              onAimagChange={() => undefined}
-              onSoumChange={() => undefined}
+              aimag={toAimag}
+              soum={toSoum}
+              onAimagChange={setToAimag}
+              onSoumChange={setToSoum}
             />
           </div>
-
-          <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
-            Бодит хайлт хийхийн тулд бүртгүүлж эсвэл нэвтэрнэ үү. Аялагчийн самбар дээр “Жолооч хайх”, жолоочийн самбар дээр “Чиглэл нэмэх” урсгал ажиллана.
-          </div>
-
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Button onClick={() => window.location.href = '/auth/register?role=traveler'}>
-              Аялагчаар бүртгүүлэх
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" onClick={() => window.location.href = '/auth/login?next=/traveler/find-drivers'}>
-              Нэвтрэх
-            </Button>
+          <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:flex-row sm:items-end">
+            <div className="sm:w-56">
+              <Input label="Явах огноо" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleSearch}>
+                <Search className="h-4 w-4" />
+                Хайх
+              </Button>
+              {(searched || fromAimag || toAimag || date) && (
+                <Button variant="outline" onClick={handleClear}>Цэвэрлэх</Button>
+              )}
+            </div>
           </div>
         </Card>
 
-        <section className="mt-5 grid gap-4 sm:mt-8 sm:gap-5 md:grid-cols-3">
-          {[
-            ['Аялагч', 'Нэвтэрсний дараа боломжтой жолоочийн чиглэл хайна.'],
-            ['Жолооч', 'Баталгаажсаны дараа өөрийн чиглэлээ нийтэлнэ.'],
-            ['Дайвар ачаа', 'Зөвхөн ачаа авах боломжтой чиглэл дээр хүсэлт илгээнэ.'],
-          ].map(([title, text]) => (
-            <Card key={title} className="p-5">
-              <ShieldCheck className="h-6 w-6 text-success" />
-              <h2 className="mt-4 text-lg font-semibold text-foreground">{title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{text}</p>
-            </Card>
-          ))}
-        </section>
+        <div className="mt-5 sm:mt-6">
+          {loading && (
+            <Card className="p-6 text-sm text-muted-foreground">Чиглэлүүдийг уншиж байна...</Card>
+          )}
 
-        <section className="mt-5 grid gap-4 sm:mt-8 lg:grid-cols-2">
-          <Card className="p-5 sm:p-6">
-            <h2 className="text-xl font-semibold text-foreground">Чиглэл сонгохдоо шалгах зүйлс</h2>
-            <div className="mt-4 grid gap-3">
-              {[
-                'Явах огноо, цаг, суух болон буух байршил',
-                'Сул суудлын тоо, нэг хүний үнэ, нийт төлөх дүн',
-                'Жолоочийн баталгаажуулалт, машины мэдээлэл, үнэлгээ',
-                'Ачаатай бол тухайн чиглэл дайвар ачаа авах эсэх',
-              ].map((item) => (
-                <div key={item} className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3">
-                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" />
-                  <p className="text-sm leading-6 text-foreground">{item}</p>
-                </div>
+          {!loading && trips.length === 0 && (
+            <Card className="p-6 text-center sm:p-8">
+              <h2 className="text-xl font-semibold text-foreground">
+                {searched ? 'Энэ хайлтад таарах чиглэл олдсонгүй' : 'Одоогоор идэвхтэй чиглэл алга байна'}
+              </h2>
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
+                Чиглэл хүсэх зараа нийтэлбэл таны чиглэлээр явах жолооч гарч ирмэгц
+                зарыг чинь хараад холбогдоно.
+              </p>
+              <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
+                <Button onClick={() => window.location.href = '/jolooch-haih'}>
+                  <Megaphone className="h-4 w-4" />
+                  Чиглэл хүсэх зар нийтлэх
+                </Button>
+                {!isLoggedIn && (
+                  <Button variant="outline" onClick={() => window.location.href = '/auth/register?role=traveler'}>
+                    Аялагчаар бүртгүүлэх
+                  </Button>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {!loading && trips.length > 0 && (
+            <div className="space-y-3 sm:space-y-4">
+              <p className="text-sm text-muted-foreground">{trips.length} чиглэл олдлоо</p>
+              {trips.map((trip) => (
+                <Card key={trip.id} className="p-4 transition hover:border-primary/40 sm:p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-foreground">
+                          <span>{trip.fromLocation}</span>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          <span>{trip.toLocation}</span>
+                        </h2>
+                        {trip.genderPreference === 'female' && <Badge variant="info">Зөвхөн эмэгтэй</Badge>}
+                        {trip.genderPreference === 'male' && <Badge variant="info">Зөвхөн эрэгтэй</Badge>}
+                        {trip.allowsCargo && <Badge variant="warning">Дайвар ачаа авна</Badge>}
+                      </div>
+
+                      <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />{formatDeparture(trip.departureAt)}</span>
+                        <span className="flex items-center gap-1.5"><UsersRound className="h-4 w-4" />{trip.seatsAvailable} сул суудал</span>
+                        <span className="flex items-center gap-1.5 font-medium text-primary"><CreditCard className="h-4 w-4" />₮{trip.pricePerSeat.toLocaleString()} / хүн</span>
+                      </div>
+
+                      <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <ShieldCheck className="h-4 w-4 text-success" />
+                          {trip.driverFullName}
+                        </span>
+                        {trip.driverCarModel && (
+                          <span className="flex items-center gap-1.5"><Car className="h-4 w-4" />{trip.driverCarModel}</span>
+                        )}
+                        {(trip.driverRating > 0 || trip.driverCompletedTrips > 0) && (
+                          <span className="flex items-center gap-1.5">
+                            <Star className="h-4 w-4 text-warning" />
+                            {trip.driverRating}/5 · {trip.driverCompletedTrips} аялал
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <Button
+                      className="shrink-0"
+                      onClick={() => window.location.href = `/routes/${trip.id}`}
+                    >
+                      Дэлгэрэнгүй
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Card>
               ))}
             </div>
-          </Card>
+          )}
+        </div>
 
-          <Card className="p-5 sm:p-6">
-            <h2 className="text-xl font-semibold text-foreground">Хүсэлт илгээсний дараа</h2>
-            <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
-              <p><span className="font-semibold text-foreground">1. Жолооч шийдвэрлэнэ.</span> Хүсэлтийг зөвшөөрөх эсвэл татгалзах хүртэл суудал баталгаажаагүй байна.</p>
-              <p><span className="font-semibold text-foreground">2. Төлбөр баталгаажна.</span> Зөвшөөрөгдсөн хүсэлтийн төлбөрийн баримтыг админ шалгана.</p>
-              <p><span className="font-semibold text-foreground">3. Аяллын мэдээлэл нээгдэнэ.</span> Баталгаажсан захиалгын явц, холбоо барих мэдээлэл, дараагийн алхам самбарт харагдана.</p>
+        {!isLoggedIn && trips.length > 0 && (
+          <Card className="mt-5 border-primary/20 bg-primary/5 p-4 sm:mt-6 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm leading-6 text-foreground">
+                Суудал захиалах, жолоочтой холбогдохын тулд бүртгүүлээд утасны дугаараа баталгаажуулна.
+              </p>
+              <Button className="shrink-0" onClick={() => window.location.href = '/auth/register?role=traveler'}>
+                Аялагчаар бүртгүүлэх
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </Card>
-        </section>
+        )}
       </main>
 
       <Footer />

@@ -27,7 +27,7 @@ const roles = [
     title: 'Би аялагч',
     text: 'Очих газар руугаа явах жолооч олж, сул суудлыг нь захиалаарай.',
     icon: <UserRound className="h-5 w-5" />,
-    href: '/auth/register?role=traveler',
+    href: '/routes',
     cta: 'Жолооч хайх',
   },
   {
@@ -35,7 +35,7 @@ const roles = [
     text: 'Явах замаа нийтэлж, хажуугаар чинь явах зорчигчоо аваарай.',
     icon: <Car className="h-5 w-5" />,
     href: '/auth/register?role=driver',
-    cta: 'Аялал нэмэх',
+    cta: 'Чиглэл нийтлэх',
   },
   {
     title: 'Би ачаа илгээгч',
@@ -92,7 +92,7 @@ export function HomePage() {
                 Нэг замаар явах жолоочтой холбогдоод, сул суудлыг нь хуваалцаарай. Хямд, ойр дотно, найдвартай.
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Button onClick={() => { window.location.href = '/auth/register?role=traveler'; }}>
+                <Button onClick={() => { window.location.href = '/routes'; }}>
                   Жолооч хайх
                   <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -277,7 +277,7 @@ export function HomePage() {
 }
 
 function HeroJourneyCard() {
-  const goSearch = () => { window.location.href = '/auth/register?role=traveler'; };
+  const goSearch = () => { window.location.href = '/routes'; };
 
   return (
     <div className="reveal-up min-w-0" style={{ animationDelay: '120ms' }}>
@@ -342,7 +342,7 @@ function HeroJourneyCard() {
 
         <p className="mt-3 flex items-center gap-1.5 text-xs leading-5 text-muted-foreground">
           <PhoneCall className="h-3.5 w-3.5 shrink-0" />
-          Жинхэнэ чиглэл, жолоочийн утас бүртгүүлсний дараа нээгдэнэ.
+          Чиглэлүүдийг шууд үзэж болно — захиалахад бүртгэл шаардлагатай.
         </p>
       </div>
     </div>

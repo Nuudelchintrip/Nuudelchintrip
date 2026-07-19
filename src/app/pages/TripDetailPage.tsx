@@ -10,7 +10,7 @@ import { Input } from '../components/Input';
 import { Navbar } from '../components/Navbar';
 import { SeatPicker } from '../components/SeatPicker';
 import { formatSeatList, normalizeSeatIds } from '../data/seats';
-import { createPassengerBooking, cancelDriverTrip, fetchTripById } from '../services/tripService';
+import { createPassengerBooking, cancelDriverTrip, fetchPublicTripById, fetchTripById, type PublicTrip } from '../services/tripService';
 import { supabase } from '../lib/supabase';
 
 type RouteDetailView = {
@@ -86,13 +86,50 @@ export function TripDetailPage() {
       return;
     }
 
+    // Нэвтрээгүй зочинд нууцлалгүй хэсгийг харуулах fallback.
+    const applyPublicTrip = (publicTrip: PublicTrip | null) => {
+      if (!active) return;
+      if (!publicTrip) {
+        setRoute(null);
+        setRouteError('Чиглэл олдсонгүй.');
+        return;
+      }
+      const departure = new Date(publicTrip.departureAt);
+      setRoute({
+        id: publicTrip.id,
+        driverId: '',
+        from: publicTrip.fromLocation,
+        to: publicTrip.toLocation,
+        date: Number.isNaN(departure.getTime()) ? publicTrip.departureAt.slice(0, 10) : departure.toISOString().slice(0, 10),
+        time: Number.isNaN(departure.getTime())
+          ? ''
+          : departure.toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        seats: publicTrip.seatsAvailable,
+        availableSeatLabels: [],
+        price: publicTrip.pricePerSeat,
+        vehicle: publicTrip.driverCarModel || 'Машины мэдээлэл хүлээгдэж байна',
+        pickup: 'Нэвтэрсний дараа харагдана',
+        dropoff: 'Нэвтэрсний дараа харагдана',
+        allowsCargo: publicTrip.allowsCargo,
+        cargoNote: publicTrip.allowsCargo ? publicTrip.cargoPriceNote || 'Авна' : 'Авахгүй',
+        genderPreference: publicTrip.genderPreference,
+        source: 'supabase',
+        driver: {
+          name: publicTrip.driverFullName,
+          rating: publicTrip.driverRating,
+          trips: publicTrip.driverCompletedTrips,
+          phone: '+976 •••• ••••',
+        },
+      });
+      setRouteError('');
+    };
+
     setLoadingRoute(true);
     fetchTripById(id)
       .then((trip) => {
         if (!active) return;
         if (!trip) {
-          setRoute(null);
-          setRouteError('Чиглэл олдсонгүй.');
+          void fetchPublicTripById(id).then(applyPublicTrip);
           return;
         }
         const departure = new Date(trip.departureAt);
@@ -129,9 +166,10 @@ export function TripDetailPage() {
         setBookingSeats(availableSeatLabels.length ? '1' : '');
         setRouteError('');
       })
-      .catch((error) => {
+      .catch(() => {
         if (!active) return;
-        setRouteError(error instanceof Error ? error.message : 'Чиглэлийн мэдээлэл уншихад алдаа гарлаа.');
+        // Нэвтрээгүй (RLS хаасан) үед нийтийн мэдээллээр харуулна.
+        void fetchPublicTripById(id).then(applyPublicTrip);
       })
       .finally(() => {
         if (active) setLoadingRoute(false);
@@ -273,14 +311,16 @@ export function TripDetailPage() {
                 <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success" /> Утас баталгаажсан</p>
                 <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-success" /> Жолооч баталгаажсан</p>
               </div>
-              <Button
-                variant="outline"
-                fullWidth
-                className="mt-4"
-                onClick={() => { window.location.href = `/profile/driver/${route.driverId}`; }}
-              >
-                Жолоочийн профайл харах
-              </Button>
+              {route.driverId && (
+                <Button
+                  variant="outline"
+                  fullWidth
+                  className="mt-4"
+                  onClick={() => { window.location.href = `/profile/driver/${route.driverId}`; }}
+                >
+                  Жолоочийн профайл харах
+                </Button>
+              )}
             </Card>
 
             <Card className="p-4 sm:p-5">
@@ -309,17 +349,31 @@ export function TripDetailPage() {
                   </>
                 ) : (
                   <>
-                    <Button size="lg" fullWidth onClick={() => setModal('booking')}>
-                      Суудал захиалах
+                    <Button
+                      size="lg"
+                      fullWidth
+                      onClick={() => {
+                        if (!currentUserId) {
+                          window.location.href = `/auth/login?next=${encodeURIComponent(`/routes/${route.id}`)}`;
+                          return;
+                        }
+                        setModal('booking');
+                      }}
+                    >
+                      {currentUserId ? 'Суудал захиалах' : 'Нэвтэрч суудал захиалах'}
                     </Button>
                     {route.allowsCargo && (
                       <Button
                         size="lg"
                         variant="outline"
                         fullWidth
-                        onClick={() => { window.location.href = `/cargo/new?tripId=${route.id}`; }}
+                        onClick={() => {
+                          window.location.href = currentUserId
+                            ? `/cargo/new?tripId=${route.id}`
+                            : `/auth/login?next=${encodeURIComponent(`/cargo/new?tripId=${route.id}`)}`;
+                        }}
                       >
-                        Дайвар ачаа илгээх
+                        {currentUserId ? 'Дайвар ачаа илгээх' : 'Нэвтэрч ачаа илгээх'}
                       </Button>
                     )}
                   </>

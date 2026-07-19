@@ -582,6 +582,82 @@ export async function closeRouteRequest(requestId: string) {
   if (error) throw toError(error, 'Зар хаахад алдаа гарлаа.');
 }
 
+export interface PublicTrip {
+  id: string;
+  fromLocation: string;
+  toLocation: string;
+  departureAt: string;
+  seatsAvailable: number;
+  pricePerSeat: number;
+  allowsCargo: boolean;
+  cargoPriceNote?: string;
+  genderPreference: TripGenderPreference;
+  driverFullName: string;
+  driverRating: number;
+  driverCompletedTrips: number;
+  driverCarModel?: string;
+  driverVerified: boolean;
+}
+
+interface PublicTripRow {
+  id: string;
+  from_location: string;
+  to_location: string;
+  departure_at: string;
+  seats_available: number;
+  price_per_seat: number;
+  allows_cargo: boolean;
+  cargo_price_note?: string | null;
+  gender_preference: TripGenderPreference | null;
+  driver_full_name: string | null;
+  driver_rating: number | null;
+  driver_completed_trips: number | null;
+  driver_car_model: string | null;
+  driver_verified: boolean | null;
+}
+
+function mapPublicTripRow(row: PublicTripRow): PublicTrip {
+  return {
+    id: row.id,
+    fromLocation: row.from_location,
+    toLocation: row.to_location,
+    departureAt: row.departure_at,
+    seatsAvailable: Number(row.seats_available || 0),
+    pricePerSeat: Number(row.price_per_seat || 0),
+    allowsCargo: Boolean(row.allows_cargo),
+    cargoPriceNote: row.cargo_price_note || undefined,
+    genderPreference: row.gender_preference || 'any',
+    driverFullName: row.driver_full_name || 'Жолооч',
+    driverRating: Number(row.driver_rating || 0),
+    driverCompletedTrips: Number(row.driver_completed_trips || 0),
+    driverCarModel: row.driver_car_model || undefined,
+    driverVerified: Boolean(row.driver_verified),
+  };
+}
+
+/** Anonymous-safe trip list for /routes. Returns [] until the public-trip migration is applied. */
+export async function fetchPublicTrips(filters?: { from?: string; to?: string; date?: string }) {
+  if (!supabase) return [];
+
+  const { data, error } = await supabase.rpc('list_public_trips', {
+    p_from: filters?.from || null,
+    p_to: filters?.to || null,
+    p_date: filters?.date || null,
+  });
+  if (error) return [];
+  return ((data || []) as PublicTripRow[]).map(mapPublicTripRow);
+}
+
+/** Anonymous-safe single trip. Returns null when unavailable (no migration / inactive trip). */
+export async function fetchPublicTripById(tripId: string): Promise<PublicTrip | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.rpc('get_public_trip', { p_trip_id: tripId });
+  if (error) return null;
+  const row = (data as PublicTripRow[] | null)?.[0];
+  return row ? mapPublicTripRow(row) : null;
+}
+
 export interface TripCompanion {
   userId: string;
   fullName: string;

@@ -344,7 +344,7 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
             {isSubmitting ? (progress || 'Хадгалж байна...') : isDriver ? 'Баталгаажуулалт илгээх' : isCargo ? 'Үргэлжлүүлэх' : 'Дуусгах'}
             <CheckCircle2 className="h-5 w-5" />
           </Button>
-          <Button variant="outline" size="lg" onClick={() => window.location.href = '/auth/register'}>Буцах</Button>
+          <Button variant="outline" size="lg" onClick={() => window.location.href = '/'}>Нүүр хуудас руу буцах</Button>
         </div>
       </main>
 
