@@ -8,8 +8,8 @@ drivers, and cargo senders on intercity & rural routes.
 - Tailwind CSS v4 (CSS-variable theming in `src/styles/theme.css`; light = warm
   steppe tones, dark = premium true-black). Use existing tokens, don't invent.
 - Supabase (auth, Postgres, storage). RLS + SECURITY DEFINER RPCs.
-- Deployed from `main` → Netlify (`netlify.toml`). Live domain: nuudelchintrip.com
-  (`vercel.json` also present). Frontend changes need a push to deploy.
+- Deployed from `main` → **Vercel** (`vercel.json`). Live domain: nuudelchintrip.com
+  (`netlify.toml` also present but unused). Frontend changes need a push to deploy.
 - DB migrations live in `supabase/migrations/` and are applied **manually via the
   Supabase SQL Editor** (no CLI link). Each fix = a new dated `.sql` file.
 - Identity verification: e-Mongolia / DAN (government ID).
