@@ -113,9 +113,14 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
     try {
       if (normalizedRole === 'traveler') {
         if (avatarFile) {
-          setProgress('Профайл зураг оруулж байна...');
-          const avatarUrl = await uploadAvatar(avatarFile);
-          await updateProfileInfo({ avatarUrl });
+          // Профайл зураг нэмэлт зүйл — амжилтгүй болсон ч бүртгэлийг зогсоохгүй.
+          try {
+            setProgress('Профайл зураг оруулж байна...');
+            const avatarUrl = await uploadAvatar(avatarFile);
+            await updateProfileInfo({ avatarUrl });
+          } catch {
+            setProgress('');
+          }
         }
         await completeTravelerOnboarding({ emergencyContactName, emergencyContactPhone, gender: gender || undefined });
       } else if (normalizedRole === 'driver') {
