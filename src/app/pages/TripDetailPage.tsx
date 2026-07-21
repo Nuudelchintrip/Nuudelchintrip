@@ -97,7 +97,7 @@ export function TripDetailPage() {
       const departure = new Date(publicTrip.departureAt);
       setRoute({
         id: publicTrip.id,
-        driverId: '',
+        driverId: publicTrip.driverId,
         from: publicTrip.fromLocation,
         to: publicTrip.toLocation,
         date: Number.isNaN(departure.getTime()) ? publicTrip.departureAt.slice(0, 10) : departure.toISOString().slice(0, 10),

@@ -78,10 +78,16 @@ export function ParticipantProfilePage() {
             </div>
           )}
 
+          {profile && !profile.phone && (
+            <div className="mt-6 rounded-lg border border-border bg-muted/30 p-4 text-sm leading-6 text-muted-foreground">
+              Утас, и-мэйл зэрэг холбоо барих мэдээлэл нь захиалга/ачааны хүсэлт баталгаажсны дараа харагдана.
+            </div>
+          )}
+
           {profile && (
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <ProfileInfo label="Утас" value={profile.phone || 'Нууцалсан'} />
-              <ProfileInfo label="И-мэйл" value={profile.email || 'Нууцалсан'} />
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <ProfileInfo label="Утас" value={profile.phone || 'Захиалгын дараа'} />
+              <ProfileInfo label="И-мэйл" value={profile.email || 'Захиалгын дараа'} />
               <ProfileInfo label="Утас баталгаажсан" value={profile.phoneVerified ? 'Тийм' : 'Үгүй'} icon={profile.phoneVerified ? <CheckCircle className="h-4 w-4 text-success" /> : undefined} />
               {isDriver && <ProfileInfo label="Жолоочийн баталгаажуулалт" value={profile.driverVerificationStatus === 'approved' ? 'Баталгаажсан' : 'Хүлээгдэж байна'} icon={<ShieldCheck className="h-4 w-4 text-success" />} />}
               {isDriver && <ProfileInfo label="Машин" value={profile.carModel || 'Оруулаагүй'} />}

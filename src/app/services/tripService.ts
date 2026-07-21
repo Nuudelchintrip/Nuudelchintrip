@@ -584,6 +584,7 @@ export async function closeRouteRequest(requestId: string) {
 
 export interface PublicTrip {
   id: string;
+  driverId: string;
   fromLocation: string;
   toLocation: string;
   departureAt: string;
@@ -601,6 +602,7 @@ export interface PublicTrip {
 
 interface PublicTripRow {
   id: string;
+  driver_id?: string | null;
   from_location: string;
   to_location: string;
   departure_at: string;
@@ -619,6 +621,7 @@ interface PublicTripRow {
 function mapPublicTripRow(row: PublicTripRow): PublicTrip {
   return {
     id: row.id,
+    driverId: row.driver_id || '',
     fromLocation: row.from_location,
     toLocation: row.to_location,
     departureAt: row.departure_at,
@@ -1299,28 +1302,67 @@ export async function fetchPassengerBookingById(bookingId: string): Promise<Pass
 export async function fetchParticipantPublicProfile(userId: string): Promise<ParticipantPublicProfile | null> {
   if (!supabase) return null;
 
+  // 1-р түвшин: захиалгын холбоо байвал утас зэрэг холбоо барих мэдээлэлтэй бүтэн профайл.
   const { data, error } = await supabase
     .rpc('get_participant_public_profile', { p_user_id: userId })
     .maybeSingle();
 
-  if (error) throw toError(error, 'Хэрэглэгчийн мэдээлэл уншихад алдаа гарлаа.');
-  if (!data) return null;
+  if (!error && data) {
+    const row = data as ParticipantPublicProfileRow;
+    return {
+      id: row.id,
+      role: row.role,
+      fullName: row.full_name || (row.role === 'driver' ? 'Жолооч' : 'Аялагч'),
+      phone: row.phone || undefined,
+      email: row.email || undefined,
+      phoneVerified: Boolean(row.phone_verified),
+      avatarUrl: row.avatar_url || undefined,
+      driverVerificationStatus: row.driver_verification_status || undefined,
+      carModel: row.car_model || undefined,
+      plateNumber: row.plate_number || undefined,
+      seats: row.seats || undefined,
+      rating: Number(row.rating || 0),
+      completedTrips: Number(row.completed_trips || 0),
+    };
+  }
 
-  const row = data as ParticipantPublicProfileRow;
+  // 2-р түвшин: холбоо байхгүй бол нийтийн итгэлцлийн карт (утас/и-мэйл нуугдана).
+  const card = await supabase
+    .rpc('get_public_user_card', { p_user_id: userId })
+    .maybeSingle();
+
+  if (card.error) {
+    if (error) throw toError(error, 'Хэрэглэгчийн мэдээлэл уншихад алдаа гарлаа.');
+    throw toError(card.error, 'Хэрэглэгчийн мэдээлэл уншихад алдаа гарлаа.');
+  }
+  if (!card.data) return null;
+
+  const cardRow = card.data as {
+    id: string;
+    role: ParticipantPublicProfile['role'];
+    full_name: string | null;
+    phone_verified: boolean | null;
+    avatar_url: string | null;
+    driver_verification_status: TripDriverSummary['verificationStatus'] | null;
+    car_model: string | null;
+    seats: number | null;
+    rating: number | null;
+    completed_trips: number | null;
+  };
   return {
-    id: row.id,
-    role: row.role,
-    fullName: row.full_name || (row.role === 'driver' ? 'Жолооч' : 'Аялагч'),
-    phone: row.phone || undefined,
-    email: row.email || undefined,
-    phoneVerified: Boolean(row.phone_verified),
-    avatarUrl: row.avatar_url || undefined,
-    driverVerificationStatus: row.driver_verification_status || undefined,
-    carModel: row.car_model || undefined,
-    plateNumber: row.plate_number || undefined,
-    seats: row.seats || undefined,
-    rating: Number(row.rating || 0),
-    completedTrips: Number(row.completed_trips || 0),
+    id: cardRow.id,
+    role: cardRow.role,
+    fullName: cardRow.full_name || (cardRow.role === 'driver' ? 'Жолооч' : 'Аялагч'),
+    phone: undefined,
+    email: undefined,
+    phoneVerified: Boolean(cardRow.phone_verified),
+    avatarUrl: cardRow.avatar_url || undefined,
+    driverVerificationStatus: cardRow.driver_verification_status || undefined,
+    carModel: cardRow.car_model || undefined,
+    plateNumber: undefined,
+    seats: cardRow.seats || undefined,
+    rating: Number(cardRow.rating || 0),
+    completedTrips: Number(cardRow.completed_trips || 0),
   };
 }
 
