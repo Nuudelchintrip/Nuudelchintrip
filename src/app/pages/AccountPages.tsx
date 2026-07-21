@@ -223,12 +223,21 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profileMsg, setProfileMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'profile' | 'trust' | 'activity'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'trust' | 'verification' | 'activity'>('profile');
+  const [driverVerification, setDriverVerification] = useState<MyDriverVerification | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     void fetchMyAvatarUrl().then(setAvatarUrl);
   }, []);
+
+  useEffect(() => {
+    if (role === 'driver') void fetchMyDriverVerification().then(setDriverVerification);
+  }, [role]);
+
+  const onboardingCompleted = Boolean(storedUser?.onboarding_completed);
+  const driverStatus = driverVerification?.status || storedUser?.verification_status || 'not_submitted';
+  const isDriver = role === 'driver';
 
   const displayName = editName.trim() || 'Нэр оруулаагүй';
   const completion = Math.round(([editName.trim(), displayPhone, displayEmail].filter(Boolean).length / 3) * 100);
@@ -325,12 +334,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </Button>
             {profileMsg && <p className="mt-3 text-center text-sm font-medium text-primary">{profileMsg}</p>}
 
-            <Button className="mt-6" fullWidth onClick={() => window.location.href = getSettingsHref(role)}>
-              <Phone className="h-4 w-4" />
-              Холбоо барих мэдээлэл засах
-            </Button>
-
-            <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4 text-center">
+            <div className="mt-6 rounded-lg border border-border bg-muted/30 p-4 text-center">
               <p className="text-sm text-muted-foreground">Профайлын төлөв</p>
               <p className="mt-1 font-semibold text-foreground">{details.availability}</p>
             </div>
@@ -371,22 +375,14 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
         </aside>
 
         <section className="space-y-4 sm:space-y-6">
-          <div className="rounded-lg border border-border bg-card p-4 sm:p-6 md:p-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <Button size="sm" variant="outline" onClick={() => window.location.href = getVerificationHref(role)}>
-                <BadgeCheck className="h-4 w-4" />
-                Баталгаажуулалт
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="ghost">Дараа</Button>
-            </div>
-            <h2 className="mt-5 max-w-4xl text-3xl font-bold leading-tight text-foreground sm:text-4xl md:text-5xl">
-              {details.headline}
-            </h2>
+          <div className="rounded-lg border border-border bg-card p-4 sm:p-6">
+            <h2 className="text-xl font-bold text-foreground sm:text-2xl">Миний профайл</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">{details.about}</p>
             <div className="mt-4 flex gap-5 overflow-x-auto border-b border-border text-sm font-semibold text-muted-foreground [scrollbar-width:none] sm:mt-6 sm:flex-wrap sm:gap-6 [&::-webkit-scrollbar]:hidden">
               {[
                 { id: 'profile' as const, label: 'Хувийн мэдээлэл' },
                 { id: 'trust' as const, label: 'Итгэлцэл' },
+                { id: 'verification' as const, label: 'Баталгаажуулалт' },
                 { id: 'activity' as const, label: 'Үйлдлийн түүх' },
               ].map((tab) => (
                 <button
@@ -434,7 +430,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
             </div>
           </Card>
 
-          <div className={`grid gap-4 sm:gap-6 lg:grid-cols-[1fr_320px] ${activeTab !== 'trust' ? 'hidden' : ''}`}>
+          <div className={`grid gap-4 sm:gap-6 ${isDriver ? 'lg:grid-cols-[1fr_320px]' : ''} ${activeTab !== 'trust' ? 'hidden' : ''}`}>
             <Card className="p-4 sm:p-6">
               <h2 className="text-xl font-semibold text-foreground sm:text-2xl">{details.primaryCardTitle}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{details.primaryCardText}</p>
@@ -445,15 +441,51 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
               </div>
             </Card>
 
-            <Card className="border-success/20 bg-success/5 p-4 sm:p-6">
-              <h2 className="text-xl font-semibold text-foreground">Итгэлцлийн тойм</h2>
-              <div className="mt-5 grid gap-3">
-                <Metric label="Үнэлгээ" value={details.rating} />
-                <Metric label="Дууссан" value={details.completed} />
-                <Metric label="Идэвхтэй гомдол" value="0" />
-              </div>
-            </Card>
+            {isDriver && (
+              <Card className="border-success/20 bg-success/5 p-4 sm:p-6">
+                <h2 className="text-xl font-semibold text-foreground">Итгэлцлийн тойм</h2>
+                <div className="mt-5 grid gap-3">
+                  <Metric label="Үнэлгээ" value={details.rating} />
+                  <Metric label="Дууссан аялал" value={details.completed} />
+                </div>
+              </Card>
+            )}
           </div>
+
+          <Card className={`p-4 sm:p-6 ${activeTab !== 'verification' ? 'hidden' : ''}`}>
+            <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Баталгаажуулалт</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">Таны бүртгэлийн баталгаажуулалтын төлөв.</p>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <VerifyRow label="Утасны дугаар" ok={phoneVerified} okText="Баталгаажсан" pendingText="Баталгаажаагүй" />
+              <VerifyRow label="Профайлын мэдээлэл" ok={onboardingCompleted} okText="Бүрдсэн" pendingText="Дутуу" />
+              {isDriver && (
+                <VerifyRow
+                  label="Жолоочийн эрх"
+                  ok={driverStatus === 'approved'}
+                  okText="Баталгаажсан"
+                  pendingText={driverStatus === 'rejected' ? 'Буцаагдсан' : 'Админ шалгаж байна'}
+                />
+              )}
+            </div>
+            {isDriver && driverStatus === 'rejected' && driverVerification?.rejectionReason && (
+              <div className="mt-4 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm leading-6 text-destructive">
+                <p className="font-semibold">Админы тайлбар</p>
+                <p className="mt-1">{driverVerification.rejectionReason}</p>
+              </div>
+            )}
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              {!phoneVerified && (
+                <Button variant="outline" onClick={() => window.location.href = '/auth/verify-phone'}>
+                  Утсаа баталгаажуулах
+                </Button>
+              )}
+              {isDriver && driverStatus !== 'approved' && (
+                <Button variant="outline" onClick={() => window.location.href = '/onboarding/driver'}>
+                  Жолоочийн мэдээлэл шинэчлэх
+                </Button>
+              )}
+            </div>
+          </Card>
 
           <Card className={`p-4 sm:p-6 ${activeTab !== 'activity' ? 'hidden' : ''}`}>
             <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Сүүлийн үйлдлүүд</h2>
@@ -1448,6 +1480,18 @@ function InfoCard({ title, text }: { title: string; text: string }) {
     <div className="rounded-lg border border-border bg-muted/20 p-4">
       <p className="text-sm text-muted-foreground">{title}</p>
       <p className="mt-1 font-semibold text-foreground">{text}</p>
+    </div>
+  );
+}
+
+function VerifyRow({ label, ok, okText, pendingText }: { label: string; ok: boolean; okText: string; pendingText: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 p-4">
+      <div className="flex items-center gap-2.5">
+        {ok ? <CheckCircle2 className="h-5 w-5 text-success" /> : <ShieldCheck className="h-5 w-5 text-warning" />}
+        <span className="font-medium text-foreground">{label}</span>
+      </div>
+      <Badge variant={ok ? 'success' : 'warning'}>{ok ? okText : pendingText}</Badge>
     </div>
   );
 }
