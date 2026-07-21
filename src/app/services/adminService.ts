@@ -59,6 +59,12 @@ async function getPaymentSignedUrl(proofUrl?: string | null) {
   return data.signedUrl;
 }
 
+export async function openDriverDocument(storedPath?: string | null) {
+  const url = await getDriverDocSignedUrl(storedPath);
+  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  return url;
+}
+
 async function getDriverDocSignedUrl(storedPath?: string | null) {
   if (!supabase || !storedPath) return undefined;
   const path = storedPath.replace(/^driver-documents\//, '');
@@ -335,6 +341,73 @@ export async function fetchAdminUsers(): Promise<AdminUserItem[]> {
     isSuspended: Boolean(row.is_suspended),
     createdAt: row.created_at || undefined,
   }));
+}
+
+export interface AdminUserDetail {
+  id: string;
+  role: string;
+  fullName: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  phoneVerified: boolean;
+  gender?: 'male' | 'female';
+  registerNumber?: string;
+  birthDate?: string;
+  avatarUrl?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  onboardingCompleted: boolean;
+  isSuspended: boolean;
+  createdAt?: string;
+  driverVerificationStatus?: string;
+  carModel?: string;
+  plateNumber?: string;
+  seats?: number;
+  rating?: number;
+  completedTrips?: number;
+  driverLicenseUrl?: string;
+  vehicleCertificateUrl?: string;
+  vehiclePhotoUrl?: string;
+}
+
+export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDetail | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.rpc('admin_get_user_detail', { p_user_id: userId }).maybeSingle();
+  if (error) throw toError(error, 'Хэрэглэгчийн дэлгэрэнгүй мэдээлэл уншихад алдаа гарлаа.');
+  if (!data) return null;
+
+  const row = data as Record<string, unknown>;
+  const str = (key: string) => (row[key] ? String(row[key]) : undefined);
+  const num = (key: string) => (row[key] === null || row[key] === undefined ? undefined : Number(row[key]));
+  return {
+    id: String(row.id),
+    role: String(row.role),
+    fullName: str('full_name') || 'Нэргүй хэрэглэгч',
+    lastName: str('last_name'),
+    phone: str('phone'),
+    email: str('email'),
+    phoneVerified: Boolean(row.phone_verified),
+    gender: (row.gender as 'male' | 'female') || undefined,
+    registerNumber: str('register_number'),
+    birthDate: str('birth_date'),
+    avatarUrl: str('avatar_url'),
+    emergencyContactName: str('emergency_contact_name'),
+    emergencyContactPhone: str('emergency_contact_phone'),
+    onboardingCompleted: Boolean(row.onboarding_completed),
+    isSuspended: Boolean(row.is_suspended),
+    createdAt: str('created_at'),
+    driverVerificationStatus: str('driver_verification_status'),
+    carModel: str('car_model'),
+    plateNumber: str('plate_number'),
+    seats: num('seats'),
+    rating: num('rating'),
+    completedTrips: num('completed_trips'),
+    driverLicenseUrl: str('driver_license_url'),
+    vehicleCertificateUrl: str('vehicle_certificate_url'),
+    vehiclePhotoUrl: str('vehicle_photo_url'),
+  };
 }
 
 export async function setUserSuspended(userId: string, isSuspended: boolean) {

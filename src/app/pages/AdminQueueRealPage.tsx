@@ -17,6 +17,9 @@ import {
   fetchAdminAuditLogs,
   fetchAdminTrips,
   fetchAdminUsers,
+  fetchAdminUserDetail,
+  openDriverDocument,
+  type AdminUserDetail,
   rejectPayment,
   resolveReport,
   setUserSuspended,
@@ -437,6 +440,28 @@ function AdminUsersQueue() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busyId, setBusyId] = useState('');
+  const [expandedId, setExpandedId] = useState('');
+  const [detail, setDetail] = useState<AdminUserDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const toggleDetail = async (item: AdminUserItem) => {
+    if (expandedId === item.id) {
+      setExpandedId('');
+      setDetail(null);
+      return;
+    }
+    setExpandedId(item.id);
+    setDetail(null);
+    setDetailLoading(true);
+    try {
+      setDetail(await fetchAdminUserDetail(item.id));
+    } catch (detailError) {
+      setError(detailError instanceof Error ? detailError.message : 'Дэлгэрэнгүй мэдээлэл уншихад алдаа гарлаа.');
+      setExpandedId('');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const load = async () => {
     setLoading(true);
@@ -497,21 +522,121 @@ function AdminUsersQueue() {
                     {item.createdAt ? ` · ${new Date(item.createdAt).toLocaleDateString('mn-MN')}` : ''}
                   </p>
                 </div>
-                {item.role !== 'admin' && (
-                  <Button
-                    variant="outline"
-                    disabled={busyId === item.id}
-                    onClick={() => toggleSuspend(item)}
-                  >
-                    {item.isSuspended ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                    {item.isSuspended ? 'Эрх сэргээх' : 'Түдгэлзүүлэх'}
+                <div className="flex flex-col gap-2">
+                  <Button variant="outline" onClick={() => toggleDetail(item)}>
+                    {expandedId === item.id ? 'Хаах' : 'Дэлгэрэнгүй'}
                   </Button>
-                )}
+                  {item.role !== 'admin' && (
+                    <Button
+                      variant="outline"
+                      disabled={busyId === item.id}
+                      onClick={() => toggleSuspend(item)}
+                    >
+                      {item.isSuspended ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      {item.isSuspended ? 'Эрх сэргээх' : 'Түдгэлзүүлэх'}
+                    </Button>
+                  )}
+                </div>
               </div>
+
+              {expandedId === item.id && (
+                <div className="mt-4 border-t border-border pt-4">
+                  {detailLoading ? (
+                    <p className="text-sm text-muted-foreground">Дэлгэрэнгүй мэдээлэл уншиж байна...</p>
+                  ) : detail ? (
+                    <AdminUserDetailPanel detail={detail} />
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Мэдээлэл олдсонгүй.</p>
+                  )}
+                </div>
+              )}
             </Card>
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function computeAge(birthDate?: string) {
+  if (!birthDate) return undefined;
+  const born = new Date(birthDate);
+  if (Number.isNaN(born.getTime())) return undefined;
+  const now = new Date();
+  let age = now.getFullYear() - born.getFullYear();
+  const m = now.getMonth() - born.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < born.getDate())) age -= 1;
+  return age;
+}
+
+function AdminUserDetailPanel({ detail }: { detail: AdminUserDetail }) {
+  const isDriver = detail.role === 'driver';
+  const age = computeAge(detail.birthDate);
+  const genderLabel = detail.gender === 'male' ? 'Эрэгтэй' : detail.gender === 'female' ? 'Эмэгтэй' : '—';
+  const fullName = [detail.lastName, detail.fullName].filter(Boolean).join(' ');
+
+  const docs: Array<[string, string | undefined]> = [
+    ['Жолооны үнэмлэх', detail.driverLicenseUrl],
+    ['Машины гэрчилгээ', detail.vehicleCertificateUrl],
+    ['Машины зураг', detail.vehiclePhotoUrl],
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="mb-2 text-sm font-semibold text-foreground">Хувийн мэдээлэл</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <DetailField label="Овог, нэр" value={fullName || '—'} />
+          <DetailField label="Хүйс" value={genderLabel} />
+          <DetailField label="Нас" value={age !== undefined ? `${age}` : '—'} />
+          <DetailField label="Төрсөн огноо" value={detail.birthDate || '—'} />
+          <DetailField label="Регистрийн дугаар" value={detail.registerNumber || '—'} />
+          <DetailField label="Утас" value={detail.phone || '—'} />
+          <DetailField label="И-мэйл" value={detail.email || '—'} />
+          <DetailField label="Утас баталгаажсан" value={detail.phoneVerified ? 'Тийм' : 'Үгүй'} />
+          <DetailField label="Яаралтай холбоо" value={[detail.emergencyContactName, detail.emergencyContactPhone].filter(Boolean).join(' · ') || '—'} />
+        </div>
+      </div>
+
+      {isDriver && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold text-foreground">Жолоочийн мэдээлэл</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <DetailField label="Баталгаажуулалт" value={
+              detail.driverVerificationStatus === 'approved' ? 'Баталгаажсан'
+              : detail.driverVerificationStatus === 'rejected' ? 'Татгалзсан'
+              : detail.driverVerificationStatus === 'pending' ? 'Хүлээгдэж буй'
+              : 'Илгээгээгүй'
+            } />
+            <DetailField label="Машин" value={detail.carModel || '—'} />
+            <DetailField label="Улсын дугаар" value={detail.plateNumber || '—'} />
+            <DetailField label="Суудал" value={detail.seats !== undefined ? `${detail.seats}` : '—'} />
+            <DetailField label="Үнэлгээ" value={`${detail.rating ?? 0}/5 · ${detail.completedTrips ?? 0} аялал`} />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {docs.map(([label, url]) => (
+              <Button
+                key={label}
+                size="sm"
+                variant="outline"
+                disabled={!url}
+                onClick={() => void openDriverDocument(url)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 break-words text-sm font-medium text-foreground">{value}</p>
     </div>
   );
 }
