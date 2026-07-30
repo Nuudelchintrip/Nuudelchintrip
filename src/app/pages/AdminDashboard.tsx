@@ -19,7 +19,7 @@ export function AdminDashboard() {
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('admin')} />
 
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="mx-auto w-full max-w-6xl min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <div className="mb-5 sm:mb-8">
           <Badge variant="info" className="mb-3">Админы хяналтын төв</Badge>
           <h1 className="text-2xl font-bold text-foreground sm:text-4xl">Админ самбар</h1>

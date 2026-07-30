@@ -60,7 +60,7 @@ export function NotificationsPage() {
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu(menuRole)} />
 
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="mx-auto w-full max-w-6xl min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <Badge variant="info" className="mb-3">Мэдэгдэл</Badge>

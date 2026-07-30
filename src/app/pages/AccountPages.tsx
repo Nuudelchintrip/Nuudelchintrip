@@ -293,12 +293,12 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
 
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
         <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
-          <Card className="overflow-hidden p-6">
-            <div className="relative mx-auto flex h-36 w-36 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/20 via-white to-warning/20 text-primary shadow-inner dark:via-card">
+          <Card className="overflow-hidden p-5">
+            <div className="relative mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary/20 via-white to-warning/20 text-primary shadow-inner dark:via-card">
               {avatarUrl ? (
                 <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
               ) : (
-                <UserCircle className="h-20 w-20" />
+                <UserCircle className="h-14 w-14" />
               )}
               <button
                 type="button"
@@ -1536,7 +1536,7 @@ function AccountFrame({ role, children }: { role: AccountRole; children: ReactNo
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu(role)} accountRole={role} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="mx-auto w-full max-w-6xl min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         {children}
         <AppFooter />
       </main>
