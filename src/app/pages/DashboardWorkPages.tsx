@@ -895,7 +895,7 @@ export function FindDriversPage() {
           <Search className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">Хайлт ба шүүлтүүр</h2>
         </div>
-        <div className="grid max-w-5xl gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <LocationSelectGroup
             label="Суух байршил"
             aimag={fromAimag}
@@ -952,7 +952,7 @@ export function FindDriversPage() {
         </Card>
       )}
 
-      <div className="grid gap-5">
+      <div className="grid gap-4 xl:grid-cols-2">
         {filteredOffers.map((offer) => (
           <DriverOfferCard key={offer.id} offer={offer} />
         ))}
@@ -1087,7 +1087,7 @@ export function CargoFindRoutesPage() {
           <Search className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground sm:text-xl">Чиглэл шүүх</h2>
         </div>
-        <div className="grid max-w-5xl gap-3 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           <LocationSelectGroup
             label="Суух байршил"
             aimag={fromAimag}
@@ -1125,15 +1125,14 @@ export function CargoFindRoutesPage() {
         </Card>
       )}
 
-      <div className="mb-4 grid gap-4 sm:mb-6 md:grid-cols-1">
-        <Card className="p-4 sm:p-5">
-          <Badge variant="warning">Дайвар ачаа авч болно</Badge>
-          <p className="mt-2 text-2xl font-bold text-foreground sm:mt-3 sm:text-3xl">{cargoRoutes.length}</p>
-          <p className="text-sm text-muted-foreground">чиглэл боломжтой</p>
-        </Card>
+      <div className="mb-4 flex flex-wrap items-center gap-2.5">
+        <Badge variant="warning">Дайвар ачаа авч болно</Badge>
+        <p className="text-sm text-muted-foreground">
+          <span className="text-base font-bold text-foreground">{cargoRoutes.length}</span> чиглэл боломжтой
+        </p>
       </div>
 
-      <div className="grid gap-5">
+      <div className="grid gap-4 xl:grid-cols-2">
         {cargoRoutes.map((offer) => (
           <DriverOfferCard key={offer.id} offer={offer} mode="cargo" />
         ))}
