@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, ArrowLeft, CheckCircle, Copy, CreditCard, FileImage, ReceiptText, Upload } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle, Clock, Copy, CreditCard, FileImage, ReceiptText, Upload } from 'lucide-react';
 import { useParams } from 'react-router';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
@@ -69,17 +69,19 @@ export function PaymentProofPage() {
         .then(async (bookings) => {
           if (!active) return;
           const payable = bookings.find((booking) => PAYABLE_STATUSES.has(booking.status));
-          if (!payable) {
+          const pendingRequest = payable ? undefined : bookings.find((booking) => booking.status === 'pending_request');
+          const target = payable ?? pendingRequest;
+          if (!target) {
             setRealBooking(null);
             setError('Төлбөрийн баримт оруулах боломжтой захиалга олдсонгүй.');
             return;
           }
 
-          const booking = await fetchPassengerBookingById(payable.id);
+          const booking = await fetchPassengerBookingById(target.id);
           if (!active) return;
           setRealBooking(booking);
           setError(booking ? '' : 'Захиалга олдсонгүй.');
-          window.history.replaceState(null, '', `/dashboard/bookings/${payable.id}/payment-proof`);
+          window.history.replaceState(null, '', `/dashboard/bookings/${target.id}/payment-proof`);
         })
         .catch((fetchError) => {
           if (!active) return;
@@ -169,6 +171,43 @@ export function PaymentProofPage() {
       setSubmitting(false);
     }
   };
+
+  if (realBooking && realBooking.status === 'pending_request') {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+          <button
+            type="button"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
+            onClick={() => window.location.href = '/dashboard'}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Самбар руу буцах
+          </button>
+
+          <Card className="p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-warning/10">
+              <Clock className="h-7 w-7 text-warning" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground">Жолооч хараахан зөвшөөрөөгүй байна</h1>
+            <p className="mx-auto mt-3 max-w-xl leading-7 text-muted-foreground">
+              Таны {realBooking.trip.fromLocation} → {realBooking.trip.toLocation} чиглэлийн суудлын хүсэлт жолоочид илгээгдсэн.
+              Жолооч зөвшөөрсний дараа төлбөрийн баримт оруулах боломжтой болно. Та түр хүлээнэ үү.
+            </p>
+            <div className="mt-5 rounded-lg border border-warning/30 bg-warning/5 p-4 text-sm font-medium text-warning">
+              Одоогийн төлөв: {statusLabels[realBooking.status] ?? realBooking.status}
+            </div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Button onClick={() => window.location.href = `/dashboard/bookings/${realBooking.id}`}>Захиалга харах</Button>
+              <Button variant="outline" onClick={() => window.location.href = '/dashboard'}>Самбар руу очих</Button>
+            </div>
+          </Card>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!payment) {
     return (
