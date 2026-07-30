@@ -5,6 +5,7 @@ import type { DashboardRole } from '../navigation/dashboardMenus';
 import { logoutFromSupabase } from '../services/supabaseAuth';
 import { getRoleLabel, getStoredUser } from '../utils/auth';
 import { Logo } from './Logo';
+import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 
 interface SidebarProps {
@@ -29,14 +30,22 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
         <a href="/" aria-label="NuudelchinTrip нүүр">
             <Logo size="sm" />
         </a>
-        <button
-          type="button"
-          aria-label="Цэс нээх"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar text-sidebar-foreground"
-          onClick={() => setMobileOpen(true)}
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            type="button"
+            aria-label="Цэс нээх"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar text-sidebar-foreground"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Дэлгэцийн баруун дээд булан — самбарын бүх хуудсанд мэдэгдлийн хонх. */}
+      <div className="fixed right-4 top-4 z-40 hidden md:block lg:right-6 lg:top-5">
+        <NotificationBell />
       </div>
 
       {mobileOpen && (

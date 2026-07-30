@@ -72,7 +72,7 @@ export function SenderDashboard() {
       <Sidebar menuItems={getDashboardMenu('sender')} />
 
       <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between md:mb-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between md:mb-8 md:pr-14">
           <div>
             <Badge variant="warning" className="mb-3">Ачаа илгээгчийн самбар</Badge>
             <h1 className="text-xl font-bold leading-tight text-foreground sm:text-2xl">

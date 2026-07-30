@@ -2,6 +2,7 @@ import { LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './Button';
 import { Logo } from './Logo';
+import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
 import { getDashboardPath, getStoredUser } from '../utils/auth';
 import { logoutFromSupabase } from '../services/supabaseAuth';
@@ -48,6 +49,7 @@ export function Navbar() {
             <ThemeToggle />
             {user ? (
               <>
+                <NotificationBell />
                 <Button variant="ghost" onClick={() => { window.location.href = dashboardPath; }}>
                   Самбар
                 </Button>
@@ -68,6 +70,7 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
+            {user && <NotificationBell />}
             <ThemeToggle />
             <button
               type="button"
