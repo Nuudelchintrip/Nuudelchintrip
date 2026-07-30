@@ -1,7 +1,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-size: 16px;
+  /* Global UI scale: every rem-based Tailwind size (text, spacing, cards)
+     derives from this, so lowering it compacts the whole site evenly. */
+  --font-size: 14px;
   --background: #F8FAFC;
   --foreground: #0F172A;
   --card: #FFFFFF;
@@ -205,11 +207,10 @@
     font-size: var(--font-size);
   }
 
-  /* Mobile: slightly smaller base shrinks every rem-based size proportionally,
-     so the whole mobile UI feels tighter and more refined (not oversized). */
+  /* Mobile: match the global compact base; rem-based sizes stay proportional. */
   @media (max-width: 640px) {
     html {
-      font-size: 15px;
+      font-size: 14px;
     }
 
     body {
