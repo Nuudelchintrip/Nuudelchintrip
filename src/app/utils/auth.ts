@@ -58,6 +58,7 @@ export interface ActionLogEntry {
 }
 
 const STORAGE_KEY = 'nuudelchin_user';
+const AVATAR_KEY = 'nuudelchin_avatar_url';
 const IDENTITY_REQUESTS_KEY = 'nuudelchin_identity_requests';
 const ACTION_LOGS_KEY = 'nuudelchin_action_logs';
 
@@ -100,6 +101,28 @@ export function saveStoredUser(profile: MockUserProfile) {
 
 export function clearStoredUser() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(AVATAR_KEY);
+}
+
+/**
+ * Профайл зургийн кэш — хажуугийн цэс зураггүй хоосон дүрсээр анивчихгүйн тулд
+ * хамгийн сүүлд уншсан URL-ыг хадгална.
+ */
+export function getCachedAvatarUrl(): string | null {
+  try {
+    return localStorage.getItem(AVATAR_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedAvatarUrl(url: string | null) {
+  try {
+    if (url) localStorage.setItem(AVATAR_KEY, url);
+    else localStorage.removeItem(AVATAR_KEY);
+  } catch {
+    // Хувийн (private) горимд бичих боломжгүй бол кэшгүй ажиллана.
+  }
 }
 
 export function updateStoredUser(patch: Partial<MockUserProfile>) {

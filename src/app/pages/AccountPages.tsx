@@ -40,7 +40,7 @@ import {
   uploadAvatar,
   type MyDriverVerification,
 } from '../services/supabaseAuth';
-import { getStoredUser } from '../utils/auth';
+import { getStoredUser, setCachedAvatarUrl } from '../utils/auth';
 
 type AccountRole = 'sender' | 'traveler' | 'driver' | 'admin';
 
@@ -228,7 +228,10 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    void fetchMyAvatarUrl().then(setAvatarUrl);
+    void fetchMyAvatarUrl().then((url) => {
+      setAvatarUrl(url);
+      setCachedAvatarUrl(url);
+    });
   }, []);
 
   useEffect(() => {
@@ -267,6 +270,7 @@ function ProfileExperiencePage({ role }: { role: AccountRole }) {
       const url = await uploadAvatar(file);
       await updateProfileInfo({ avatarUrl: url });
       setAvatarUrl(url);
+      setCachedAvatarUrl(url);
       setProfileMsg('Профайл зураг шинэчлэгдлээ.');
     } catch (err) {
       setProfileMsg(err instanceof Error ? err.message : 'Зураг оруулахад алдаа гарлаа.');

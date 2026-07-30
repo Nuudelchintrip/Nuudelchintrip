@@ -1,9 +1,15 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { CircleHelp, LogOut, Menu, ShieldCheck, UserCircle, X } from 'lucide-react';
 import { useLocation } from 'react-router';
 import type { DashboardRole } from '../navigation/dashboardMenus';
-import { logoutFromSupabase } from '../services/supabaseAuth';
-import { getDashboardPath, getRoleLabel, getStoredUser } from '../utils/auth';
+import { fetchMyAvatarUrl, logoutFromSupabase } from '../services/supabaseAuth';
+import {
+  getCachedAvatarUrl,
+  getDashboardPath,
+  getRoleLabel,
+  getStoredUser,
+  setCachedAvatarUrl,
+} from '../utils/auth';
 import { Logo } from './Logo';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
@@ -25,6 +31,21 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
   // Самбар дотор лого дарахад нүүр рүү биш, өөрийн самбар руу буцна.
   const homeHref = getDashboardPath(getStoredUser()?.role);
   const activeMenuHref = activeHref ?? getActiveMenuHref(location.pathname, menuItems.map((item) => item.href));
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(() => getCachedAvatarUrl());
+
+  useEffect(() => {
+    let active = true;
+    void fetchMyAvatarUrl().then((url) => {
+      // Хариу хоосон байвал (сессий шинэчлэгдэж байх, сүлжээ саатах) кэшлэсэн
+      // зургаа хадгална — зураг анивчиж арилахаас сэргийлнэ. Гарахад кэш цэвэрлэгддэг.
+      if (!active || !url) return;
+      setAvatarUrl(url);
+      setCachedAvatarUrl(url);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <>
@@ -76,9 +97,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
             <div className="border-b border-sidebar-border p-2.5">
               <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <UserCircle className="h-4 w-4" />
-                  </div>
+                  <SidebarAvatar url={avatarUrl} name={account.name} />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold leading-5 text-foreground">{account.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{account.label}</p>
@@ -117,9 +136,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
         </a>
         <div className="mt-3 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <UserCircle className="h-4 w-4" />
-            </div>
+            <SidebarAvatar url={avatarUrl} name={account.name} />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold leading-5 text-foreground">{account.name}</p>
               <p className="truncate text-xs text-muted-foreground">{account.label}</p>
@@ -149,6 +166,24 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
         <SidebarFooter />
       </aside>
     </>
+  );
+}
+
+/** Хэрэглэгчийн профайл зураг; зураггүй бол хоосон дүрс харуулна. */
+function SidebarAvatar({ url, name }: { url: string | null; name: string }) {
+  if (url) {
+    return (
+      <img
+        src={url}
+        alt={name}
+        className="h-9 w-9 shrink-0 rounded-lg border border-sidebar-border object-cover"
+      />
+    );
+  }
+  return (
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <UserCircle className="h-4 w-4" />
+    </div>
   );
 }
 
