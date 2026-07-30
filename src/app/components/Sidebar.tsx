@@ -69,7 +69,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
                     <UserCircle className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-[13px] font-semibold leading-5 text-foreground">{account.name}</p>
+                    <p className="truncate text-sm font-semibold leading-5 text-foreground">{account.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{account.label}</p>
                   </div>
                 </div>
@@ -98,7 +98,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
         </div>
       )}
 
-      <aside className="hidden w-60 shrink-0 bg-sidebar border-r border-sidebar-border md:flex flex-col h-screen sticky top-0">
+      <aside className="hidden w-64 shrink-0 bg-sidebar border-r border-sidebar-border md:flex flex-col h-screen sticky top-0 lg:w-72">
       {/* Logo */}
       <div className="px-4 py-4 border-b border-sidebar-border">
         <a href="/" aria-label="NuudelchinTrip нүүр">
@@ -110,7 +110,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
               <UserCircle className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold leading-5 text-foreground">{account.name}</p>
+              <p className="truncate text-sm font-semibold leading-5 text-foreground">{account.name}</p>
               <p className="truncate text-xs text-muted-foreground">{account.label}</p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
           <a
             key={index}
             href={item.href}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] leading-5 transition-colors [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 ${
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm leading-5 transition-colors [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:shrink-0 ${
               activeMenuHref === item.href
                 ? 'bg-sidebar-primary text-sidebar-primary-foreground'
                 : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
@@ -146,14 +146,14 @@ function SidebarFooter() {
     <div className="space-y-0.5 border-t border-sidebar-border p-2.5">
       <a
         href="/support"
-        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] leading-5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm leading-5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         <CircleHelp className="h-4 w-4 shrink-0" />
         <span className="font-medium leading-5">Тусламж</span>
       </a>
       <a
         href="/safety"
-        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] leading-5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm leading-5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       >
         <ShieldCheck className="h-4 w-4 shrink-0" />
         <span className="font-medium leading-5">Аюулгүй байдал</span>
@@ -161,7 +161,7 @@ function SidebarFooter() {
       <ThemeToggle showLabel className="border-0 bg-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
       <button
         type="button"
-        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] leading-5 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm leading-5 text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         onClick={async () => {
           try {
             await logoutFromSupabase();
