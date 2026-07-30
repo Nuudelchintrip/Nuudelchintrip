@@ -91,10 +91,10 @@ export function PostCargoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-6xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <main className="mx-auto w-full flex-1 max-w-6xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-5 sm:mb-8">
           <Badge variant="info" className="mb-3 sm:mb-4">Дайвар ачааны нэмэлт боломж</Badge>
           <h1 className="mb-2 text-2xl font-bold leading-tight text-foreground sm:text-3xl">Дайвар ачаа илгээх хүсэлт</h1>

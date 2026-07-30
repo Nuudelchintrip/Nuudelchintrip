@@ -174,9 +174,9 @@ export function PaymentProofPage() {
 
   if (realBooking && realBooking.status === 'pending_request') {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full flex-1 max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
           <button
             type="button"
             className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
@@ -211,9 +211,9 @@ export function PaymentProofPage() {
 
   if (!payment) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
-        <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full flex-1 max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
           <button
             type="button"
             className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary"
@@ -253,10 +253,10 @@ export function PaymentProofPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <main className="mx-auto w-full flex-1 max-w-7xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
         <button
           type="button"
           className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary sm:mb-6"

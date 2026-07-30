@@ -1229,9 +1229,9 @@ export function AccountPasswordPage({ role }: { role: AccountRole }) {
 
 export function PublicDriverProfilePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full flex-1 max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
         <button className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary" onClick={() => window.location.href = '/routes'}>
           <ArrowLeft className="h-4 w-4" />
           Чиглэл рүү буцах
@@ -1540,7 +1540,7 @@ function AccountFrame({ role, children }: { role: AccountRole; children: ReactNo
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu(role)} accountRole={role} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         {children}
         <AppFooter />
       </main>

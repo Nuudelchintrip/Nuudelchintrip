@@ -11,7 +11,7 @@ export function CargoRulesPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('sender')} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <div className="mb-8">
           <Badge variant="warning">Ачааны дүрэм</Badge>
           <h1 className="mt-4 text-3xl font-bold text-foreground">Ачааны дүрэм</h1>

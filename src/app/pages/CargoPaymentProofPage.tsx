@@ -89,9 +89,9 @@ export function CargoPaymentProofPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full flex-1 max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={() => window.location.href = id ? `/cargo/${id}` : '/dashboard/cargo/requests'}

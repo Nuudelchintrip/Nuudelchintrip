@@ -82,7 +82,7 @@ export function DriverDashboard() {
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={getDashboardMenu('driver')} />
 
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between md:mb-8 md:pr-14">
           <div>
             <Badge variant="success" className="mb-3">Жолоочийн самбар</Badge>

@@ -187,9 +187,9 @@ export default function JoloochHaih() {
   const currentUserId = getStoredUser()?.id;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main>
+      <main className="flex-1">
         <section className="bg-primary/5 py-12 sm:py-16">
           <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
             <Badge variant="info">Жолооч хайх</Badge>

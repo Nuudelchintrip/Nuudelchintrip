@@ -40,10 +40,10 @@ const bookingStatuses = [
 
 export function HowItWorksPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main>
+      <main className="flex-1">
         <div className="mx-auto max-w-7xl px-3.5 pt-4 sm:px-6 sm:pt-6 lg:px-8">
           <PublicBackLink />
         </div>

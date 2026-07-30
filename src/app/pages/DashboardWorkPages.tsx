@@ -1965,7 +1965,7 @@ function DashboardFrame({ children, role, sender, admin }: { children: ReactNode
   return (
     <div className="flex min-h-screen flex-col bg-background md:flex-row">
       <Sidebar menuItems={menuItems} accountRole={accountRole} />
-      <main className="min-w-0 flex-1 overflow-x-hidden p-3.5 sm:p-5 md:p-8">
+      <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden p-3.5 sm:p-5 md:p-8">
         {children}
         <AppFooter />
       </main>

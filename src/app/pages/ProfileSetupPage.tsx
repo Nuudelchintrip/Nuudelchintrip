@@ -160,10 +160,10 @@ export function ProfileSetupPage({ role }: ProfileSetupPageProps) {
   const isCargo = normalizedRole === 'cargo_sender';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <main className="mx-auto max-w-5xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <main className="mx-auto w-full flex-1 max-w-5xl px-3.5 py-5 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-5 sm:mb-8">
           <Badge variant={isDriver ? 'success' : isCargo ? 'warning' : 'info'} className="mb-3 sm:mb-4">
             Анхны тохиргоо

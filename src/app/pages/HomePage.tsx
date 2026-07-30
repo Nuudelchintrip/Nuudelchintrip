@@ -79,7 +79,7 @@ export function HomePage() {
     <div className="min-h-screen overflow-x-hidden bg-background">
       <Navbar />
 
-      <main>
+      <main className="flex-1">
         {/* Hero */}
         <section className="border-b border-border bg-secondary/20">
           <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:px-8 lg:py-20">

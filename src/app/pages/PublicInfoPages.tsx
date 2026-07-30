@@ -384,7 +384,7 @@ function PageHero({ icon, eyebrow, title }: { icon: ReactNode; eyebrow: string; 
 
 function InfoFrame({ children, narrow = false, showBack = false }: { children: ReactNode; narrow?: boolean; showBack?: boolean }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       <main className={`${narrow ? 'max-w-xl' : 'max-w-7xl'} mx-auto px-4 py-10 sm:px-6 lg:px-8`}>
         {showBack && (

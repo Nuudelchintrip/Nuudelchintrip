@@ -74,20 +74,24 @@ export function Footer() {
 
 export function AppFooter() {
   return (
-    <footer className="mt-8 border-t border-border pt-5 sm:mt-10 sm:pt-6">
-      <div className="flex flex-col gap-3 text-xs leading-5 text-muted-foreground sm:text-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p className="font-semibold text-foreground">NuudelchinTrip</p>
-          <p className="mt-1">Аялагч, жолооч болон чиглэл дээр суурилсан дайвар ачааг холбох платформ.</p>
+    // mt-auto — агуулга богино үед хуудсын доод талд наалдаж, дунд нь хөвөхгүй.
+    // Дээд зай нь padding тул агуулга урт үед ч наалдахгүй.
+    <footer className="mt-auto pt-8 sm:pt-10">
+      <div className="border-t border-border pt-5 sm:pt-6">
+        <div className="flex flex-col gap-3 text-xs leading-5 text-muted-foreground sm:text-sm lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="font-semibold text-foreground">NuudelchinTrip</p>
+            <p className="mt-1">Аялагч, жолооч болон чиглэл дээр суурилсан дайвар ачааг холбох платформ.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-x-5">
+            <a href="/how-it-works" className="hover:text-primary">Хэрхэн ажилладаг</a>
+            <a href="/safety" className="hover:text-primary">Аюулгүй байдал</a>
+            <a href="/support" className="hover:text-primary">Тусламж</a>
+            <a href="/terms" className="hover:text-primary">Үйлчилгээний нөхцөл</a>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:flex sm:flex-wrap sm:gap-x-5">
-          <a href="/how-it-works" className="hover:text-primary">Хэрхэн ажилладаг</a>
-          <a href="/safety" className="hover:text-primary">Аюулгүй байдал</a>
-          <a href="/support" className="hover:text-primary">Тусламж</a>
-          <a href="/terms" className="hover:text-primary">Үйлчилгээний нөхцөл</a>
-        </div>
+        <p className="mt-5 text-xs text-muted-foreground">© 2026 NuudelchinTrip. Бүх эрх хуулиар хамгаалагдсан.</p>
       </div>
-      <p className="mt-5 text-xs text-muted-foreground">© 2026 NuudelchinTrip. Бүх эрх хуулиар хамгаалагдсан.</p>
     </footer>
   );
 }
