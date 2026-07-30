@@ -701,10 +701,10 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
         </Card>
       )}
       {role === 'driver' && driverRequests.length > 0 ? (
-        <div className="grid gap-5">
+        <div className="grid gap-3">
           {driverRequests.map((request) => (
-            <Card key={request.id} className="p-6">
-              <div className="grid gap-5 lg:grid-cols-[1fr_240px] lg:items-center">
+            <Card key={request.id} className="p-4">
+              <div className="grid gap-4 lg:grid-cols-[1fr_210px] lg:items-center">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="success">Суудлын хүсэлт</Badge>
@@ -712,23 +712,23 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
                       {getRequestStatusLabel(request.status)}
                     </Badge>
                   </div>
-                  <h2 className="mt-3 text-2xl font-semibold text-foreground">{request.route}</h2>
-                  <p className="mt-2 text-muted-foreground">
+                  <h2 className="mt-2 text-lg font-semibold text-foreground">{request.route}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {request.travelerName} · {request.seatsRequested} суудал · {new Date(request.departureAt).toLocaleString('mn-MN')}
                   </p>
                   <button
                     type="button"
-                    className="mt-2 text-sm font-medium text-primary hover:underline"
+                    className="mt-1.5 text-sm font-medium text-primary hover:underline"
                     onClick={() => { window.location.href = `/profile/traveler/${request.travelerId}`; }}
                   >
                     Аялагчийн профайл харах
                   </button>
-                  {request.note && <p className="mt-2 text-sm leading-6 text-muted-foreground">{request.note}</p>}
+                  {request.note && <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{request.note}</p>}
                 </div>
-                <div className="rounded-lg bg-muted/40 p-4">
+                <div className="rounded-lg bg-muted/40 p-3.5">
                   <p className="text-sm text-muted-foreground">Нийт дүн</p>
-                  <p className="mt-1 text-2xl font-bold text-primary">₮{request.totalAmount.toLocaleString()}</p>
-                  <div className="mt-4 grid gap-2">
+                  <p className="mt-0.5 text-xl font-bold text-primary">₮{request.totalAmount.toLocaleString()}</p>
+                  <div className="mt-3 grid gap-2">
                     {request.status === 'pending_request' && (
                       <>
                         <Button size="sm" onClick={() => changeBookingStatus(request.id, 'accepted')}>
@@ -1949,14 +1949,14 @@ function getCargoBadgeVariant(status: string): 'success' | 'warning' | 'danger' 
 
 function PageTop({ badge, title, description, backHref }: { badge: string; title: string; description: string; backHref: string }) {
   return (
-    <div className="mb-5 md:mb-8">
-      <button className="mb-3 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:mb-5" onClick={() => window.location.href = backHref}>
+    <div className="mb-4 md:mb-6">
+      <button className="mb-2 inline-flex min-h-9 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground sm:mb-3" onClick={() => window.location.href = backHref}>
         <ArrowLeft className="h-4 w-4" />
         Самбар руу буцах
       </button>
       <Badge variant="info">{badge}</Badge>
-      <h1 className="mt-3 text-2xl font-bold leading-tight text-foreground sm:mt-4 sm:text-4xl">{title}</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground sm:mt-3 sm:text-base sm:leading-7">{description}</p>
+      <h1 className="mt-2 text-xl font-bold leading-tight text-foreground sm:mt-3 sm:text-2xl">{title}</h1>
+      <p className="mt-1.5 max-w-3xl text-sm leading-6 text-muted-foreground sm:mt-2">{description}</p>
     </div>
   );
 }
