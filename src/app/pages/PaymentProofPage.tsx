@@ -148,7 +148,7 @@ export function PaymentProofPage() {
       return;
     }
 
-    if (!isRealBooking || !id || !isSupabaseConfigured) {
+    if (!UUID_PATTERN.test(payment.bookingId) || !isSupabaseConfigured) {
       setError('Төлбөрийн баримт илгээхийн тулд бодит захиалга шаардлагатай.');
       return;
     }
@@ -157,7 +157,7 @@ export function PaymentProofPage() {
     try {
       const result = await uploadPaymentProof({
         target: 'booking',
-        targetId: id,
+        targetId: payment.bookingId,
         amount: payment.total,
         file,
         note: transactionNote,
