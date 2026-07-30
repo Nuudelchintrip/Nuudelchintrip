@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bus, CheckCircle2, CreditCard, Route, Search, Wallet } from 'lucide-react';
+import { Archive, Bus, CheckCircle2, Clock, CreditCard, Search, Wallet } from 'lucide-react';
 import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -12,7 +12,9 @@ import { fetchCurrentTravelerBookings, type TravelerBookingSummary } from '../se
 import { getBookingBadgeVariant, getRequestStatusLabel } from '../utils/bookingStatus';
 import { getStoredUser } from '../utils/auth';
 
-const CLOSED = new Set(['completed', 'cancelled', 'rejected']);
+const ARCHIVED = new Set(['completed', 'cancelled', 'rejected']);
+const UPCOMING = new Set(['confirmed', 'on_trip']);
+const WAITING = new Set(['pending_request', 'accepted', 'waiting_payment', 'payment_review']);
 const PAID = new Set(['confirmed', 'on_trip', 'completed']);
 
 export function TravelerDashboard() {
@@ -20,6 +22,7 @@ export function TravelerDashboard() {
   const [bookings, setBookings] = useState<TravelerBookingSummary[]>([]);
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const [error, setError] = useState('');
+  const [view, setView] = useState<'active' | 'archive'>('active');
 
   useEffect(() => {
     let active = true;
@@ -43,9 +46,12 @@ export function TravelerDashboard() {
     };
   }, []);
 
-  const recentBookings = bookings.slice(0, 4);
   const awaitingPayment = bookings.filter((booking) => booking.status === 'waiting_payment');
-  const activeCount = bookings.filter((booking) => !CLOSED.has(booking.status)).length;
+  const activeBookings = bookings.filter((booking) => !ARCHIVED.has(booking.status));
+  const archivedBookings = bookings.filter((booking) => ARCHIVED.has(booking.status));
+  const visibleBookings = (view === 'active' ? activeBookings : archivedBookings).slice(0, 4);
+  const upcomingCount = bookings.filter((booking) => UPCOMING.has(booking.status)).length;
+  const waitingCount = bookings.filter((booking) => WAITING.has(booking.status)).length;
   const completedCount = bookings.filter((booking) => booking.status === 'completed').length;
   const spent = bookings
     .filter((booking) => PAID.has(booking.status))
@@ -87,25 +93,72 @@ export function TravelerDashboard() {
         )}
 
         <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          <StatCard icon={<Route className="h-5 w-5" />} label="Нийт захиалга" value={bookings.length} />
-          <StatCard icon={<Bus className="h-5 w-5" />} label="Идэвхтэй" value={activeCount} accent="warning" />
-          <StatCard icon={<CheckCircle2 className="h-5 w-5" />} label="Дууссан аялал" value={completedCount} accent="success" />
-          <StatCard icon={<Wallet className="h-5 w-5" />} label="Зарцуулсан" value={`₮${spent.toLocaleString()}`} accent="success" />
+          <StatCard
+            icon={<Bus className="h-5 w-5" />}
+            label="Удахгүй болох аялал"
+            value={upcomingCount}
+            hint="Баталгаажсан болон явж буй"
+          />
+          <StatCard
+            icon={<Clock className="h-5 w-5" />}
+            label="Хүлээгдэж буй хүсэлт"
+            value={waitingCount}
+            accent="warning"
+            hint="Жолооч, төлбөр хүлээж буй"
+          />
+          <StatCard
+            icon={<CheckCircle2 className="h-5 w-5" />}
+            label="Дууссан аялал"
+            value={completedCount}
+            accent="success"
+          />
+          <StatCard
+            icon={<Wallet className="h-5 w-5" />}
+            label="Нийт зарцуулсан"
+            value={`₮${spent.toLocaleString()}`}
+            accent="success"
+            hint="Баталгаажсан аяллын төлбөр"
+          />
         </div>
 
         <section>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-lg font-semibold text-foreground">Миний аялал</h2>
-            {bookings.length > 0 && (
-              <button type="button" onClick={() => window.location.href = '/dashboard/traveler/trips'} className="text-sm font-medium text-primary hover:underline">Бүгд</button>
-            )}
+            <div className="flex items-center gap-3">
+              {bookings.length > 0 && (
+                <div className="flex rounded-lg border border-border bg-muted/30 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setView('active')}
+                    className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      view === 'active' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    Идэвхтэй ({activeBookings.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setView('archive')}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                      view === 'archive' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Archive className="h-3.5 w-3.5" />
+                    Архив ({archivedBookings.length})
+                  </button>
+                </div>
+              )}
+              {bookings.length > 0 && (
+                <button type="button" onClick={() => window.location.href = '/dashboard/traveler/trips'} className="text-sm font-medium text-primary hover:underline">Бүгд</button>
+              )}
+            </div>
           </div>
 
           {loading ? (
             <Card className="p-5 text-sm text-muted-foreground">Аяллын захиалгуудыг уншиж байна...</Card>
           ) : error ? (
             <Card className="border-destructive/20 bg-destructive/5 p-5 text-sm font-medium text-destructive">{error}</Card>
-          ) : recentBookings.length === 0 ? (
+          ) : bookings.length === 0 ? (
             <Card className="p-6 text-center sm:p-8">
               <Bus className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
               <h3 className="text-lg font-semibold text-foreground">Аяллын захиалга хараахан алга</h3>
@@ -114,9 +167,30 @@ export function TravelerDashboard() {
               </p>
               <Button className="mt-5" onClick={() => window.location.href = '/traveler/find-drivers'}>Жолооч хайх</Button>
             </Card>
+          ) : visibleBookings.length === 0 ? (
+            <Card className="p-6 text-center sm:p-8">
+              {view === 'active' ? (
+                <>
+                  <Bus className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-foreground">Идэвхтэй аялал алга</h3>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                    Өмнөх аяллууд архив хэсэгт хадгалагдсан. Шинэ аялал захиалахын тулд жолооч хайгаарай.
+                  </p>
+                  <Button className="mt-5" onClick={() => window.location.href = '/traveler/find-drivers'}>Жолооч хайх</Button>
+                </>
+              ) : (
+                <>
+                  <Archive className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-foreground">Архивд аялал алга</h3>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                    Дууссан болон цуцлагдсан аяллууд энд хадгалагдана.
+                  </p>
+                </>
+              )}
+            </Card>
           ) : (
             <div className="space-y-3">
-              {recentBookings.map((booking) => (
+              {visibleBookings.map((booking) => (
                 <Card key={booking.id} className="p-4 sm:p-5">
                   <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_170px_160px] lg:items-center">
                     <div className="min-w-0">
