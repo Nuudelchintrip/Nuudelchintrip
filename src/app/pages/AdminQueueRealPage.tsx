@@ -120,18 +120,18 @@ export function AdminQueuePage({ view }: { view: AdminView }) {
 function PageHeader({ view }: { view: AdminView }) {
   const copy = pageCopy[view];
   return (
-    <div className="mb-6 md:mb-8">
+    <div className="mb-4 md:mb-6">
       <button
         type="button"
-        className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+        className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
         onClick={() => { window.location.href = '/admin'; }}
       >
         <ArrowLeft className="h-4 w-4" />
         Админ самбар руу буцах
       </button>
       <Badge variant="info">Админ</Badge>
-      <h1 className="mt-4 text-3xl font-bold leading-tight text-foreground sm:text-4xl">{copy.title}</h1>
-      <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">{copy.description}</p>
+      <h1 className="mt-2 text-xl font-bold leading-tight text-foreground sm:text-2xl">{copy.title}</h1>
+      <p className="mt-1.5 max-w-3xl text-sm leading-6 text-muted-foreground">{copy.description}</p>
     </div>
   );
 }
