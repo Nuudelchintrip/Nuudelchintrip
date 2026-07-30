@@ -65,7 +65,7 @@ export function TravelerDashboard() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between md:mb-8">
           <div>
             <Badge variant="info" className="mb-3">Аялагчийн самбар</Badge>
-            <h1 className="text-2xl font-bold leading-tight text-foreground sm:text-3xl">
+            <h1 className="text-xl font-bold leading-tight text-foreground sm:text-2xl">
               {user?.full_name ? `Сайн уу, ${user.full_name}` : 'Аялагчийн самбар'}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">Таны захиалга, төлбөр, аяллын төлвийн бодит тойм.</p>
@@ -194,7 +194,7 @@ export function TravelerDashboard() {
                 <Card key={booking.id} className="p-4 sm:p-5">
                   <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_170px_160px] lg:items-center">
                     <div className="min-w-0">
-                      <p className="font-semibold text-foreground">{booking.route}</p>
+                      <p className="text-base font-semibold text-foreground">{booking.route}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {new Date(booking.departureAt).toLocaleString('mn-MN')} · {booking.driverName}
                         {booking.carModel ? ` · ${booking.carModel}` : ''}

@@ -86,7 +86,7 @@ export function DriverDashboard() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between md:mb-8">
           <div>
             <Badge variant="success" className="mb-3">Жолоочийн самбар</Badge>
-            <h1 className="text-2xl font-bold leading-tight text-foreground sm:text-3xl">
+            <h1 className="text-xl font-bold leading-tight text-foreground sm:text-2xl">
               {user?.full_name ? `Сайн уу, ${user.full_name}` : 'Жолоочийн самбар'}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">Таны чиглэл, ирсэн хүсэлт, орлогын бодит тойм.</p>
