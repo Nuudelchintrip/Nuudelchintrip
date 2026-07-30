@@ -11,7 +11,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import { fetchPlatformPaymentInfo, uploadPaymentProof, type PlatformPaymentInfo } from '../services/paymentService';
 import { fetchCurrentTravelerBookings, fetchPassengerBookingById, type PassengerBookingDetail } from '../services/tripService';
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const fallbackPayment: PlatformPaymentInfo = {
   holder: import.meta.env.VITE_PLATFORM_BANK_HOLDER || 'NuudelchinTrip админ',
