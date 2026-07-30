@@ -3,7 +3,7 @@ import { CircleHelp, LogOut, Menu, ShieldCheck, UserCircle, X } from 'lucide-rea
 import { useLocation } from 'react-router';
 import type { DashboardRole } from '../navigation/dashboardMenus';
 import { logoutFromSupabase } from '../services/supabaseAuth';
-import { getRoleLabel, getStoredUser } from '../utils/auth';
+import { getDashboardPath, getRoleLabel, getStoredUser } from '../utils/auth';
 import { Logo } from './Logo';
 import { NotificationBell } from './NotificationBell';
 import { ThemeToggle } from './ThemeToggle';
@@ -22,12 +22,14 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const account = getAccountContext(location.pathname, accountRole);
+  // Самбар дотор лого дарахад нүүр рүү биш, өөрийн самбар руу буцна.
+  const homeHref = getDashboardPath(getStoredUser()?.role);
   const activeMenuHref = activeHref ?? getActiveMenuHref(location.pathname, menuItems.map((item) => item.href));
 
   return (
     <>
       <div className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar/95 px-3.5 backdrop-blur md:hidden">
-        <a href="/" aria-label="NuudelchinTrip нүүр">
+        <a href={homeHref} aria-label="Самбар руу очих">
             <Logo size="sm" />
         </a>
         <div className="flex items-center gap-2">
@@ -58,7 +60,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
           />
           <aside className="relative flex h-full w-[86vw] max-w-[19rem] flex-col bg-sidebar shadow-2xl">
             <div className="flex h-14 items-center justify-between border-b border-sidebar-border px-3.5">
-              <a href="/" aria-label="NuudelchinTrip нүүр">
+              <a href={homeHref} aria-label="Самбар руу очих">
               <Logo size="sm" />
               </a>
               <button
@@ -110,7 +112,7 @@ export function Sidebar({ menuItems, accountRole, activeHref }: SidebarProps) {
       <aside className="hidden w-64 shrink-0 bg-sidebar border-r border-sidebar-border md:flex flex-col h-screen sticky top-0 lg:w-72">
       {/* Logo */}
       <div className="px-4 py-4 border-b border-sidebar-border">
-        <a href="/" aria-label="NuudelchinTrip нүүр">
+        <a href={homeHref} aria-label="Самбар руу очих">
             <Logo size="md" />
         </a>
         <div className="mt-3 rounded-lg border border-sidebar-border bg-sidebar-accent/50 p-2.5">

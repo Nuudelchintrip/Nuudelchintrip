@@ -32,7 +32,8 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between gap-3 sm:h-16 sm:gap-4">
           <div className="flex min-w-0 items-center gap-6 lg:gap-8">
-            <a href="/" aria-label="NuudelchinTrip нүүр">
+            {/* Нэвтэрсэн үед лого дарахад нүүр рүү биш, өөрийн самбар руу очно. */}
+            <a href={user ? dashboardPath : '/'} aria-label={user ? 'Самбар руу очих' : 'NuudelchinTrip нүүр'}>
               <Logo size="md" />
             </a>
 
