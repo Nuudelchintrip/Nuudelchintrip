@@ -9,7 +9,11 @@
 --
 -- Apply manually in the Supabase SQL Editor.
 
-create or replace function public.get_participant_public_profile(p_user_id uuid)
+-- The live DB has an older version with a different OUT row type, and
+-- CREATE OR REPLACE cannot change a function's return type (42P13).
+drop function if exists public.get_participant_public_profile(uuid);
+
+create function public.get_participant_public_profile(p_user_id uuid)
 returns table (
   id uuid,
   role public.user_role,
