@@ -168,7 +168,7 @@ async function getPaymentTarget(paymentId: string) {
 }
 
 export async function approvePayment(paymentId: string) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const payment = await getPaymentTarget(paymentId);
 
   if (payment.booking_id) {
@@ -195,7 +195,7 @@ export async function approvePayment(paymentId: string) {
 }
 
 export async function rejectPayment(paymentId: string) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const payment = await getPaymentTarget(paymentId);
 
   if (payment.booking_id) {
@@ -222,7 +222,7 @@ export async function rejectPayment(paymentId: string) {
 
 /** Refund a booking payment: marks refunded + cancels the booking (releases seats). */
 export async function refundPayment(paymentId: string, reason: string) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.rpc('refund_payment', { p_payment_id: paymentId, p_note: reason });
   if (error) throw mapPaymentError(error);
 }
@@ -291,7 +291,7 @@ export async function updateDriverVerification(
   status: DriverVerificationStatus,
   rejectionReason?: string,
 ) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { error } = await supabase.rpc('review_driver_verification', {
     p_user_id: userId,
@@ -411,7 +411,7 @@ export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDet
 }
 
 export async function setUserSuspended(userId: string, isSuspended: boolean) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { error } = await supabase
     .from('profiles')
@@ -469,7 +469,7 @@ export async function fetchAdminTrips(): Promise<AdminTripItem[]> {
 }
 
 export async function updateTripStatus(tripId: string, status: 'active' | 'cancelled') {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { error } = await supabase
     .from('trips')
@@ -647,7 +647,7 @@ export async function fetchAdminReports(): Promise<AdminReportItem[]> {
 }
 
 export async function resolveReport(reportId: string, status: 'reviewing' | 'resolved' | 'rejected') {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { data: userData } = await supabase.auth.getUser();
   const adminId = userData.user?.id;
 

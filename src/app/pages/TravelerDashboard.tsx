@@ -6,6 +6,7 @@ import { Card } from '../components/Card';
 import { AppFooter } from '../components/Footer';
 import { Sidebar } from '../components/Sidebar';
 import { StatCard } from '../components/StatCard';
+import { getSeatLabel } from '../data/seats';
 import { getDashboardMenu } from '../navigation/dashboardMenus';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { fetchCurrentTravelerBookings, type TravelerBookingSummary } from '../services/tripService';
@@ -201,7 +202,7 @@ export function TravelerDashboard() {
                       </p>
                       <p className="mt-2 text-sm text-muted-foreground">
                         {booking.selectedSeats.length > 0
-                          ? `Суудал: ${booking.selectedSeats.join(', ')}`
+                          ? `Суудал: ${booking.selectedSeats.map(getSeatLabel).join(', ')}`
                           : `${booking.seatsRequested} суудал`}
                         {' · '}₮{booking.totalAmount.toLocaleString()}
                       </p>

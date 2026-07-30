@@ -28,7 +28,7 @@ function toError(error: unknown, fallback: string) {
 }
 
 export async function uploadPaymentProof(input: UploadPaymentProofInput): Promise<UploadPaymentProofResult> {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw toError(userError, 'User session check failed.');

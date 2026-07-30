@@ -383,7 +383,7 @@ export async function canCurrentDriverCreateTrip() {
 }
 
 export async function createDriverTrip(input: CreateDriverTripInput) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw toError(userError, 'User session check failed.');
@@ -473,7 +473,7 @@ export async function createDriverTrip(input: CreateDriverTripInput) {
 }
 
 export async function saveRouteSearch(input: SaveRouteSearchInput) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: searchId, error } = await supabase.rpc('save_route_search', {
     p_from_location: input.fromLocation,
@@ -532,7 +532,7 @@ export async function createRouteRequest(input: {
   contactPhone?: string;
   note?: string;
 }) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: requestId, error } = await supabase.rpc('create_route_request', {
     p_from_location: input.fromLocation,
@@ -576,7 +576,7 @@ export async function fetchActiveRouteRequests() {
 }
 
 export async function closeRouteRequest(requestId: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { error } = await supabase.rpc('close_route_request', { p_request_id: requestId });
   if (error) throw toError(error, 'Зар хаахад алдаа гарлаа.');
@@ -695,7 +695,7 @@ export async function fetchTripCompanions(tripId: string): Promise<TripCompanion
 }
 
 export async function updateDriverTrip(tripId: string, input: CreateDriverTripInput) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data, error } = await supabase.rpc('update_driver_trip', {
     p_trip_id: tripId,
@@ -718,7 +718,7 @@ export async function updateDriverTrip(tripId: string, input: CreateDriverTripIn
 }
 
 export async function cancelDriverTrip(tripId: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data, error } = await supabase.rpc('cancel_driver_trip', { p_trip_id: tripId });
   if (error) throw toError(error, 'Чиглэл цуцлахад алдаа гарлаа.');
@@ -855,7 +855,7 @@ export async function createPassengerBooking(input: {
   selectedSeats?: string[];
   note?: string;
 }) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: userData, error: userError } = await supabase.auth.getUser();
   if (userError) throw toError(userError, 'User session check failed.');
@@ -1086,7 +1086,7 @@ export async function updatePassengerBookingStatus(
   bookingId: string,
   status: 'accepted' | 'rejected' | 'waiting_payment' | 'confirmed' | 'cancelled',
 ) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   // Role-validated transition that also releases held seats on reject/cancel.
   const { data, error } = await supabase
@@ -1102,13 +1102,13 @@ export async function updatePassengerBookingStatus(
       unsupported_status: 'Буруу төлөв.',
     };
     const known = Object.entries(messageByCode).find(([code]) => toError(error, '').message.includes(code))?.[1];
-    throw known ? new Error(known) : toError(error, 'Booking status шинэчлэхэд алдаа гарлаа.');
+    throw known ? new Error(known) : toError(error, 'Захиалгын төлөв шинэчлэхэд алдаа гарлаа.');
   }
   return (data || { id: bookingId, status }) as { id: string; status: string };
 }
 
 export async function startPassengerTrip(bookingId: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.rpc('start_passenger_trip', { p_booking_id: bookingId }).maybeSingle();
   if (error) {
     const messageByCode: Record<string, string> = {
@@ -1122,7 +1122,7 @@ export async function startPassengerTrip(bookingId: string) {
 }
 
 export async function completePassengerTrip(bookingId: string, code: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.rpc('complete_passenger_trip', { p_booking_id: bookingId, p_code: code }).maybeSingle();
   if (error) {
     const messageByCode: Record<string, string> = {
@@ -1138,7 +1138,7 @@ export async function completePassengerTrip(bookingId: string, code: string) {
 
 /** File a dispute/report tied to a booking. reporter_id is the signed-in user (RLS-enforced). */
 export async function createBookingReport(input: { bookingId: string; tripId?: string; reason: string; details?: string }) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error('Дахин нэвтэрнэ үү.');
@@ -1367,7 +1367,7 @@ export async function fetchParticipantPublicProfile(userId: string): Promise<Par
 }
 
 export async function createCargoRequest(input: CreateCargoRequestInput) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data, error } = await supabase
     .rpc('create_cargo_request', {
@@ -1469,7 +1469,7 @@ export interface PendingReview {
 }
 
 export async function submitReview(bookingId: string, rating: number, comment?: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.rpc('submit_review', {
     p_booking_id: bookingId,
     p_rating: rating,
@@ -1489,7 +1489,7 @@ export async function submitReview(bookingId: string, rating: number, comment?: 
 }
 
 export async function submitCargoReview(cargoId: string, rating: number, comment?: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.rpc('submit_cargo_review', {
     p_cargo_id: cargoId,
     p_rating: rating,
@@ -1754,7 +1754,7 @@ export async function updateCargoRequestStatus(
   cargoRequestId: string,
   status: 'cargo_accepted' | 'rejected' | 'waiting_payment' | 'picked_up' | 'in_transit' | 'completed' | 'cancelled',
 ) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data, error } = await supabase
     .rpc('set_cargo_request_status', { p_cargo_id: cargoRequestId, p_status: status })
@@ -1768,7 +1768,7 @@ export async function updateCargoRequestStatus(
 }
 
 export async function completeCargoDelivery(cargoRequestId: string, code: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { error } = await supabase
     .rpc('complete_cargo_delivery', { p_cargo_id: cargoRequestId, p_code: code })

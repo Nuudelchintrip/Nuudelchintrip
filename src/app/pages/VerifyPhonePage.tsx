@@ -51,12 +51,12 @@ export function VerifyPhonePage() {
       addActionLog({
         actor: user?.full_name || phone,
         user: user?.full_name || phone,
-        actionType: 'OTP код хүссэн',
+        actionType: 'Баталгаажуулах код хүссэн',
         status: 'Амжилттай',
         details: `${formatMongoliaPhone(phone)} дугаар дээр баталгаажуулалтын код илгээв.`,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'OTP код илгээхэд алдаа гарлаа.');
+      setError(err instanceof Error ? err.message : 'Баталгаажуулах код илгээхэд алдаа гарлаа.');
     } finally {
       setSending(false);
     }
@@ -76,7 +76,7 @@ export function VerifyPhonePage() {
       addActionLog({
         actor: user?.full_name || phone,
         user: user?.full_name || phone,
-        actionType: 'OTP баталгаажуулалт',
+        actionType: 'Утасны баталгаажуулалт',
         status: 'Амжилтгүй',
         details: 'Кодын хугацаа дууссан.',
       });
@@ -92,9 +92,9 @@ export function VerifyPhonePage() {
       addActionLog({
         actor: user?.full_name || phone,
         user: user?.full_name || phone,
-        actionType: 'OTP баталгаажуулалт',
+        actionType: 'Утасны баталгаажуулалт',
         status: 'Амжилтгүй',
-        details: 'Хэрэглэгч буруу эсвэл хугацаа дууссан OTP код оруулсан.',
+        details: 'Хэрэглэгч буруу эсвэл хугацаа дууссан код оруулсан.',
       });
       setVerifying(false);
       return;

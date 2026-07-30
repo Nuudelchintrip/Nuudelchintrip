@@ -8,7 +8,7 @@ import { getDashboardMenu } from '../navigation/dashboardMenus';
 
 const adminAreas = [
   { title: 'Хэрэглэгчид', text: 'Бүртгэлтэй хэрэглэгч, role, suspension төлөвийг хянана.', href: '/admin/users', icon: <Users className="h-5 w-5" /> },
-  { title: 'Баталгаажуулалт', text: 'Жолоочийн бичиг баримт, машины мэдээлэл, profile verification.', href: '/admin/verifications', icon: <ShieldCheck className="h-5 w-5" /> },
+  { title: 'Баталгаажуулалт', text: 'Жолоочийн бичиг баримт, машины мэдээлэл, хувийн мэдээллийг шалгаж баталгаажуулна.', href: '/admin/verifications', icon: <ShieldCheck className="h-5 w-5" /> },
   { title: 'Төлбөрүүд', text: 'Төлбөрийн баримт илгээгдсэн үед зөвшөөрөх эсвэл буцаах шийдвэр гаргана.', href: '/admin/payments', icon: <CreditCard className="h-5 w-5" /> },
   { title: 'Чиглэлүүд', text: 'Жолоочийн нийтэлсэн чиглэлүүдийг шалгана.', href: '/admin/routes', icon: <Route className="h-5 w-5" /> },
   { title: 'Гомдол, маргаан', text: 'Report үүссэн үед нотолгоо, төлөв, шийдвэрийг хянана.', href: '/admin/reports', icon: <Flag className="h-5 w-5" /> },

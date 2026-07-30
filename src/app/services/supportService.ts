@@ -85,7 +85,7 @@ export async function fetchAdminSupportRequests(): Promise<AdminSupportItem[]> {
 }
 
 export async function updateSupportStatus(id: string, status: 'open' | 'reviewing' | 'resolved') {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.from('support_requests').update({ status }).eq('id', id);
   if (error) throw error;
 }

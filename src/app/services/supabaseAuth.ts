@@ -74,7 +74,7 @@ export type RegisterResult =
   | { status: 'email_confirmation_pending'; email: string };
 
 export async function registerWithSupabase(input: RegisterInput): Promise<RegisterResult> {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   clearStoredUser();
   const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
@@ -114,7 +114,7 @@ export async function registerWithSupabase(input: RegisterInput): Promise<Regist
 }
 
 export async function loginWithSupabase(email: string, password: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
@@ -123,7 +123,7 @@ export async function loginWithSupabase(email: string, password: string) {
 }
 
 export async function sendPasswordResetEmail(email: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const siteOrigin = isLocalhost ? window.location.origin : 'https://nuudelchintrip.com';
@@ -136,7 +136,7 @@ export async function sendPasswordResetEmail(email: string) {
 }
 
 export async function updatePasswordWithRecovery(newPassword: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
@@ -162,7 +162,7 @@ export async function updateProfileInfo(input: { fullName?: string; avatarUrl?: 
 }
 
 export async function uploadAvatar(file: File): Promise<string> {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData.session?.user.id;
@@ -193,7 +193,7 @@ export async function fetchMyAvatarUrl(): Promise<string | null> {
 }
 
 export async function changePassword(currentPassword: string, newPassword: string) {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: sessionData } = await supabase.auth.getSession();
   const email = sessionData.session?.user.email;
@@ -399,7 +399,7 @@ export type DriverDocumentKind = 'driver_license' | 'vehicle_certificate' | 'veh
 
 /** Upload one driver document to the private driver-documents bucket; returns the stored path. */
 export async function uploadDriverDocument(file: File, kind: DriverDocumentKind): Promise<string> {
-  if (!supabase) throw new Error('Supabase env тохируулагдаагүй байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
 
   const { data: sessionData } = await supabase.auth.getSession();
   const userId = sessionData.session?.user.id;

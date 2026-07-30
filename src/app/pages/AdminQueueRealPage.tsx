@@ -46,11 +46,11 @@ const pageCopy: Record<AdminView, { title: string; description: string }> = {
   },
   verifications: {
     title: 'Жолоочийн баталгаажуулалт',
-    description: 'Жолоочийн profile, машины мэдээлэл, суудлын тоог шалгаад чиглэл нийтлэх эрхийг нээнэ.',
+    description: 'Жолоочийн хувийн мэдээлэл, машины мэдээлэл, суудлын тоог шалгаад чиглэл нийтлэх эрхийг нээнэ.',
   },
   users: {
     title: 'Хэрэглэгчид',
-    description: 'Бүртгэлтэй хэрэглэгчдийн үндсэн мэдээлэл болон role-ийг харах хэсэг.',
+    description: 'Бүртгэлтэй хэрэглэгчдийн үндсэн мэдээлэл болон үүргийг харах хэсэг.',
   },
   reports: {
     title: 'Гомдол, маргаан',
@@ -70,7 +70,7 @@ const pageCopy: Record<AdminView, { title: string; description: string }> = {
   },
   logs: {
     title: 'Үйлдлийн түүх',
-    description: 'Системийн гол үйлдлүүдийн audit log харах хэсэг.',
+    description: 'Системд хийгдсэн гол үйлдлүүдийн бүртгэлийг харах хэсэг.',
   },
   support: {
     title: 'Дэмжлэгийн хүсэлт',
@@ -78,7 +78,7 @@ const pageCopy: Record<AdminView, { title: string; description: string }> = {
   },
   payouts: {
     title: 'Жолоочийн төлбөр',
-    description: 'Жолоочдод шилжүүлэх орлого (90%), шилжүүлсэн дүн, үлдэгдлийг хянаж payout бүртгэнэ.',
+    description: 'Жолоочдод шилжүүлэх орлого (90%), шилжүүлсэн дүн, үлдэгдлийг хянаж шилжүүлэг бүртгэнэ.',
   },
 };
 
@@ -514,7 +514,7 @@ function AdminUsersQueue() {
                     <Badge variant="info">{roleLabel(item.role)}</Badge>
                     {item.isSuspended && <Badge variant="danger">Түдгэлзсэн</Badge>}
                     {item.phoneVerified && <Badge variant="success">Утас баталгаажсан</Badge>}
-                    {item.onboardingCompleted && <Badge variant="default">Onboarding дууссан</Badge>}
+                    {item.onboardingCompleted && <Badge variant="default">Бүртгэл дууссан</Badge>}
                   </div>
                   <h2 className="mt-3 break-words text-xl font-semibold text-foreground">{item.fullName}</h2>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -1236,6 +1236,8 @@ const statusLabels: Record<string, string> = {
   open: 'Нээлттэй',
   reviewing: 'Шалгаж байна',
   resolved: 'Шийдвэрлэсэн',
+  closed: 'Хаагдсан',
+  refunded: 'Төлбөр буцаасан',
 };
 
 function bookingStatusLabel(status: string) {

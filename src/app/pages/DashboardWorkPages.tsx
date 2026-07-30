@@ -9,7 +9,7 @@ import { LocationSelectGroup } from '../components/LocationSelectGroup';
 import { SeatPicker } from '../components/SeatPicker';
 import { Select } from '../components/Select';
 import { Sidebar } from '../components/Sidebar';
-import { getDefaultSeatIds } from '../data/seats';
+import { getDefaultSeatIds, getSeatLabel } from '../data/seats';
 import { locationMatchesText } from '../data/locations';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { getBookingBadgeVariant, getCargoStatusLabel, getRequestStatusLabel } from '../utils/bookingStatus';
@@ -632,7 +632,7 @@ export function RoleRequestsPage({ role, action }: { role: WorkRole; action?: 'a
       )));
       setActionMessage(nextStatus === 'accepted' ? 'Хүсэлт зөвшөөрөгдлөө. Аялагч төлбөрийн баримт илгээх шат руу орно.' : 'Хүсэлт татгалзагдлаа.');
     } catch (error) {
-      setRequestError(error instanceof Error ? error.message : 'Status шинэчлэхэд алдаа гарлаа.');
+      setRequestError(error instanceof Error ? error.message : 'Төлөв шинэчлэхэд алдаа гарлаа.');
     }
   };
 
@@ -825,7 +825,7 @@ export function FindDriversPage() {
       .catch((error) => {
         if (!active) return;
         setOffers([]);
-        setLoadError(error instanceof Error ? error.message : 'Trip мэдээлэл уншихад алдаа гарлаа.');
+        setLoadError(error instanceof Error ? error.message : 'Чиглэлийн мэдээлэл уншихад алдаа гарлаа.');
       })
       .finally(() => {
         if (active) setLoadingTrips(false);
@@ -1294,7 +1294,7 @@ export function MyRoutesPage({ role }: { role: WorkRole }) {
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
                       {booking.selectedSeats.length > 0
-                        ? `Суудал: ${booking.selectedSeats.join(', ')}`
+                        ? `Суудал: ${booking.selectedSeats.map(getSeatLabel).join(', ')}`
                         : `${booking.seatsRequested} суудал`}
                       {' · '}₮{booking.totalAmount.toLocaleString()}
                     </p>
@@ -1494,8 +1494,7 @@ export function DriverCargoRequestsPage() {
             <div className="grid gap-5 xl:grid-cols-[1fr_220px] xl:items-center">
               <div>
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <Badge variant="warning">{request.id}</Badge>
-                  <Badge variant="default">{request.status}</Badge>
+                  <Badge variant="default">{getCargoStatusLabel(request.status)}</Badge>
                 </div>
                 <h2 className="text-2xl font-semibold text-foreground">{request.route}</h2>
                 <p className="mt-2 text-muted-foreground">

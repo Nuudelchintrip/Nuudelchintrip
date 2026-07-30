@@ -1051,7 +1051,7 @@ export function AccountVerificationPage({ role }: { role: AccountRole }) {
             <div>
               <h2 className="text-xl font-semibold text-foreground">{profile.label}</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {loading ? 'Төлөвийг шинэчилж байна...' : 'Доорх мэдээлэл Supabase бүртгэлээс шинэчлэгдэн харагдана.'}
+                {loading ? 'Төлөвийг шинэчилж байна...' : 'Доорх мэдээлэл таны бүртгэлээс шинэчлэгдэн харагдана.'}
               </p>
             </div>
             {role === 'driver' && <Badge variant={driverStatusCopy.variant}>{driverStatusCopy.label}</Badge>}

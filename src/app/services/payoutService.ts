@@ -128,14 +128,14 @@ export async function fetchAdminDriverPayouts(): Promise<AdminDriverPayout[]> {
 }
 
 export async function recordDriverPayout(driverId: string, amount: number, note?: string) {
-  if (!supabase) throw new Error('Supabase тохиргоо дутуу байна.');
+  if (!supabase) throw new Error('Системийн холболт тохируулагдаагүй байна. Админд мэдэгдэнэ үү.');
   const { error } = await supabase.rpc('record_driver_payout', {
     p_driver_id: driverId,
     p_amount: Math.round(amount),
     p_note: note?.trim() || null,
   });
   if (error) {
-    if (error.message?.includes('admin_required')) throw new Error('Зөвхөн админ payout бүртгэнэ.');
+    if (error.message?.includes('admin_required')) throw new Error('Зөвхөн админ шилжүүлэг бүртгэнэ.');
     if (error.message?.includes('invalid_amount')) throw new Error('Дүн буруу байна.');
     throw error;
   }
