@@ -3,7 +3,7 @@
 :root {
   /* Global UI scale: every rem-based Tailwind size (text, spacing, cards)
      derives from this, so lowering it compacts the whole site evenly. */
-  --font-size: 14px;
+  --font-size: 15px;
   --background: #F8FAFC;
   --foreground: #0F172A;
   --card: #FFFFFF;
@@ -207,10 +207,10 @@
     font-size: var(--font-size);
   }
 
-  /* Mobile: match the global compact base; rem-based sizes stay proportional. */
+  /* Mobile: match the global base; rem-based sizes stay proportional. */
   @media (max-width: 640px) {
     html {
-      font-size: 14px;
+      font-size: 15px;
     }
 
     body {
